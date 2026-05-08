@@ -1,0 +1,28 @@
+settings:
+  digits: 3
+  itemformat: markdown
+  parent: ARC
+  prefix: SWD
+  sep: '-'
+
+attributes:
+  defaults:
+    release: Alpha
+    header: |
+      Add a short description here
+    text: |
+      ## Design intent
+
+      ## Inputs
+
+      ## Processing
+
+      ## Outputs
+
+      ## Failure handling
+
+  publish:
+    - release
+
+  reviewed:
+    - release

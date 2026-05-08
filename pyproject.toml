@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "vector"
+version = "0.1"
+description = "Verified Cryptography & Transition via Observable Registry"
+authors = ["Mateja Cimesa <cimesa@itrust.lu>", "Arash Atashpendar <arash@abstractionslab.lu>", "Itzel Vazquez Sandoval <itzel@abstractionslab.lu>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = "^0.32.0"
+pydantic = "^2.9.0"
+pyyaml = "^6.0.3"
+doorstop = "3.0b10"
+setuptools = "<71.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

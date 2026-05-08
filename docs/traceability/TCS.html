@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html>
+<head><title>Doorstop</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <link rel="stylesheet" href="assets/doorstop/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/doorstop/general.css" />
+  <link type="text/css" rel="stylesheet" href="assets/doorstop/sidebar.css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" ></script>
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
+  });
+  </script>
+</head>
+<body>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-2 hidden-sm hidden-xs">
+          <nav id="TOC" class="nav nav-stacked fixed sidebar">
+              <h3>Table of Contents</h3>
+<pre><code>* [1.1 Verify persisted output locations for VECTOR-Code artifacts](#<a href="TCS.html#TCS-001">TCS-001</a>)
+* [1.2 Verify supported language detection](#<a href="TCS.html#TCS-002">TCS-002</a>)
+* [1.3 Verify CodeQL database creation](#<a href="TCS.html#TCS-003">TCS-003</a>)
+* [1.4 Verify SARIF generation from CodeQL queries](#<a href="TCS.html#TCS-004">TCS-004</a>)
+* [1.5 Verify SARIF-to-CBOM conversion](#<a href="TCS.html#TCS-005">TCS-005</a>)
+* [1.6 Verify raw TLS scan output generation](#<a href="TCS.html#TCS-006">TCS-006</a>)
+* [1.7 Verify TLS CBOM decomposition](#<a href="TCS.html#TCS-007">TCS-007</a>)
+* [1.8 Verify raw SSH scan output generation](#<a href="TCS.html#TCS-008">TCS-008</a>)
+* [1.9 Verify Linux runtime assumptions and tool-path checks](#<a href="TCS.html#TCS-009">TCS-009</a>)
+* [1.10 Verify safe failure behavior](#<a href="TCS.html#TCS-010">TCS-010</a>)
+* [1.11 Verify classification of quantum-vulnerable algorithms](#<a href="TCS.html#TCS-011">TCS-011</a>)
+* [1.12 Verify classification of post-quantum algorithms](#<a href="TCS.html#TCS-012">TCS-012</a>)
+* [1.13 Verify annotated CBOM contains pqcmat risk properties](#<a href="TCS.html#TCS-013">TCS-013</a>)
+</code></pre>
+          </nav>
+      </div>
+      <div class="col-lg-8" id="main">
+        <h2 id="TCS-001">1.1 Verify persisted output locations for VECTOR-Code artifacts <small><a href="TCS.html#TCS-001">TCS-001</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare a readable sample project directory.</li>
+<li>Ensure the current workspace is writable.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run <code>python3 main.py &lt;sample-project&gt; --name sample-app</code> from the VECTOR-Code directory.</li>
+<li>Inspect the <code>output/databases</code>, <code>output/results</code>, and <code>output/cbom</code> directories after execution.</li>
+<li>Confirm that generated artifacts remain accessible after the process exits.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>VECTOR-Code creates the expected output directory structure.</li>
+<li>Generated analysis artifacts are written to local files.</li>
+<li>Artifact paths remain inspectable after completion.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-001">SRS-001 Persist output artifacts in predictable locations</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-001">TRP-001 Starter report for persisted output verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>A readable sample project path with writable local output directories</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-002">1.2 Verify supported language detection <small><a href="TCS.html#TCS-002">TCS-002</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare sample repositories containing known language mixes.</li>
+<li>Ensure <code>cloc</code> is available in the runtime environment.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run the VECTOR-Code workflow against a sample project containing supported languages.</li>
+<li>Observe the reported detected languages and percentages.</li>
+<li>Repeat with a project that contains no supported language above threshold.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>Supported languages above threshold are reported.</li>
+<li>Python, C, and C++ map to the implemented source-analysis path.</li>
+<li>A project with no supported language above threshold terminates with an explicit warning or failure.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-002">SRS-002 Detect supported source languages from the target project</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-002">TRP-002 Starter report for language detection verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Sample projects containing Python, C, and C++ code above and below threshold</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-003">1.3 Verify CodeQL database creation <small><a href="TCS.html#TCS-003">TCS-003</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare a readable sample project.</li>
+<li>Ensure the CodeQL CLI is installed and reachable from PATH.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run VECTOR-Code against the sample project.</li>
+<li>Inspect the created database directories under <code>output/databases</code>.</li>
+<li>Verify that languages mapping to the same CodeQL language do not produce duplicate database names.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>CodeQL databases are created for the detected CodeQL languages.</li>
+<li>Database names follow the <code>db-&lt;codeql-language&gt;</code> convention.</li>
+<li>Duplicate databases are not created for multiple source languages that share the same CodeQL target.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-003">SRS-003 Create CodeQL databases through the external CLI</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-003">TRP-003 Starter report for CodeQL database verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>3</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Sample project with detectable supported language content and CodeQL CLI installed</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-004">1.4 Verify SARIF generation from CodeQL queries <small><a href="TCS.html#TCS-004">TCS-004</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare created CodeQL databases.</li>
+<li>Ensure the configured query paths exist.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run the VECTOR-Code workflow until the query stage completes.</li>
+<li>Inspect the <code>output/results</code> directory.</li>
+<li>Confirm that missing query paths or failed queries are reported explicitly.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>Successful query execution creates SARIF output files.</li>
+<li>SARIF files follow the <code>crypto-&lt;language&gt;.sarif</code> naming pattern.</li>
+<li>Query-path or execution failures do not appear as successful findings.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-004">SRS-004 Run cryptographic inventory queries on created databases</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-004">TRP-004 Starter report for SARIF generation verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>3</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Created CodeQL databases and available inventory query packs</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-005">1.5 Verify SARIF-to-CBOM conversion <small><a href="TCS.html#TCS-005">TCS-005</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare one or more valid SARIF result files.</li>
+<li>Ensure the <code>cryptobom</code> command is available.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run the VECTOR-Code workflow through the CBOM generation stage.</li>
+<li>Inspect the <code>output/cbom</code> directory.</li>
+<li>Confirm that failed conversions are reported and omitted from the successful output set.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>CBOM JSON files are created from valid SARIF files.</li>
+<li>Generated file names derive from the source SARIF stem.</li>
+<li>Failed conversions do not appear as successful outputs.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-005">SRS-005 Convert source-analysis findings into CBOM artifacts</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-005">TRP-005 Starter report for SARIF-to-CBOM verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Valid SARIF output files and cryptobom CLI installed</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-006">1.6 Verify raw TLS scan output generation <small><a href="TCS.html#TCS-006">TCS-006</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare a reachable TLS-enabled endpoint.</li>
+<li>Ensure <code>testssl.sh</code> is available at the configured path.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run <code>python3 network-scanning.py --protocol tls --target &lt;target&gt; --port &lt;port&gt;</code>.</li>
+<li>Inspect the created raw TLS scan file.</li>
+<li>Confirm that the file is non-empty and associated with the requested target.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>The TLS workflow accepts valid target and port input.</li>
+<li>A raw JSON scan file is created.</li>
+<li>Empty or missing output files are treated as failure conditions.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-006">SRS-006 Scan TLS-enabled services by target and port</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-006">TRP-006 Starter report for raw TLS scan verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Controlled TLS endpoint and reachable port</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-007">1.7 Verify TLS CBOM decomposition <small><a href="TCS.html#TCS-007">TCS-007</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare a valid raw TLS scan JSON file.</li>
+<li>Ensure the TLS converter script and mapping files are present.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run the TLS workflow through CBOM generation.</li>
+<li>Inspect the generated TLS CBOM file.</li>
+<li>Confirm that the output contains decomposed algorithm elements rather than only opaque suite names.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>The converter generates a CBOM JSON file for the TLS scan.</li>
+<li>Mapped cipher-suite components appear as explicit algorithm records.</li>
+<li>Hybrid or PQ-related entries are represented when present in the mapped input data.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-007">SRS-007 Model TLS findings with classical, hybrid, and PQ-aware decomposition</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-007">TRP-007 Starter report for TLS CBOM verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>3</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>TLS scan JSON containing cipher suites, groups, and supported mapped entries</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-008">1.8 Verify raw SSH scan output generation <small><a href="TCS.html#TCS-008">TCS-008</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare a reachable SSH-enabled endpoint.</li>
+<li>Ensure <code>zgrab2</code> is available in PATH.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run <code>python3 network-scanning.py --protocol ssh --target &lt;target&gt; --port &lt;port&gt;</code>.</li>
+<li>Inspect the created raw SSH scan file.</li>
+<li>Confirm that the file is non-empty and associated with the requested target.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>The SSH workflow accepts valid target and port input.</li>
+<li>A raw JSON scan file is created.</li>
+<li>Empty or missing output files are treated as failure conditions.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-008">SRS-008 Scan SSH-enabled services by target and port</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-008">TRP-008 Starter report for raw SSH scan verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Controlled SSH endpoint and reachable port</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-009">1.9 Verify Linux runtime assumptions and tool-path checks <small><a href="TCS.html#TCS-009">TCS-009</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare one environment that satisfies the expected runtime layout.</li>
+<li>Prepare one environment with a missing required script or unwritable output location.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run VECTOR-Code and VECTOR-Network in the valid environment.</li>
+<li>Observe creation of required directories and use of configured tool paths.</li>
+<li>Repeat in the invalid environment and record the resulting failure behavior.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>The valid environment supports normal startup and artifact generation.</li>
+<li>Required tool paths and writable directories are part of the runtime contract.</li>
+<li>Missing required scripts or paths are surfaced explicitly.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-009">SRS-009 Execute within a Linux workspace with explicit runtime assumptions</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-009">TRP-009 Starter report for runtime assumption verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Runtime environment with and without required tool paths and writable output locations</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-010">1.10 Verify safe failure behavior <small><a href="TCS.html#TCS-010">TCS-010</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>Prepare invalid target input, an out-of-range port, and one environment with a missing required tool.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Run the network workflow with an invalid port.</li>
+<li>Run the network workflow with an empty target.</li>
+<li>Run a workflow with a missing required tool or missing expected result file.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>Invalid input is rejected before the scanner runs.</li>
+<li>Missing tools or files produce explicit failures.</li>
+<li>Conversion does not continue after a validation failure.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-010">SRS-010 Fail safely for invalid inputs, missing tools, and incomplete outputs</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-010">TRP-010 Starter report for safe failure verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Invalid ports, empty targets, missing tools, and empty result files</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-011">1.11 Verify classification of quantum-vulnerable algorithms <small><a href="TCS.html#TCS-011">TCS-011</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>VECTOR-Score module is installed and importable from <code>tor/VECTOR-Score/</code>.</li>
+<li>A sample CBOM fixture with RSA, ECDHE, DHE, and ECDSA algorithm components is available under <code>tests/content/</code>.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Import <code>algorithm_classifier.classify</code> from <code>tor/VECTOR-Score/algorithm_classifier.py</code>.</li>
+<li>Call <code>classify("RSA", "pke", None)</code> and assert <code>result.classification == "quantum-vulnerable"</code>.</li>
+<li>Call <code>classify("ECDHE", "key-agree", None)</code> and assert <code>result.classification == "quantum-vulnerable"</code>.</li>
+<li>Call <code>classify("DHE", "key-agree", None)</code> and assert <code>result.classification == "quantum-vulnerable"</code>.</li>
+<li>Call <code>classify("ECDSA", "signature", None)</code> and assert <code>result.classification == "quantum-vulnerable"</code>.</li>
+</ol>
+<h2>Expected outcome</h2>
+<p>All four calls return a <code>RiskClassification</code> with <code>classification == "quantum-vulnerable"</code> and <code>risk_score == "high"</code>.</p>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-011">SRS-011 Classify cryptographic algorithm components in a CBOM by quantum risk</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-011">TRP-011 Test report for quantum-vulnerable algorithm classification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>A CBOM fixture containing algorithm components named RSA, ECDHE, DHE, and ECDSA.</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-012">1.12 Verify classification of post-quantum algorithms <small><a href="TCS.html#TCS-012">TCS-012</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>VECTOR-Score module is installed and importable from <code>tor/VECTOR-Score/</code>.</li>
+<li>The algorithm risk catalog includes entries for ML-KEM, ML-DSA, and SLH-DSA.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Import <code>algorithm_classifier.classify</code> from <code>tor/VECTOR-Score/algorithm_classifier.py</code>.</li>
+<li>Call <code>classify("ML-KEM-768", "kem", None)</code> and assert <code>result.classification == "post-quantum"</code>.</li>
+<li>Call <code>classify("ML-KEM-1024", "kem", None)</code> and assert <code>result.classification == "post-quantum"</code>.</li>
+<li>Call <code>classify("ML-DSA-65", "signature", None)</code> and assert <code>result.classification == "post-quantum"</code>.</li>
+<li>Call <code>classify("SLH-DSA", "signature", None)</code> and assert <code>result.classification == "post-quantum"</code>.</li>
+</ol>
+<h2>Expected outcome</h2>
+<p>All four calls return a <code>RiskClassification</code> with <code>classification == "post-quantum"</code> and <code>risk_score == "none"</code>.</p>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-011">SRS-011 Classify cryptographic algorithm components in a CBOM by quantum risk</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-012">TRP-012 Test report for post-quantum algorithm classification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>Direct calls to algorithm_classifier.classify() with ML-<a href="KEM.html#KEM-768">KEM-768</a>, ML-<a href="KEM.html#KEM-1024">KEM-1024</a>, ML-<a href="DSA.html#DSA-65">DSA-65</a>, SLH-DSA.</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="TCS-013">1.13 Verify annotated CBOM contains pqcmat risk properties <small><a href="TCS.html#TCS-013">TCS-013</a></small></h2>
+<h2>Preconditions and setup actions</h2>
+<ul>
+<li>VECTOR-Score module is installed and importable.</li>
+<li><code>tests/content/sample_tls_cbom.json</code> fixture is available with at least one algorithm component.</li>
+</ul>
+<h2>Test steps</h2>
+<ol>
+<li>Load <code>tests/content/sample_tls_cbom.json</code>.</li>
+<li>Call <code>cbom_scorer.score_cbom(cbom)</code> to obtain the annotated CBOM.</li>
+<li>For each component in the annotated CBOM where <code>cryptoProperties.assetType == "algorithm"</code>:
+   a. Assert that a <code>properties</code> array is present.
+   b. Assert that a <code>properties</code> entry with <code>name == "pqcmat:risk-classification"</code> exists and has a non-empty <code>value</code>.
+   c. Assert that a <code>properties</code> entry with <code>name == "pqcmat:risk-score"</code> exists.
+   d. Assert that a <code>properties</code> entry with <code>name == "pqcmat:recommended-migration"</code> exists.</li>
+<li>Assert that the annotated CBOM <code>metadata.properties</code> contains an entry with <code>name == "pqcmat:scored-at"</code>.</li>
+</ol>
+<h2>Expected outcome</h2>
+<p>All algorithm components in the annotated CBOM carry the required <code>pqcmat:</code> properties. Non-algorithm components (protocol, certificate) have no <code>pqcmat:</code> properties added.</p>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-012">SRS-012 Produce an annotated CBOM with quantum risk properties on each scored component</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-013">TRP-013 Test report for annotated CBOM pqcmat property verification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>tests/content/sample_tls_cbom.json — a minimal fixture containing RSA, <a href="AES.html#AES-128">AES-128</a>-GCM, and ML-<a href="KEM.html#KEM-768">KEM-768</a> algorithm components.</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+      </div>
+    </div>
+</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="assets/doorstop/jquery.min.js"></script>
+<script src="assets/doorstop/bootstrap.min.js"></script>
+<script>
+    $(function() {
+        $("table").addClass("table");
+        $("nav ul").addClass("nav nav-stacked");
+        $("nav").affix();
+        $('body').scrollspy({
+          target: '.sidebar'
+        });
+        $("#main a").attr("target", "parent");
+
+  $(window).on('hashchange', function() {
+    $(window).scrollTop($(location.hash.toLowerCase()).offset().top);});
+  });
+</script>
+</body>
+</html>
+

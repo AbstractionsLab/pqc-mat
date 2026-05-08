@@ -1,0 +1,27 @@
+Public Key Algorithm Name,primitive,cryptoFunctions,parameterSetIdentifier,curve
+ssh-dss,signature,"keygen,sign",1024,
+ssh-rsa,signature,"keygen,sign",,
+rsa-sha2-256,signature,"keygen,sign",2048,
+rsa-sha2-512,signature,"keygen,sign",2048,
+spki-sign-rsa,signature,"keygen,sign",,
+spki-sign-dss,signature,"keygen,sign",,
+pgp-sign-rsa,signature,"keygen,sign",,
+pgp-sign-dss,signature,"keygen,sign",,
+null,,,,
+ecdsa-sha2-*,signature,"keygen,sign",,
+x509v3-ssh-dss,signature,"keygen,sign",1024,
+x509v3-ssh-rsa,signature,"keygen,sign",,
+x509v3-rsa2048-sha256,signature,"keygen,sign",2048,
+x509v3-ecdsa-sha2-*,signature,"keygen,sign",,
+ssh-ed25519,signature,"keygen,sign",255,
+ssh-ed448,signature,"keygen,sign",448,
+ecdsa-sha2-nistp256,signature,"keygen,sign",256,nistp256
+ecdsa-sha2-nistp384,signature,"keygen,sign",384,nistp384
+ecdsa-sha2-nistp521,signature,"keygen,sign",521,nistp521
+sk-ssh-ed25519@openssh.com,signature,"keygen,sign",255,
+sk-ecdsa-sha2-nistp256@openssh.com,signature,"keygen,sign",256,nistp256
+ssh-ed25519-cert-v01@openssh.com,signature,"keygen,sign",255,
+ssh-rsa-cert-v01@openssh.com,signature,"keygen,sign",,
+ecdsa-sha2-nistp256-cert-v01@openssh.com,signature,"keygen,sign",256,nistp256
+ecdsa-sha2-nistp384-cert-v01@openssh.com,signature,"keygen,sign",384,nistp384
+ecdsa-sha2-nistp521-cert-v01@openssh.com,signature,"keygen,sign",521,nistp521

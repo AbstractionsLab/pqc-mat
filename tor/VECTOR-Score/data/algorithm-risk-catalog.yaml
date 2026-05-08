@@ -1,0 +1,488 @@
+# Quantum Risk Classification Catalog
+#
+# Each entry classifies one or more cryptographic algorithms by their quantum risk posture.
+# Fields:
+#   name_patterns     : list of exact algorithm names or Python regex patterns
+#   primitive_types   : list of CBOM primitive types this entry applies to (optional fallback)
+#   min_key_bits      : minimum parameterSetIdentifier value (int) for this rule to apply (optional)
+#   max_key_bits      : maximum parameterSetIdentifier value (int) for this rule to apply (optional)
+#   risk_classification: one of quantum-vulnerable | quantum-weakened | classically-deprecated |
+#                        quantum-safe | post-quantum | hybrid | unknown
+#   risk_score        : high | medium | low | none
+#   rationale         : short human-readable explanation
+#   recommended_migration: recommended replacement algorithm string
+#   references        : list of normative reference strings
+#
+# Matching order applied by algorithm_classifier.py:
+#   1. Exact name match (case-insensitive)
+#   2. Regex pattern match on name
+#   3. Primitive-type fallback (matches any algorithm with that primitive)
+#   4. unknown
+
+entries:
+
+  # ── Quantum-vulnerable: asymmetric algorithms broken by Shor's algorithm ──────────────────
+
+  - name_patterns:
+      - "^RSA(-KeyTransport|-PSK|-OAEP|-PKCS1v15)?(-\\d+)?$"
+      - "RSA-KeyTransport"
+      - "RSA-PSK"
+    primitive_types: [pke, signature]
+    risk_classification: quantum-vulnerable
+    risk_score: high
+    rationale: >
+      RSA relies on the hardness of integer factorisation. Shor's algorithm solves
+      integer factorisation in polynomial time on a cryptographically relevant quantum
+      computer (CRQC), rendering all RSA key sizes insecure.
+    recommended_migration: "ML-KEM-768 (NIST FIPS 203) for key encapsulation; ML-DSA-65 (NIST FIPS 204) for signatures"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — RSA disallowed for key transport after 2030"
+      - "BSI TR-02102-1 v2024-01 — RSA listed as quantum-vulnerable"
+      - "ANSSI — Guide de selection d'algorithmes cryptographiques (2021)"
+
+  - name_patterns:
+      - "^ECDH(E)?(-\\d+)?$"
+      - "^ECDH(/RSA|/ECDSA)?$"
+      - "ECDHE-256"
+      - "ECDHE-384"
+      - "ECDHE-521"
+    primitive_types: [key-agree, ecc]
+    risk_classification: quantum-vulnerable
+    risk_score: high
+    rationale: >
+      ECDH and ECDHE rely on the elliptic curve discrete logarithm problem (ECDLP).
+      Shor's algorithm (extended to elliptic curves) solves ECDLP in polynomial time
+      on a CRQC. The curve size does not provide quantum resistance.
+    recommended_migration: "ML-KEM-768 (NIST FIPS 203) or X25519MLKEM768 (hybrid)"
+    references:
+      - "NIST SP 800-186 (2023) — classical EC key agreement not quantum-safe"
+      - "BSI TR-02102-1 v2024-01 — ECDH listed as quantum-vulnerable"
+      - "ANSSI — Guide de selection d'algorithmes cryptographiques (2021)"
+
+  - name_patterns:
+      - "^DH(E)?(-\\d+)?$"
+      - "^DH(/RSA|/DSS)?$"
+      - "^DHE-PSK$"
+      - "^ffdhe\\d+$"
+      - "^DH-group-\\d+$"
+      - "^DH-custom-\\d+$"
+    primitive_types: [dh]
+    risk_classification: quantum-vulnerable
+    risk_score: high
+    rationale: >
+      Finite-field Diffie-Hellman relies on the discrete logarithm problem (DLP).
+      Shor's algorithm solves DLP in polynomial time on a CRQC, regardless of group size.
+    recommended_migration: "ML-KEM-768 (NIST FIPS 203)"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — DH key agreement not quantum-safe"
+      - "BSI TR-02102-1 v2024-01 — DH listed as quantum-vulnerable"
+
+  - name_patterns:
+      - "^ECDSA(-\\d+)?$"
+    primitive_types: [signature]
+    risk_classification: quantum-vulnerable
+    risk_score: high
+    rationale: >
+      ECDSA relies on the elliptic curve discrete logarithm problem. Shor's algorithm
+      breaks ECDSA on a CRQC regardless of curve size.
+    recommended_migration: "ML-DSA-65 (NIST FIPS 204) or SLH-DSA (NIST FIPS 205)"
+    references:
+      - "NIST FIPS 186-5 (2023) — ECDSA remains classical; PQC transition recommended"
+      - "BSI TR-02102-1 v2024-01 — ECDSA listed as quantum-vulnerable"
+
+  - name_patterns:
+      - "^DSA(-\\d+)?$"
+      - "^DSS$"
+    primitive_types: [signature]
+    risk_classification: quantum-vulnerable
+    risk_score: high
+    rationale: >
+      DSA relies on the discrete logarithm problem in finite fields, broken by Shor's
+      algorithm on a CRQC.
+    recommended_migration: "ML-DSA-65 (NIST FIPS 204)"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — DSA not quantum-safe"
+      - "BSI TR-02102-1 v2024-01 — DSA listed as quantum-vulnerable"
+
+  - name_patterns:
+      - "^Ed(DSA|25519|448)(-\\d+)?$"
+      - "^EdDSA$"
+    primitive_types: [signature]
+    risk_classification: quantum-vulnerable
+    risk_score: high
+    rationale: >
+      EdDSA (including Ed25519 and Ed448) relies on the elliptic curve discrete logarithm
+      problem. Despite its classical security properties, it is broken by Shor's algorithm
+      on a CRQC.
+    recommended_migration: "ML-DSA-44 (NIST FIPS 204) for equivalent security level"
+    references:
+      - "BSI TR-02102-1 v2024-01 — EdDSA listed as quantum-vulnerable"
+      - "ANSSI — Guide de selection d'algorithmes cryptographiques (2021)"
+
+  - name_patterns:
+      - "^(X25519|X448)$"
+    primitive_types: [key-agree, ecc]
+    risk_classification: quantum-vulnerable
+    risk_score: high
+    rationale: >
+      X25519 and X448 are Diffie-Hellman functions over elliptic curves (Curve25519,
+      Curve448). They are broken by Shor's algorithm on a CRQC.
+    recommended_migration: "X25519MLKEM768 (hybrid) or ML-KEM-768 (NIST FIPS 203)"
+    references:
+      - "BSI TR-02102-1 v2024-01 — X25519/X448 listed as quantum-vulnerable"
+      - "NIST SP 800-186 (2023)"
+
+  # ── Quantum-weakened: symmetric/hash algorithms with reduced but non-zero security ────────
+
+  - name_patterns:
+      - "^AES(-128)?(-\\w+)?$"
+    primitive_types: [block-cipher]
+    min_key_bits: 1
+    max_key_bits: 128
+    risk_classification: quantum-weakened
+    risk_score: medium
+    rationale: >
+      AES-128 provides 128-bit classical security. There is a belief that Grover's algorithm reduces this to
+      approximately 64-bit effective security against a CRQC — below the 128-bit quantum
+      security threshold recommended by NIST (SP 800-131A Rev.2), but this is not accurate. AES-128 is safe 
+      against quantum computers. Note that the BSI and NIST recommend AES-256 for "applications with high 
+      or long-term protection requirements or long-living systems".
+    recommended_migration: "AES-256 (128-bit quantum security)"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — AES-128 not recommended for long-term use"
+      - "BSI TR-02102-1 v2024-01 — 256-bit symmetric key recommended for long-term use"
+
+  - name_patterns:
+      - "^3DES(-EDE)?(-CBC)?$"
+      - "^TDEA$"
+    primitive_types: [block-cipher]
+    risk_classification: quantum-weakened
+    risk_score: medium
+    rationale: >
+      Triple DES (3DES-EDE) provides approximately 112-bit classical security due to
+      meet-in-the-middle attacks. Grover's algorithm may be believed to further reduce effective quantum security, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subject to ongoing research. NIST disallows 3DES after 2023 (SP 800-131A Rev.2).
+    recommended_migration: "AES-256-GCM (NIST FIPS 197)"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — 3DES disallowed after 2023"
+      - "BSI TR-02102-1 v2024-01 — 3DES not recommended"
+
+  - name_patterns:
+      - "^SHA-?1(-\\d+)?$"
+      - "^SHA1$"
+    primitive_types: [hash]
+    risk_classification: quantum-weakened
+    risk_score: medium
+    rationale: >
+      SHA-1 has known classical collision attacks (SHAttered, 2017). It may be believed that Grover's algorithm reduces its preimage resistance from 160-bit to approximately 80-bit effective quantum security, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subjecto to ongoing research. SHA-256 is safe against quantum computers. NIST disallows SHA-1 for most uses (SP 800-131A Rev.2).
+    recommended_migration: "SHA-256 or SHA-384 (NIST FIPS 180-4)"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — SHA-1 disallowed for digital signatures"
+      - "BSI TR-02102-1 v2024-01 — SHA-1 not recommended"
+
+  - name_patterns:
+      - "^HMAC(-SHA-?1|-SHA1)?$"
+    primitive_types: [mac]
+    risk_classification: quantum-weakened
+    risk_score: medium
+    rationale: >
+      HMAC-SHA1 inherits the weaknesses of SHA-1. It may be believed that although HMAC provides some protection against length-extension attacks, the underlying 160-bit hash offers only ~80-bit quantum preimage resistance via Grover's algorithm, but this is not accurate as Grover's algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup and thus parallelizing would make the total cost grow, a matter that is subject to ongoing research.
+    recommended_migration: "HMAC-SHA-256 or HMAC-SHA-384"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — HMAC with SHA-1 not recommended"
+      - "BSI TR-02102-1 v2024-01"
+
+  # ── Classically deprecated: broken or disallowed by classical cryptanalysis ───────────────
+
+  - name_patterns:
+      - "^RC4$"
+      - "^ARCFOUR$"
+    primitive_types: [stream-cipher]
+    risk_classification: classically-deprecated
+    risk_score: high
+    rationale: >
+      RC4 has multiple known practical attacks (statistical biases, Fluhrer-Mantin-Shamir,
+      RC4NOMORE). It has been prohibited in TLS since RFC 7465 (2015) and is disallowed by
+      all major standards bodies.
+    recommended_migration: "AES-256-GCM or ChaCha20-Poly1305"
+    references:
+      - "RFC 7465 (2015) — RC4 prohibited in TLS"
+      - "NIST SP 800-131A Rev.2 (2019) — RC4 disallowed"
+      - "BSI TR-02102-1 v2024-01 — RC4 not approved"
+
+  - name_patterns:
+      - "^DES(-CBC)?$"
+    primitive_types: [block-cipher]
+    risk_classification: classically-deprecated
+    risk_score: high
+    rationale: >
+      DES uses a 56-bit key, exhaustively broken by brute force since the 1990s (Deep
+      Crack, 1998). It is prohibited for any use by NIST (SP 800-131A Rev.2).
+    recommended_migration: "AES-256-GCM (NIST FIPS 197)"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — DES disallowed"
+      - "BSI TR-02102-1 v2024-01 — DES not approved"
+
+  - name_patterns:
+      - "^MD-?5$"
+      - "^MD5$"
+    primitive_types: [hash]
+    risk_classification: classically-deprecated
+    risk_score: high
+    rationale: >
+      MD5 is broken for collision resistance (Wang & Yu, 2004) and practical chosen-prefix
+      collisions exist. It is disallowed for all cryptographic purposes by NIST and BSI.
+    recommended_migration: "SHA-256 (NIST FIPS 180-4)"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — MD5 disallowed"
+      - "BSI TR-02102-1 v2024-01 — MD5 not approved"
+
+  - name_patterns:
+      - "^RC2(-CBC)?$"
+    primitive_types: [block-cipher]
+    risk_classification: classically-deprecated
+    risk_score: high
+    rationale: >
+      RC2 is a legacy 64-bit block cipher with a variable-length key; it has known
+      related-key attacks and is not approved by any current standard.
+    recommended_migration: "AES-256-GCM (NIST FIPS 197)"
+    references:
+      - "NIST SP 800-131A Rev.2 (2019) — RC2 not approved"
+
+  - name_patterns:
+      - "^IDEA(-CBC)?$"
+    primitive_types: [block-cipher]
+    risk_classification: classically-deprecated
+    risk_score: high
+    rationale: >
+      IDEA uses a 128-bit key but a 64-bit block size, making it susceptible to birthday
+      attacks in long sessions (Sweet32). It is no longer recommended by any major authority.
+    recommended_migration: "AES-256-GCM (NIST FIPS 197)"
+    references:
+      - "CVE-2016-2183 (Sweet32) — 64-bit block ciphers vulnerable to birthday attacks"
+      - "BSI TR-02102-1 v2024-01 — IDEA not recommended"
+
+  - name_patterns:
+      - "^SEED(-CBC)?$"
+    primitive_types: [block-cipher]
+    risk_classification: classically-deprecated
+    risk_score: medium
+    rationale: >
+      SEED is a Korean 128-bit block cipher (64-bit block size in some variants). It is not
+      included in NIST or BSI-approved algorithm lists.
+    recommended_migration: "AES-256-GCM (NIST FIPS 197)"
+    references:
+      - "BSI TR-02102-1 v2024-01 — SEED not listed as approved"
+
+  - name_patterns:
+      - "^NULL(-\\w+)?$"
+      - "^eNULL$"
+      - "^aNULL$"
+    risk_classification: classically-deprecated
+    risk_score: high
+    rationale: >
+      NULL cipher suites provide no encryption or authentication. Their use results in
+      plaintext transmission and is prohibited in all production contexts.
+    recommended_migration: "Any authenticated encryption algorithm (e.g., AES-256-GCM)"
+    references:
+      - "RFC 8996 (2021) — NULL cipher suites prohibited in TLS 1.2 and earlier"
+      - "NIST SP 800-131A Rev.2 (2019)"
+
+  - name_patterns:
+      - "^EXPORT(-\\w+)?$"
+      - "^EXP-"
+    risk_classification: classically-deprecated
+    risk_score: high
+    rationale: >
+      EXPORT cipher suites were intentionally weakened (40-bit or 56-bit keys) for US
+      export regulations. They are trivially broken and prohibited in all modern standards.
+    recommended_migration: "AES-256-GCM (NIST FIPS 197)"
+    references:
+      - "RFC 7568 (2015) — EXPORT ciphers prohibited"
+      - "NIST SP 800-131A Rev.2 (2019)"
+
+  # ── Quantum-safe: sufficient security against classical and quantum attacks ───────────────
+
+  - name_patterns:
+      - "^AES(-256)?(-\\w+)?$"
+    primitive_types: [block-cipher, ae]
+    min_key_bits: 256
+    risk_classification: quantum-safe
+    risk_score: none
+    rationale: >
+      AES-256 provides 256-bit classical security. It may be believed that Grover's algorithm reduces this to approximately 128-bit effective quantum security, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subjecto to ongoing research. AES-256 meets NIST's recommended threshold for post-quantum symmetric security (SP 800-131A Rev.2).
+    recommended_migration: "No migration required"
+    references:
+      - "NIST FIPS 197 (2001, updated 2023) — AES-256 approved"
+      - "NIST SP 800-131A Rev.2 (2019) — AES-256 quantum-safe"
+      - "BSI TR-02102-1 v2024-01 — AES-256 recommended"
+
+  - name_patterns:
+      - "^ChaCha20(-Poly1305)?$"
+      - "^CHACHA20-POLY1305$"
+    primitive_types: [ae, stream-cipher]
+    risk_classification: quantum-safe
+    risk_score: none
+    rationale: >
+      ChaCha20-Poly1305 uses a 256-bit key. It may be believed that Grover's algorithm reduces its effective quantum security to approximately 128 bits, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subjecto to ongoing research. ChaCha20-Poly1305 meets the recommended threshold.
+    recommended_migration: "No migration required"
+    references:
+      - "RFC 8439 (2018) — ChaCha20-Poly1305 standardised"
+      - "BSI TR-02102-1 v2024-01 — ChaCha20-Poly1305 approved"
+
+  - name_patterns:
+      - "^SHA-?(256|384|512)(-\\d+)?$"
+      - "^SHA2-?(256|384|512)$"
+      - "^SHA-3-(256|384|512)$"
+      - "^SHA3-(256|384|512)$"
+    primitive_types: [hash]
+    risk_classification: quantum-safe
+    risk_score: none
+    rationale: >
+      SHA-256/384/512 and SHA-3 variants provide at least 128-bit quantum collision
+      resistance (even assuming that Grover's algorithm could halve the security level (256-bit output → 128-bit quantum security), which is not believed to be the case). NIST approves all SHA-2 and SHA-3 variants.
+    recommended_migration: "No migration required"
+    references:
+      - "NIST FIPS 180-4 (2015) — SHA-2 approved"
+      - "NIST FIPS 202 (2015) — SHA-3 approved"
+      - "BSI TR-02102-1 v2024-01 — SHA-256 and above recommended"
+
+  - name_patterns:
+      - "^HMAC(-SHA-?(256|384|512)|-SHA2)?$"
+    primitive_types: [mac]
+    risk_classification: quantum-safe
+    risk_score: none
+    rationale: >
+      HMAC with SHA-256 or stronger provides at least 128-bit quantum security (Grover's algorithm is ineffective against HMAC with full-length keys).
+    recommended_migration: "No migration required"
+    references:
+      - "NIST FIPS 198-1 (2008) — HMAC approved"
+      - "BSI TR-02102-1 v2024-01 — HMAC-SHA-256 and above recommended"
+
+  - name_patterns:
+      - "^AES-?(128|192|256)-?GCM$"
+      - "^AES-?(256)-?(CBC|CTR|CCM)?$"
+    primitive_types: [ae, block-cipher]
+    min_key_bits: 192
+    risk_classification: quantum-safe
+    risk_score: none
+    rationale: >
+      AES with a key size of 192 or 256 bits provides at least 96 or 128 bits of effective quantum security via Grover. 256-bit may be preferred for long-term security.
+    recommended_migration: "No migration required (prefer AES-256)"
+    references:
+      - "NIST FIPS 197 (2001, updated 2023)"
+      - "BSI TR-02102-1 v2024-01"
+
+  # ── Post-quantum: NIST-standardised PQC algorithms ────────────────────────────────────────
+
+  - name_patterns:
+      - "^ML-KEM(-512|-768|-1024)?$"
+      - "^CRYSTALS-Kyber(-512|-768|-1024)?$"
+      - "^Kyber(-512|-768|-1024)?$"
+      - "^mlkem(512|768|1024)$"
+    primitive_types: [kem]
+    risk_classification: post-quantum
+    risk_score: none
+    rationale: >
+      ML-KEM (formerly CRYSTALS-Kyber) is a Module Lattice-based Key Encapsulation
+      Mechanism standardised by NIST in FIPS 203 (2024). It is quantum-resistant based
+      on the Module Learning With Errors (MLWE) problem.
+    recommended_migration: "Already post-quantum — no migration required"
+    references:
+      - "NIST FIPS 203 (2024) — ML-KEM standard"
+      - "BSI TR-02102-1 v2024-01 — ML-KEM recommended"
+      - "ANSSI — PQC migration guidance (2024)"
+
+  - name_patterns:
+      - "^ML-DSA(-44|-65|-87)?$"
+      - "^CRYSTALS-Dilithium(-2|-3|-5)?$"
+      - "^Dilithium(-2|-3|-5)?$"
+    primitive_types: [signature]
+    risk_classification: post-quantum
+    risk_score: none
+    rationale: >
+      ML-DSA (formerly CRYSTALS-Dilithium) is a Module Lattice-based Digital Signature
+      Algorithm standardised by NIST in FIPS 204 (2024). It is quantum-resistant.
+    recommended_migration: "Already post-quantum — no migration required"
+    references:
+      - "NIST FIPS 204 (2024) — ML-DSA standard"
+      - "BSI TR-02102-1 v2024-01 — ML-DSA recommended"
+
+  - name_patterns:
+      - "^SLH-DSA(-\\w+)?$"
+      - "^SPHINCS\\+?(-\\w+)?$"
+      - "^SPHINCS$"
+    primitive_types: [signature]
+    risk_classification: post-quantum
+    risk_score: none
+    rationale: >
+      SLH-DSA (formerly SPHINCS+) is a stateless hash-based digital signature scheme
+      standardised by NIST in FIPS 205 (2024). Its security relies solely on hash
+      function security assumptions.
+    recommended_migration: "Already post-quantum — no migration required"
+    references:
+      - "NIST FIPS 205 (2024) — SLH-DSA standard"
+      - "BSI TR-02102-1 v2024-01 — SLH-DSA recommended"
+
+  - name_patterns:
+      - "^FN-DSA(-512|-1024)?$"
+      - "^FALCON(-512|-1024)?$"
+    primitive_types: [signature]
+    risk_classification: post-quantum
+    risk_score: none
+    rationale: >
+      FN-DSA (formerly FALCON) is a NTRU Lattice-based digital signature algorithm
+      standardised by NIST in FIPS 206 (2024). It is quantum-resistant.
+    recommended_migration: "Already post-quantum — no migration required"
+    references:
+      - "NIST FIPS 206 (2024) — FN-DSA standard"
+
+  - name_patterns:
+      - "^sntrup(761|857|1277)$"
+      - "^NTRU(-\\w+)?$"
+    primitive_types: [kem]
+    risk_classification: post-quantum
+    risk_score: none
+    rationale: >
+      Streamlined NTRU Prime (sntrup) and related NTRU-based KEMs are considered
+      post-quantum secure, based on lattice problems. sntrup761 is used in OpenSSH 9.x.
+    recommended_migration: "Already post-quantum; consider migrating to ML-KEM-768 (NIST FIPS 203) for standardisation"
+    references:
+      - "BSI TR-02102-1 v2024-01 — NTRU-family considered quantum-resistant"
+      - "NIST FIPS 203 (2024) — ML-KEM preferred for new deployments"
+
+  # ── Hybrid: classical + PQC key exchange combinations ─────────────────────────────────────
+
+  - name_patterns:
+      - "^X25519Kyber768Draft00$"
+      - "^X25519MLKEM768$"
+      - "^SecP256r1MLKEM768$"
+      - "^SecP384r1MLKEM1024$"
+      - "^X25519Kyber512Draft00$"
+      - "^CECPQ1$"
+      - "^CECPQ2$"
+    risk_classification: hybrid
+    risk_score: low
+    rationale: >
+      Hybrid key exchange combines a classical elliptic-curve key agreement (X25519 or
+      NIST P-256/P-384) with an ML-KEM post-quantum KEM. Security requires breaking both
+      components simultaneously. The classical component remains quantum-vulnerable but
+      the hybrid scheme provides a migration path. Risk is low (not zero) because the
+      classical part is still breakable by a CRQC.
+    recommended_migration: "Migrate to pure ML-KEM-768 (NIST FIPS 203) when operationally feasible"
+    references:
+      - "IETF RFC 9420 / draft-ietf-tls-hybrid-design"
+      - "BSI TR-02102-1 v2024-01 — hybrid schemes endorsed as transition mechanism"
+      - "NIST NCCoE Migration to Post-Quantum Cryptography (SP 1800-38)"
+
+  # ── Primitive-type fallbacks (when name is unrecognised) ──────────────────────────────────
+
+  - name_patterns: []
+    primitive_types: [kem]
+    risk_classification: unknown
+    risk_score: high
+    rationale: >
+      KEM primitive with unrecognised algorithm name. Treat as unknown until the catalog
+      is updated. Key encapsulation mechanisms are security-critical; manual review required.
+    recommended_migration: "Review algorithm and classify manually against NIST FIPS 203"
+    references:
+      - "NIST FIPS 203 (2024) — ML-KEM is the standardised KEM"

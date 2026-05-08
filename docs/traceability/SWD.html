@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head><title>Doorstop</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <link rel="stylesheet" href="assets/doorstop/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/doorstop/general.css" />
+  <link type="text/css" rel="stylesheet" href="assets/doorstop/sidebar.css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" ></script>
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
+  });
+  </script>
+</head>
+<body>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-2 hidden-sm hidden-xs">
+          <nav id="TOC" class="nav nav-stacked fixed sidebar">
+              <h3>Table of Contents</h3>
+<pre><code>* [1.1 Entry points and directory initialization](#<a href="SWD.html#SWD-001">SWD-001</a>)
+* [1.2 Source inventory pipeline sequencing](#<a href="SWD.html#SWD-002">SWD-002</a>)
+* [1.3 Inventory artifact segregation by analysis surface](#<a href="SWD.html#SWD-003">SWD-003</a>)
+* [1.4 External command invocation contracts](#<a href="SWD.html#SWD-004">SWD-004</a>)
+* [1.5 TLS scan lifecycle and parser handoff](#<a href="SWD.html#SWD-005">SWD-005</a>)
+* [1.6 SSH scan lifecycle and parser handoff](#<a href="SWD.html#SWD-006">SWD-006</a>)
+* [1.7 CBOM generation routines](#<a href="SWD.html#SWD-007">SWD-007</a>)
+* [1.8 Defensive validation and failure boundaries](#<a href="SWD.html#SWD-008">SWD-008</a>)
+* [1.9 Algorithm decomposition and modeling](#<a href="SWD.html#SWD-009">SWD-009</a>)
+* [1.10 JSON interface and naming conventions](#<a href="SWD.html#SWD-010">SWD-010</a>)
+* [1.11 VECTOR-Score module decomposition and internal design](#<a href="SWD.html#SWD-011">SWD-011</a>)
+</code></pre>
+          </nav>
+      </div>
+      <div class="col-lg-8" id="main">
+        <h2 id="SWD-001">1.1 Entry points and directory initialization <small><a href="SWD.html#SWD-001">SWD-001</a></small></h2>
+<h2>Design intent</h2>
+<p>The VECTOR entry scripts establish runtime assumptions before analysis by validating CLI input and preparing the output filesystem layout.</p>
+<h2>Inputs</h2>
+<ul>
+<li>Source analysis path and optional application name.</li>
+<li>Network protocol, target, and port.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>VECTOR-Code creates <code>output/databases</code>, <code>output/results</code>, and <code>output/cbom</code> before invoking analysis steps.</li>
+<li>VECTOR-Network validates required CLI or interactive inputs before scanner execution.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Prepared local directories and normalized runtime arguments.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>Missing paths, unreadable directories, empty targets, and invalid ports stop execution before analysis starts.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-001">ARC-001 VECTOR runtime context</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-002">1.2 Source inventory pipeline sequencing <small><a href="SWD.html#SWD-002">SWD-002</a></small></h2>
+<h2>Design intent</h2>
+<p>The VECTOR-Code workflow is implemented as a fixed pipeline from language detection to database creation, query execution, and CBOM generation.</p>
+<h2>Inputs</h2>
+<ul>
+<li>Readable project directory.</li>
+<li>Optional application name.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li><code>detect_languages</code> determines supported languages from cloc output.</li>
+<li><code>create_databases</code> deduplicates by CodeQL language and creates analysis databases.</li>
+<li><code>run_queries</code> generates SARIF findings.</li>
+<li><code>generate_cbom</code> converts SARIF results into CBOM files.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Per-language SARIF artifacts and CBOM artifacts.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>Empty language sets, failed database creation, missing SARIF results, and conversion failures terminate the pipeline with explicit errors or warnings.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-002">ARC-002 VECTOR-Code processing component</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-003">1.3 Inventory artifact segregation by analysis surface <small><a href="SWD.html#SWD-003">SWD-003</a></small></h2>
+<h2>Design intent</h2>
+<p>Source-code inventory artifacts and network-scan inventory artifacts are kept in separate raw and derived files while sharing a common inventory objective.</p>
+<h2>Inputs</h2>
+<ul>
+<li>Source SARIF files.</li>
+<li>Raw TLS and SSH scan JSON files.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>VECTOR-Code stores databases, SARIF, and derived CBOM files under dedicated output subdirectories.</li>
+<li>VECTOR-Network stores per-target raw scan files and emits protocol-specific CBOM JSON files.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Distinct raw and derived artifacts for each analysis surface.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>Conversion is not attempted when the expected raw or intermediate artifact is absent.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-003">ARC-003 Unified inventory coverage boundary</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-004">1.4 External command invocation contracts <small><a href="SWD.html#SWD-004">SWD-004</a></small></h2>
+<h2>Design intent</h2>
+<p>VECTOR wraps required third-party tools through direct subprocess calls with explicit command-line parameters.</p>
+<h2>Inputs</h2>
+<ul>
+<li>Tool-specific paths, project roots, scanner targets, and result file names.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>cloc is invoked with JSON output enabled.</li>
+<li>CodeQL database creation and query analysis are executed through the CodeQL CLI.</li>
+<li>cryptobom converts SARIF files into CBOM artifacts.</li>
+<li>testssl.sh and zgrab2 generate raw network results.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Tool-specific stdout, stderr, and result files used by later steps.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>Missing binaries or non-zero subprocess outcomes are surfaced as runtime errors or explicit workflow failures.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-004">ARC-004 External analysis tool adapters</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-005">1.5 TLS scan lifecycle and parser handoff <small><a href="SWD.html#SWD-005">SWD-005</a></small></h2>
+<h2>Design intent</h2>
+<p>The TLS workflow produces a raw testssl JSON file and then parses it into structured data for CBOM generation.</p>
+<h2>Inputs</h2>
+<ul>
+<li>Target host or address.</li>
+<li>Target port.</li>
+<li>Local path to <code>testssl.sh</code>.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>Existing conflicting output files are removed before a new scan begins.</li>
+<li>testssl.sh writes its raw JSON output to a predictable file path.</li>
+<li>The converter reads the JSON file, parses versions, cipher suites, groups, certificates, and target data, and constructs the final CBOM object.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Raw TLS scan JSON and <code>&lt;target&gt;_tls_cbom.json</code>.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>Missing testssl.sh, missing output files, empty output files, and timeout conditions terminate the TLS workflow.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-005">ARC-005 TLS assessment workflow</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-006">1.6 SSH scan lifecycle and parser handoff <small><a href="SWD.html#SWD-006">SWD-006</a></small></h2>
+<h2>Design intent</h2>
+<p>The SSH workflow produces a raw zgrab2 JSON file and then parses it into structured data for CBOM generation.</p>
+<h2>Inputs</h2>
+<ul>
+<li>Target host or address.</li>
+<li>Target port.</li>
+<li>Local availability of <code>zgrab2</code>.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>zgrab2 writes a raw SSH scan file for the target.</li>
+<li>The SSH converter reads the JSON file, validates the expected structure, extracts the SSH banner and algorithm lists, and builds the final CBOM object.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Raw SSH scan JSON and <code>&lt;domain&gt;_ssh_cbom.json</code>.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>Missing zgrab2, missing output files, empty output files, and malformed scan structures terminate the SSH workflow.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-006">ARC-006 SSH assessment workflow</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-007">1.7 CBOM generation routines <small><a href="SWD.html#SWD-007">SWD-007</a></small></h2>
+<h2>Design intent</h2>
+<p>VECTOR uses separate conversion routines for source-analysis findings and network-analysis findings while converging on JSON CBOM outputs.</p>
+<h2>Inputs</h2>
+<ul>
+<li>Source SARIF files.</li>
+<li>Parsed TLS scan data.</li>
+<li>Parsed SSH scan data.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>VECTOR-Code invokes <code>cryptobom generate</code> for each SARIF file.</li>
+<li>TLS and SSH converters assemble CBOM document structures directly in Python and serialize them to JSON.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Generated CBOM JSON files for source, TLS, and SSH workflows.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>CBOM generation failures are reported and the failed artifact is not added to the set of successful outputs.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-007">ARC-007 CBOM generation and storage</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-008">1.8 Defensive validation and failure boundaries <small><a href="SWD.html#SWD-008">SWD-008</a></small></h2>
+<h2>Design intent</h2>
+<p>Validation logic constrains execution to locally safe operations and prevents conversion from proceeding on invalid or incomplete data.</p>
+<h2>Inputs</h2>
+<ul>
+<li>User-provided paths, targets, ports, and generated result files.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>Ports are constrained to the valid TCP range.</li>
+<li>Empty targets are rejected.</li>
+<li>Result files are checked for existence and non-zero size before conversion.</li>
+<li>Timeouts constrain long-running TLS scans.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Explicit error messages and terminated workflows when a safety boundary is crossed.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>No downstream conversion or success reporting occurs after a validation or timeout failure.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-008">ARC-008 Non-invasive network trust boundary</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-009">1.9 Algorithm decomposition and modeling <small><a href="SWD.html#SWD-009">SWD-009</a></small></h2>
+<h2>Design intent</h2>
+<p>The network converters decompose protocol findings into explicit cryptographic components so inventory artifacts expose the underlying mechanisms rather than only opaque suite names.</p>
+<h2>Inputs</h2>
+<ul>
+<li>TLS cipher-suite names, curve names, and related protocol metadata.</li>
+<li>SSH key exchange, cipher, MAC, and host-key algorithm identifiers.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>TLS conversion maps suites into key exchange, authentication, encryption, and hash elements.</li>
+<li>Hybrid curve names are decomposed into elliptic-curve and post-quantum components where mapping data exists.</li>
+<li>SSH conversion maps algorithm identifiers through CSV-backed lookup tables into CBOM algorithm properties.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Component-level algorithm records in generated CBOM artifacts.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>Unknown algorithms fall back to default category metadata rather than crashing the converter.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-009">ARC-009 Algorithm modeling layer</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-010">1.10 JSON interface and naming conventions <small><a href="SWD.html#SWD-010">SWD-010</a></small></h2>
+<h2>Design intent</h2>
+<p>VECTOR's external interface is primarily file-based, with JSON used for raw scanner outputs and generated CBOM artifacts.</p>
+<h2>Inputs</h2>
+<ul>
+<li>Raw tool outputs and intermediate findings already represented as JSON or SARIF.</li>
+</ul>
+<h2>Processing</h2>
+<ul>
+<li>File names are derived from the target or intermediate artifact stem.</li>
+<li>JSON serialization is performed with explicit encoding and formatting choices in each workflow.</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li>Stable, inspectable artifact names such as <code>crypto-python.sarif</code>, <code>&lt;target&gt;_tls_cbom.json</code>, and <code>&lt;domain&gt;_ssh_cbom.json</code>.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>The workflow reports serialization or file-write failures rather than hiding them behind silent success.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-010">ARC-010 Open artifact interfaces</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SWD-011">1.11 VECTOR-Score module decomposition and internal design <small><a href="SWD.html#SWD-011">SWD-011</a></small></h2>
+<h2>Design intent</h2>
+<p>VECTOR-Score decomposes into four Python modules and one data file, each with a single responsibility.</p>
+<h2>File structure</h2>
+<pre><code>tor/VECTOR-Score/
+├── __init__.py
+├── main.py                          # CLI entry point
+├── algorithm_classifier.py          # Classification logic
+├── cbom_scorer.py                   # CBOM annotation engine
+├── report_generator.py              # Markdown report builder
+└── data/
+    └── algorithm-risk-catalog.yaml  # Classification catalog
+</code></pre>
+<h2>Module responsibilities</h2>
+<h3><code>algorithm_classifier.py</code></h3>
+<ul>
+<li>Loads <code>data/algorithm-risk-catalog.yaml</code> at module import time.</li>
+<li>Exposes a <code>classify(name, primitive, param_set_identifier)</code> function returning a <code>RiskClassification</code> dataclass.</li>
+<li>Matching order: (1) exact <code>name</code> match, (2) regex pattern match on <code>name</code>, (3) primitive-type fallback, (4) <code>unknown</code>.</li>
+<li>Key-size-aware classification: uses <code>param_set_identifier</code> (the CBOM <code>parameterSetIdentifier</code> field) to distinguish <a href="AES.html#AES-128">AES-128</a> from <a href="AES.html#AES-256">AES-256</a>, etc.</li>
+</ul>
+<h3><code>cbom_scorer.py</code></h3>
+<ul>
+<li>Exposes <code>score_cbom(cbom: dict) -&gt; dict</code> as a pure function returning an annotated deep copy.</li>
+<li>Iterates the <code>components</code> array; for each component where <code>cryptoProperties.assetType == "algorithm"</code>, calls <code>classify()</code> and appends <code>pqcmat:</code>-namespaced entries to the component's <code>properties</code> array.</li>
+<li>Properties added per component: <code>pqcmat:risk-classification</code>, <code>pqcmat:risk-score</code>, <code>pqcmat:rationale</code>, <code>pqcmat:recommended-migration</code>, <code>pqcmat:reference</code>.</li>
+<li>Adds <code>pqcmat:scored-at</code> to <code>metadata.properties</code>.</li>
+<li>Compatible with both <code>type: "crypto-asset"</code> (VECTOR-Code output) and <code>type: "cryptographic-asset"</code> (VECTOR-Network output).</li>
+</ul>
+<h3><code>report_generator.py</code></h3>
+<ul>
+<li>Exposes <code>generate_report(scored_cbom: dict) -&gt; str</code> returning a Markdown string.</li>
+<li>Sections: title and metadata header, summary count table by classification, per-classification finding tables (name, primitive, key size, rationale, migration target), normative references.</li>
+</ul>
+<h3><code>main.py</code></h3>
+<ul>
+<li>CLI: <code>python3 main.py &lt;cbom.json&gt; [--output &lt;path&gt;] [--report &lt;path&gt;] [--no-report]</code></li>
+<li>Default output paths: <code>&lt;input-stem&gt;_scored.json</code> and <code>&lt;input-stem&gt;_risk_report.md</code> alongside the input file.</li>
+<li>Validates that the input path exists and is parseable as JSON before invoking the scorer.</li>
+</ul>
+<h2>Inputs</h2>
+<ul>
+<li>Any CycloneDX CBOM JSON file (VECTOR-Code or VECTOR-Network output).</li>
+</ul>
+<h2>Outputs</h2>
+<ul>
+<li><code>&lt;stem&gt;_scored.json</code>: the input CBOM with <code>pqcmat:</code> risk properties added to each algorithm component.</li>
+<li><code>&lt;stem&gt;_risk_report.md</code>: a Markdown summary grouped by risk classification.</li>
+</ul>
+<h2>Failure handling</h2>
+<ul>
+<li>Non-existent input path: exit with explicit error before processing.</li>
+<li>Unparseable JSON: exit with explicit error before processing.</li>
+<li>Algorithm not in catalog: assign <code>unknown</code> classification; do not raise an exception.</li>
+</ul>
+<p><em>Parent links:</em> <a href="ARC.html#ARC-011">ARC-011 VECTOR-Score: standalone quantum risk scoring module</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+      </div>
+    </div>
+</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="assets/doorstop/jquery.min.js"></script>
+<script src="assets/doorstop/bootstrap.min.js"></script>
+<script>
+    $(function() {
+        $("table").addClass("table");
+        $("nav ul").addClass("nav nav-stacked");
+        $("nav").affix();
+        $('body').scrollspy({
+          target: '.sidebar'
+        });
+        $("#main a").attr("target", "parent");
+
+  $(window).on('hashchange', function() {
+    $(window).scrollTop($(location.hash.toLowerCase()).offset().top);});
+  });
+</script>
+</body>
+</html>
+

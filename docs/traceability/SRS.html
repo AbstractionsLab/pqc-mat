@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+<head><title>Doorstop</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <link rel="stylesheet" href="assets/doorstop/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/doorstop/general.css" />
+  <link type="text/css" rel="stylesheet" href="assets/doorstop/sidebar.css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" ></script>
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
+  });
+  </script>
+</head>
+<body>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-2 hidden-sm hidden-xs">
+          <nav id="TOC" class="nav nav-stacked fixed sidebar">
+              <h3>Table of Contents</h3>
+<pre><code>* [1.1 Persist output artifacts in predictable locations](#<a href="SRS.html#SRS-001">SRS-001</a>)
+* [1.2 Detect supported source languages from the target project](#<a href="SRS.html#SRS-002">SRS-002</a>)
+* [1.3 Create CodeQL databases through the external CLI](#<a href="SRS.html#SRS-003">SRS-003</a>)
+* [1.4 Run cryptographic inventory queries on created databases](#<a href="SRS.html#SRS-004">SRS-004</a>)
+* [1.5 Convert source-analysis findings into CBOM artifacts](#<a href="SRS.html#SRS-005">SRS-005</a>)
+* [1.6 Scan TLS-enabled services by target and port](#<a href="SRS.html#SRS-006">SRS-006</a>)
+* [1.7 Model TLS findings with classical, hybrid, and PQ-aware decomposition](#<a href="SRS.html#SRS-007">SRS-007</a>)
+* [1.8 Scan SSH-enabled services by target and port](#<a href="SRS.html#SRS-008">SRS-008</a>)
+* [1.9 Execute within a Linux workspace with explicit runtime assumptions](#<a href="SRS.html#SRS-009">SRS-009</a>)
+* [1.10 Fail safely for invalid inputs, missing tools, and incomplete outputs](#<a href="SRS.html#SRS-010">SRS-010</a>)
+* [1.11 Classify cryptographic algorithm components in a CBOM by quantum risk](#<a href="SRS.html#SRS-011">SRS-011</a>)
+* [1.12 Produce an annotated CBOM with quantum risk properties on each scored component](#<a href="SRS.html#SRS-012">SRS-012</a>)
+* [1.13 Produce a human-readable Markdown risk report grouped by classification](#<a href="SRS.html#SRS-013">SRS-013</a>)
+</code></pre>
+          </nav>
+      </div>
+      <div class="col-lg-8" id="main">
+        <h2 id="SRS-001">1.1 Persist output artifacts in predictable locations <small><a href="SRS.html#SRS-001">SRS-001</a></small></h2>
+<p>VECTOR SHALL write generated source-analysis and network-analysis artifacts to predictable output files and directories under the local workspace.</p>
+<h2>Rationale</h2>
+<p>The current implementation writes databases, SARIF results, raw scan results, and CBOM files to the filesystem for later inspection and reuse.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>VECTOR-Code creates and uses dedicated output directories for databases, results, and CBOM files.</li>
+<li>VECTOR-Network writes raw scan files and generated CBOM files to named local JSON files.</li>
+<li>Output paths remain inspectable after process completion.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-010">MRS-010 Produce open, reusable output artifacts</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-001">TCS-001 Verify persisted output locations for VECTOR-Code artifacts</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-002">1.2 Detect supported source languages from the target project <small><a href="SRS.html#SRS-002">SRS-002</a></small></h2>
+<p>VECTOR-Code SHALL run a language-detection step against the supplied project path and SHALL continue only when at least one supported language is detected above the configured threshold.</p>
+<h2>Rationale</h2>
+<p>The implemented source-analysis pipeline depends on a supported-language set before CodeQL databases can be created.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>The input path is checked for existence, directory type, and read permission before analysis starts.</li>
+<li>Language detection is derived from <code>cloc --json</code> output.</li>
+<li>The current supported languages are Python, C, and C++.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-004">MRS-004 Support source-code analysis for current target languages</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-002">TCS-002 Verify supported language detection</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-003">1.3 Create CodeQL databases through the external CLI <small><a href="SRS.html#SRS-003">SRS-003</a></small></h2>
+<p>VECTOR-Code SHALL invoke the external CodeQL CLI to create one analysis database per detected CodeQL language.</p>
+<h2>Rationale</h2>
+<p>The current implementation uses external CodeQL tooling to prepare the source tree for cryptographic inventory queries.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Duplicate source languages that map to the same CodeQL language do not create redundant databases.</li>
+<li>Database creation uses <code>--build-mode=none</code>.</li>
+<li>Failed database creation for one language does not fabricate a successful result for that language.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-008">MRS-008 Orchestrate open-source analysis tooling</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-003">TCS-003 Verify CodeQL database creation</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-004">1.4 Run cryptographic inventory queries on created databases <small><a href="SRS.html#SRS-004">SRS-004</a></small></h2>
+<p>VECTOR-Code SHALL run cryptographic inventory queries against each created CodeQL database and SHALL collect the resulting SARIF artifacts.</p>
+<h2>Rationale</h2>
+<p>Source-code inventory requires a query phase that transforms prepared databases into inspectable findings.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Each created CodeQL database is checked against a configured query path for its CodeQL language.</li>
+<li>Successful query execution produces a SARIF output file for that language.</li>
+<li>Missing query paths or failed query execution do not silently report successful findings.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-001">MRS-001 Inventory cryptography across code and network surfaces</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-004">TCS-004 Verify SARIF generation from CodeQL queries</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>5</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-005">1.5 Convert source-analysis findings into CBOM artifacts <small><a href="SRS.html#SRS-005">SRS-005</a></small></h2>
+<p>VECTOR-Code SHALL convert generated SARIF files into CBOM JSON artifacts using the configured application name.</p>
+<h2>Rationale</h2>
+<p>The implemented pipeline currently ends with SARIF-to-CBOM conversion, which makes the inventory consumable by downstream tooling.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Every valid SARIF file is eligible for CBOM generation.</li>
+<li>Failed conversion for one SARIF file does not report that file as a generated CBOM artifact.</li>
+<li>Generated CBOM files are named from the SARIF artifact stem.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-003">MRS-003 Produce standardized CBOM artifacts</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-005">TCS-005 Verify SARIF-to-CBOM conversion</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-006">1.6 Scan TLS-enabled services by target and port <small><a href="SRS.html#SRS-006">SRS-006</a></small></h2>
+<p>VECTOR-Network SHALL accept a target and port for TLS assessment and SHALL invoke the configured TLS scanner to produce a raw JSON result file.</p>
+<h2>Rationale</h2>
+<p>The implemented TLS workflow is target-and-port driven and depends on persisted raw output before conversion.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>TLS assessment validates that the target is non-empty and the port is within the supported range.</li>
+<li>Existing conflicting output files are removed before a new TLS scan starts.</li>
+<li>A successful scan produces a non-empty JSON result file.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-005">MRS-005 Support TLS service assessment</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-006">TCS-006 Verify raw TLS scan output generation</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-007">1.7 Model TLS findings with classical, hybrid, and PQ-aware decomposition <small><a href="SRS.html#SRS-007">SRS-007</a></small></h2>
+<p>VECTOR-Network SHALL convert TLS scan results into a CBOM representation that preserves decomposed cryptographic algorithms, including supported hybrid or post-quantum-related entries.</p>
+<h2>Rationale</h2>
+<p>The implemented TLS conversion logic decomposes cipher suites, curves, and hybrid constructions into explicit inventory components.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>TLS conversion reads structured JSON scan input and produces a CBOM JSON document.</li>
+<li>Cipher-suite decomposition captures key exchange, authentication, encryption, and hashing elements when present.</li>
+<li>Hybrid or PQ-related curve identifiers are represented when they are present in the mapped input data.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-002">MRS-002 Recognize post-quantum and hybrid algorithms</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-007">TCS-007 Verify TLS CBOM decomposition</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-008">1.8 Scan SSH-enabled services by target and port <small><a href="SRS.html#SRS-008">SRS-008</a></small></h2>
+<p>VECTOR-Network SHALL accept a target and port for SSH assessment and SHALL invoke the configured SSH scanner to produce a raw JSON result file.</p>
+<h2>Rationale</h2>
+<p>The implemented SSH workflow depends on a persisted scan result that is later parsed into inventory components.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>SSH assessment validates that the target is non-empty and the port is within the supported range.</li>
+<li>A successful SSH scan produces a non-empty JSON result file.</li>
+<li>The generated raw SSH output is suitable for later CBOM conversion.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-006">MRS-006 Support SSH service assessment</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-008">TCS-008 Verify raw SSH scan output generation</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-009">1.9 Execute within a Linux workspace with explicit runtime assumptions <small><a href="SRS.html#SRS-009">SRS-009</a></small></h2>
+<p>VECTOR SHALL rely on a Linux workspace that provides access to its expected local tool paths and writable output locations for both source-analysis and network-analysis workflows.</p>
+<h2>Rationale</h2>
+<p>The current implementation hard-codes several command-line tools and output locations, making runtime assumptions part of the operational contract.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>VECTOR-Code creates its expected output directories before analysis steps start.</li>
+<li>VECTOR-Network checks that required converter scripts and scanner paths exist before conversion or scan processing continues.</li>
+<li>Runtime assumptions are explicit enough to verify in a controlled environment.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-007">MRS-007 Run in a reproducible Linux-based environment</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-009">TCS-009 Verify Linux runtime assumptions and tool-path checks</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-010">1.10 Fail safely for invalid inputs, missing tools, and incomplete outputs <small><a href="SRS.html#SRS-010">SRS-010</a></small></h2>
+<p>VECTOR SHALL stop or constrain execution safely when required inputs are invalid, mandatory tools are unavailable, or expected result files are missing or empty.</p>
+<h2>Rationale</h2>
+<p>The implemented workflows already perform defensive checks around targets, ports, filesystem state, scanner presence, and generated outputs.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Invalid ports and empty targets are rejected before scanner invocation.</li>
+<li>Missing required tools or scripts terminate the affected workflow with an explicit error.</li>
+<li>Missing or empty result files do not proceed to CBOM conversion as if analysis succeeded.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-009">MRS-009 Preserve non-invasive assessment behavior</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-010">TCS-010 Verify safe failure behavior</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-011">1.11 Classify cryptographic algorithm components in a CBOM by quantum risk <small><a href="SRS.html#SRS-011">SRS-011</a></small></h2>
+<p>VECTOR SHALL accept a CycloneDX CBOM JSON file as input and classify each algorithm component according to its quantum risk level, using a data-driven catalog that encodes normative guidance from NIST, BSI <a href="TR.html#TR-02102">TR-02102</a>, and ANSSI.</p>
+<h2>Rationale</h2>
+<p>The classification step decouples the scoring logic from the inventory tools, allowing any CBOM produced by VECTOR-Code or VECTOR-Network (or any third-party tool producing a compliant CycloneDX CBOM) to be scored. A data-driven catalog (YAML) ensures the classification rules can be updated as standards evolve without modifying source code.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Given a CBOM containing RSA, ECDH, or DH algorithm components, the scorer assigns the <code>quantum-vulnerable</code> classification to each.</li>
+<li>Given a CBOM containing ML-KEM or ML-DSA components, the scorer assigns the <code>post-quantum</code> classification to each.</li>
+<li>Given a CBOM containing <a href="AES.html#AES-256">AES-256</a> or <a href="SHA.html#SHA-256">SHA-256</a> components, the scorer assigns the <code>quantum-safe</code> classification.</li>
+<li>Given an unrecognized algorithm name, the scorer assigns the <code>unknown</code> classification.</li>
+<li>Only components with <code>cryptoProperties.assetType</code> equal to <code>algorithm</code> are scored; protocol, certificate, and related-crypto-material components are left unmodified.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-011">MRS-011 Assess quantum risk of discovered cryptographic assets</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-011">TCS-011 Verify classification of quantum-vulnerable algorithms</a>, <a href="TCS.html#TCS-012">TCS-012 Verify classification of post-quantum algorithms</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>5</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-012">1.12 Produce an annotated CBOM with quantum risk properties on each scored component <small><a href="SRS.html#SRS-012">SRS-012</a></small></h2>
+<p>VECTOR SHALL produce an annotated copy of the input CBOM in which each scored algorithm component carries additional <code>pqcmat:</code>-namespaced properties recording its risk classification, risk score, rationale, recommended migration target, and normative reference.</p>
+<h2>Rationale</h2>
+<p>Embedding the risk classification directly into the CBOM document allows downstream tools and workflows to consume the scored output using standard CycloneDX tooling. The <code>pqcmat:</code> namespace prefix prevents collisions with other CycloneDX tool annotations. The original CBOM structure and all existing fields are preserved.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>The annotated CBOM is valid JSON and retains all fields from the input CBOM.</li>
+<li>Each scored algorithm component contains a <code>properties</code> array entry with <code>name: "pqcmat:risk-classification"</code> and a non-empty <code>value</code>.</li>
+<li>Each scored algorithm component contains a <code>properties</code> array entry with <code>name: "pqcmat:risk-score"</code> with value one of <code>high</code>, <code>medium</code>, <code>low</code>, or <code>none</code>.</li>
+<li>Each scored algorithm component contains a <code>properties</code> array entry with <code>name: "pqcmat:recommended-migration"</code>.</li>
+<li>The annotated CBOM <code>metadata.properties</code> array contains a <code>pqcmat:scored-at</code> entry recording the scoring timestamp.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-011">MRS-011 Assess quantum risk of discovered cryptographic assets</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-013">TCS-013 Verify annotated CBOM contains pqcmat risk properties</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>5</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-013">1.13 Produce a human-readable Markdown risk report grouped by classification <small><a href="SRS.html#SRS-013">SRS-013</a></small></h2>
+<p>VECTOR SHALL produce a Markdown report summarising the quantum risk findings from a scored CBOM, grouping algorithm findings by risk classification and including a count summary table, per-finding details (algorithm name, primitive, key size, rationale, migration target), and a normative references section.</p>
+<h2>Rationale</h2>
+<p>While the annotated CBOM is the machine-readable output, security and engineering teams require a human-readable artefact that can be reviewed without CBOM tooling. Grouping findings by risk level allows reviewers to prioritise remediation efforts.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>The report is a valid Markdown document with a header identifying the scored target and timestamp.</li>
+<li>The report contains a summary table with columns: risk classification and algorithm count.</li>
+<li>The report contains at least one section per non-empty risk classification present in the scored CBOM.</li>
+<li>Each per-classification section contains a table listing: algorithm name, primitive type, key size (if applicable), rationale, and recommended migration target.</li>
+<li>The report contains a normative references section listing all standards cited.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-011">MRS-011 Assess quantum risk of discovered cryptographic assets</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+      </div>
+    </div>
+</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="assets/doorstop/jquery.min.js"></script>
+<script src="assets/doorstop/bootstrap.min.js"></script>
+<script>
+    $(function() {
+        $("table").addClass("table");
+        $("nav ul").addClass("nav nav-stacked");
+        $("nav").affix();
+        $('body').scrollspy({
+          target: '.sidebar'
+        });
+        $("#main a").attr("target", "parent");
+
+  $(window).on('hashchange', function() {
+    $(window).scrollTop($(location.hash.toLowerCase()).offset().top);});
+  });
+</script>
+</body>
+</html>
+

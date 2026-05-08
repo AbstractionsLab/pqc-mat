@@ -1,0 +1,23 @@
+MAC Algorithm Name,primitive,cryptoFunctions,parameterSetIdentifier,hash,etm,mac_type
+hmac-sha1,mac,tag,160,sha1,false,hmac
+hmac-sha1-96,mac,tag,96,sha1,false,hmac
+hmac-md5,mac,tag,128,md5,false,hmac
+hmac-md5-96,mac,tag,96,md5,false,hmac
+none,mac,,,,,
+AEAD_AES_128_GCM,mac,tag,128,,,aead
+AEAD_AES_256_GCM,mac,tag,256,,,aead
+hmac-sha2-256,mac,tag,256,sha256,false,hmac
+hmac-sha2-512,mac,tag,512,sha512,false,hmac
+hmac-sha2-256-etm@openssh.com,mac,tag,256,sha256,true,hmac
+hmac-sha2-512-etm@openssh.com,mac,tag,512,sha512,true,hmac
+hmac-sha1-etm@openssh.com,mac,tag,160,sha1,true,hmac
+hmac-sha1-96-etm@openssh.com,mac,tag,96,sha1,true,hmac
+hmac-md5-etm@openssh.com,mac,tag,128,md5,true,hmac
+hmac-md5-96-etm@openssh.com,mac,tag,96,md5,true,hmac
+hmac-ripemd160,mac,tag,160,ripemd160,false,hmac
+hmac-ripemd160@openssh.com,mac,tag,160,ripemd160,false,hmac
+hmac-ripemd160-etm@openssh.com,mac,tag,160,ripemd160,true,hmac
+umac-64@openssh.com,mac,tag,64,,false,umac
+umac-128@openssh.com,mac,tag,128,,false,umac
+umac-64-etm@openssh.com,mac,tag,64,,true,umac
+umac-128-etm@openssh.com,mac,tag,128,,true,umac

@@ -1,0 +1,68 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:test-code-fixture-0001",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-05-07T00:00:00+00:00",
+    "component": {
+      "type": "application",
+      "name": "test-code-application",
+      "description": "Minimal code CBOM fixture (VECTOR-Code style) for VECTOR-Score tests"
+    },
+    "properties": []
+  },
+  "components": [
+    {
+      "bom-ref": "crypto-asset-rsa-001",
+      "type": "crypto-asset",
+      "name": "RSA",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "pke",
+          "parameterSetIdentifier": "2048",
+          "cryptoFunctions": ["keygen", "encrypt", "decrypt"]
+        }
+      }
+    },
+    {
+      "bom-ref": "crypto-asset-sha256-001",
+      "type": "crypto-asset",
+      "name": "SHA-256",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "hash",
+          "parameterSetIdentifier": "256",
+          "cryptoFunctions": ["digest"]
+        }
+      }
+    },
+    {
+      "bom-ref": "crypto-asset-rc4-001",
+      "type": "crypto-asset",
+      "name": "RC4",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "stream-cipher",
+          "cryptoFunctions": ["encrypt", "decrypt"]
+        }
+      }
+    },
+    {
+      "bom-ref": "crypto-asset-material-001",
+      "type": "crypto-asset",
+      "name": "private-key-rsa",
+      "cryptoProperties": {
+        "assetType": "relatedCryptoMaterial",
+        "relatedCryptoMaterialProperties": {
+          "relatedCryptoMaterialType": "privateKey",
+          "algorithmRef": "crypto-asset-rsa-001",
+          "size": 2048
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head><title>Doorstop</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <link rel="stylesheet" href="assets/doorstop/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/doorstop/general.css" />
+  <link type="text/css" rel="stylesheet" href="assets/doorstop/sidebar.css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" ></script>
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
+  });
+  </script>
+</head>
+<body>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-2 hidden-sm hidden-xs">
+          <nav id="TOC" class="nav nav-stacked fixed sidebar">
+              <h3>Table of Contents</h3>
+<pre><code>* [1.1 Inventory cryptography across code and network surfaces](#<a href="MRS.html#MRS-001">MRS-001</a>)
+* [1.2 Recognize post-quantum and hybrid algorithms](#<a href="MRS.html#MRS-002">MRS-002</a>)
+* [1.3 Produce standardized CBOM artifacts](#<a href="MRS.html#MRS-003">MRS-003</a>)
+* [1.4 Support source-code analysis for current target languages](#<a href="MRS.html#MRS-004">MRS-004</a>)
+* [1.5 Support TLS service assessment](#<a href="MRS.html#MRS-005">MRS-005</a>)
+* [1.6 Support SSH service assessment](#<a href="MRS.html#MRS-006">MRS-006</a>)
+* [1.7 Run in a reproducible Linux-based environment](#<a href="MRS.html#MRS-007">MRS-007</a>)
+* [1.8 Orchestrate open-source analysis tooling](#<a href="MRS.html#MRS-008">MRS-008</a>)
+* [1.9 Preserve non-invasive assessment behavior](#<a href="MRS.html#MRS-009">MRS-009</a>)
+* [1.10 Produce open, reusable output artifacts](#<a href="MRS.html#MRS-010">MRS-010</a>)
+* [1.11 Assess quantum risk of discovered cryptographic assets](#<a href="MRS.html#MRS-011">MRS-011</a>)
+</code></pre>
+          </nav>
+      </div>
+      <div class="col-lg-8" id="main">
+        <h2 id="MRS-001">1.1 Inventory cryptography across code and network surfaces <small><a href="MRS.html#MRS-001">MRS-001</a></small></h2>
+<p>VECTOR SHALL provide a single technical baseline for identifying cryptographic mechanisms used in software source code and in externally exposed network services.</p>
+<h2>Rationale</h2>
+<p>PQC migration planning depends on knowing where cryptography appears across both development-time and runtime-facing assets.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>The specification tree includes linked child requirements for source-code and network analysis.</li>
+<li>Verification artifacts can trace both analysis paths back to this mission requirement.</li>
+</ul>
+<p><em>Child links:</em> <a href="ARC.html#ARC-003">ARC-003 Unified inventory coverage boundary</a>, <a href="SRS.html#SRS-004">SRS-004 Run cryptographic inventory queries on created databases</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>5</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-002">1.2 Recognize post-quantum and hybrid algorithms <small><a href="MRS.html#MRS-002">MRS-002</a></small></h2>
+<p>VECTOR SHALL identify both classical cryptographic mechanisms and post-quantum or hybrid mechanisms present in supported source-code and network-analysis outputs.</p>
+<h2>Rationale</h2>
+<p>Migration planning must distinguish legacy algorithms from transitional and quantum-safe mechanisms.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>The specification tree includes linked child requirements for PQC-aware modeling of supported scan results.</li>
+<li>The design branch defines how hybrid or post-quantum mechanisms are represented in generated artifacts.</li>
+</ul>
+<p><em>Child links:</em> <a href="SRS.html#SRS-007">SRS-007 Model TLS findings with classical, hybrid, and PQ-aware decomposition</a>, <a href="ARC.html#ARC-009">ARC-009 Algorithm modeling layer</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>5</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-003">1.3 Produce standardized CBOM artifacts <small><a href="MRS.html#MRS-003">MRS-003</a></small></h2>
+<p>VECTOR SHALL generate machine-readable cryptographic inventory artifacts in a standardized CBOM format suitable for downstream processing.</p>
+<h2>Rationale</h2>
+<p>Standardized output is required for comparison, sharing, automation, and later migration analysis.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define how analysis results are converted into CBOM artifacts.</li>
+<li>Verification artifacts confirm that generated inventory files are produced in JSON form.</li>
+</ul>
+<p><em>Child links:</em> <a href="SRS.html#SRS-005">SRS-005 Convert source-analysis findings into CBOM artifacts</a>, <a href="ARC.html#ARC-007">ARC-007 CBOM generation and storage</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-004">1.4 Support source-code analysis for current target languages <small><a href="MRS.html#MRS-004">MRS-004</a></small></h2>
+<p>VECTOR SHALL support source-code cryptographic inventory for the languages currently implemented by the project baseline.</p>
+<h2>Rationale</h2>
+<p>The current TOR implementation provides practical value only when the supported language set is specified and verified.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define the supported language-detection and source-analysis workflow.</li>
+<li>Verification artifacts demonstrate handling of the implemented source-language set.</li>
+</ul>
+<p><em>Child links:</em> <a href="ARC.html#ARC-002">ARC-002 VECTOR-Code processing component</a>, <a href="SRS.html#SRS-002">SRS-002 Detect supported source languages from the target project</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-005">1.5 Support TLS service assessment <small><a href="MRS.html#MRS-005">MRS-005</a></small></h2>
+<p>VECTOR SHALL assess TLS-enabled services and capture cryptographic configuration details needed for inventory generation.</p>
+<h2>Rationale</h2>
+<p>TLS deployments are a primary runtime surface for cryptographic exposure and migration risk.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define target-and-port-driven TLS scanning.</li>
+<li>Verification artifacts demonstrate generation of TLS-derived inventory outputs.</li>
+</ul>
+<p><em>Child links:</em> <a href="ARC.html#ARC-005">ARC-005 TLS assessment workflow</a>, <a href="SRS.html#SRS-006">SRS-006 Scan TLS-enabled services by target and port</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-006">1.6 Support SSH service assessment <small><a href="MRS.html#MRS-006">MRS-006</a></small></h2>
+<p>VECTOR SHALL assess SSH-enabled services and capture cryptographic configuration details needed for inventory generation.</p>
+<h2>Rationale</h2>
+<p>SSH deployments expose key exchange, host-key, cipher, and MAC choices that are relevant to PQC transition planning.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define target-and-port-driven SSH scanning.</li>
+<li>Verification artifacts demonstrate generation of SSH-derived inventory outputs.</li>
+</ul>
+<p><em>Child links:</em> <a href="ARC.html#ARC-006">ARC-006 SSH assessment workflow</a>, <a href="SRS.html#SRS-008">SRS-008 Scan SSH-enabled services by target and port</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-007">1.7 Run in a reproducible Linux-based environment <small><a href="MRS.html#MRS-007">MRS-007</a></small></h2>
+<p>VECTOR SHALL execute in a reproducible Linux-based environment with predictable local tool paths and writable artifact directories.</p>
+<h2>Rationale</h2>
+<p>The implemented pipelines rely on external command-line tools and filesystem outputs that must behave consistently across runs.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define the runtime assumptions for local execution and artifact generation.</li>
+<li>Verification artifacts demonstrate that the runtime environment assumptions are explicit and testable.</li>
+</ul>
+<p><em>Child links:</em> <a href="ARC.html#ARC-001">ARC-001 VECTOR runtime context</a>, <a href="SRS.html#SRS-009">SRS-009 Execute within a Linux workspace with explicit runtime assumptions</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>NF</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-008">1.8 Orchestrate open-source analysis tooling <small><a href="MRS.html#MRS-008">MRS-008</a></small></h2>
+<p>VECTOR SHALL orchestrate the open-source analysis tools required to perform its source-code and network inventory workflows.</p>
+<h2>Rationale</h2>
+<p>The current implementation depends on external scanners and converters rather than reimplementing all analysis logic internally.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define how required external tools are invoked within the workflow.</li>
+<li>Verification artifacts demonstrate that tool invocation is explicit and validated.</li>
+</ul>
+<p><em>Child links:</em> <a href="SRS.html#SRS-003">SRS-003 Create CodeQL databases through the external CLI</a>, <a href="ARC.html#ARC-004">ARC-004 External analysis tool adapters</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-009">1.9 Preserve non-invasive assessment behavior <small><a href="MRS.html#MRS-009">MRS-009</a></small></h2>
+<p>VECTOR SHALL perform network assessment in a non-invasive, read-only manner and SHALL fail safely when mandatory inputs or tools are unavailable.</p>
+<h2>Rationale</h2>
+<p>Inventory collection must not introduce avoidable operational risk to scanned targets.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define input validation, missing-tool handling, and non-invasive scan behavior.</li>
+<li>Verification artifacts demonstrate that invalid or incomplete conditions stop or constrain execution safely.</li>
+</ul>
+<p><em>Child links:</em> <a href="ARC.html#ARC-008">ARC-008 Non-invasive network trust boundary</a>, <a href="SRS.html#SRS-010">SRS-010 Fail safely for invalid inputs, missing tools, and incomplete outputs</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>NF</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-010">1.10 Produce open, reusable output artifacts <small><a href="MRS.html#MRS-010">MRS-010</a></small></h2>
+<p>VECTOR SHALL store its generated inventory artifacts in open, reusable file formats and predictable filesystem locations.</p>
+<h2>Rationale</h2>
+<p>Downstream migration planning and automation require outputs that can be inspected and reused without proprietary tooling.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define the expected output files and locations for the implemented workflows.</li>
+<li>Verification artifacts confirm that generated outputs are machine-readable and persist outside transient process state.</li>
+</ul>
+<p><em>Child links:</em> <a href="SRS.html#SRS-001">SRS-001 Persist output artifacts in predictable locations</a>, <a href="ARC.html#ARC-010">ARC-010 Open artifact interfaces</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>NF</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-011">1.11 Assess quantum risk of discovered cryptographic assets <small><a href="MRS.html#MRS-011">MRS-011</a></small></h2>
+<p>VECTOR SHALL provide a mechanism to assess the quantum risk posture of cryptographic assets discovered during inventory, classifying each algorithm according to its vulnerability to cryptographically relevant quantum computers.</p>
+<h2>Rationale</h2>
+<p>Producing a cryptographic inventory (CBOM) is a necessary but insufficient step for PQC migration readiness. Organizations need a risk classification layer that translates raw algorithm findings into actionable migration priorities. Without this layer, analysts must manually cross-reference each discovered algorithm against NIST, BSI, and ANSSI migration guidance — a time-consuming and error-prone process.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define the classification rules, output formats, and verification conditions for the quantum risk scoring workflow.</li>
+<li>Verification artifacts confirm that known quantum-vulnerable algorithms (RSA, ECDH, DH), quantum-safe algorithms (<a href="AES.html#AES-256">AES-256</a>, <a href="SHA.html#SHA-256">SHA-256</a>), and post-quantum algorithms (ML-KEM, ML-DSA) are each classified correctly.</li>
+</ul>
+<p><em>Child links:</em> <a href="ARC.html#ARC-011">ARC-011 VECTOR-Score: standalone quantum risk scoring module</a>, <a href="SRS.html#SRS-011">SRS-011 Classify cryptographic algorithm components in a CBOM by quantum risk</a>, <a href="SRS.html#SRS-012">SRS-012 Produce an annotated CBOM with quantum risk properties on each scored component</a>, <a href="SRS.html#SRS-013">SRS-013 Produce a human-readable Markdown risk report grouped by classification</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>5</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>5</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+      </div>
+    </div>
+</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="assets/doorstop/jquery.min.js"></script>
+<script src="assets/doorstop/bootstrap.min.js"></script>
+<script>
+    $(function() {
+        $("table").addClass("table");
+        $("nav ul").addClass("nav nav-stacked");
+        $("nav").affix();
+        $('body').scrollspy({
+          target: '.sidebar'
+        });
+        $("#main a").attr("target", "parent");
+
+  $(window).on('hashchange', function() {
+    $(window).scrollTop($(location.hash.toLowerCase()).offset().top);});
+  });
+</script>
+</body>
+</html>
+
