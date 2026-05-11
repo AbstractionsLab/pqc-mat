@@ -1,9 +1,18 @@
 [tool.poetry]
 name = "vector"
-version = "0.1"
+version = "0.2"
 description = "Verified Cryptography & Transition via Observable Registry"
 authors = ["Mateja Cimesa <cimesa@itrust.lu>", "Arash Atashpendar <arash@abstractionslab.lu>", "Itzel Vazquez Sandoval <itzel@abstractionslab.lu>"]
 readme = "README.md"
+packages = [
+    {include = "vector"},
+    {include = "vector_code", from = "tor"},
+    {include = "vector_network", from = "tor"},
+    {include = "vector_score", from = "tor"},
+]
+
+[tool.poetry.scripts]
+vector = "vector.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.11"

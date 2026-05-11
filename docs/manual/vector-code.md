@@ -26,8 +26,7 @@ Source code directory
 ## Invocation
 
 ```bash
-cd tor/VECTOR-Code
-python3 main.py <path> [--name <app_name>]
+vector code <path> [--name <app_name>]
 ```
 
 ### Arguments
@@ -48,8 +47,7 @@ python3 main.py <path> [--name <app_name>]
 ### Example
 
 ```bash
-cd tor/VECTOR-Code
-python3 main.py /home/vector/test-project/cryptography --name pyca-cryptography
+vector code /home/vector/test-project/cryptography --name pyca-cryptography
 ```
 
 Expected console output:
@@ -148,7 +146,7 @@ output/cbom/crypto-<language>-cbom.json
 
 ## Output files
 
-All output is relative to the `tor/VECTOR-Code/` directory.
+All output is relative to the `tor/vector_code/` directory.
 
 ```
 output/

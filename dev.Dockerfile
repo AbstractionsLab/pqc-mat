@@ -32,11 +32,14 @@ ENV PATH="${GOPATH}/bin:${PATH}"
 # Create non-root user
 RUN useradd -ms /bin/bash ${user} && echo '${user} ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
 
-# NOTE: CodeQL CLI is only available for x86_64. 
-# This container must be built and run on x86_64 architecture
-RUN curl -L -o /tmp/codeql-linux64.zip https://github.com/github/codeql-cli-binaries/releases/latest/download/codeql-linux64.zip \
-    && unzip /tmp/codeql-linux64.zip -d /opt \
-    && rm /tmp/codeql-linux64.zip
+# NOTE: CodeQL CLI is only available for x86_64; installation is skipped on other architectures.
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
+        curl -L -o /tmp/codeql-linux64.zip https://github.com/github/codeql-cli-binaries/releases/latest/download/codeql-linux64.zip \
+        && unzip /tmp/codeql-linux64.zip -d /opt \
+        && rm /tmp/codeql-linux64.zip; \
+    else \
+        echo "Skipping CodeQL CLI installation: not supported on $(uname -m)"; \
+    fi
 
 ENV PATH="/opt/codeql:${PATH}"
 

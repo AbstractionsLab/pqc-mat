@@ -12,16 +12,14 @@ VECTOR-Score does not require Docker, CodeQL, testssl.sh, or ZGrab2. It can be r
 ## Invocation
 
 ```bash
-cd tor/VECTOR-Score
-
 # Minimal invocation — output files written next to the input file
-python3 main.py /path/to/cbom.json
+vector score /path/to/cbom.json
 
 # Specify output paths explicitly
-python3 main.py cbom.json --output cbom_scored.json --report risk_report.md
+vector score cbom.json --output cbom_scored.json --report risk_report.md
 
 # Score only (suppress report generation)
-python3 main.py cbom.json --no-report
+vector score cbom.json --no-report
 ```
 
 | Argument | Required | Default | Description |
@@ -79,7 +77,7 @@ VECTOR-Score assigns one of seven classifications to each algorithm component.
 
 ## Data-driven catalog
 
-The classification rules are stored in `tor/VECTOR-Score/data/algorithm-risk-catalog.yaml`. Each entry maps algorithm name patterns (exact strings or Python regular expressions) and optional key-size ranges to a classification, risk score, rationale, migration recommendation, and normative references. Extending coverage requires only editing the YAML file — no code changes are needed.
+The classification rules are stored in `tor/vector_score/data/algorithm-risk-catalog.yaml`. Each entry maps algorithm name patterns (exact strings or Python regular expressions) and optional key-size ranges to a classification, risk score, rationale, migration recommendation, and normative references. Extending coverage requires only editing the YAML file — no code changes are needed.
 
 ## Normative references
 

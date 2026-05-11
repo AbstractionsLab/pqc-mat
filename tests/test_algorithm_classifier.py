@@ -10,9 +10,7 @@ import os
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tor", "VECTOR-Score"))
-
-from algorithm_classifier import classify, RiskClassification
+from vector_score.algorithm_classifier import classify, RiskClassification
 
 
 class TestAlgorithmClassifier:

@@ -173,7 +173,7 @@ entries:
     risk_classification: quantum-weakened
     risk_score: medium
     rationale: >
-      SHA-1 has known classical collision attacks (SHAttered, 2017). It may be believed that Grover's algorithm reduces its preimage resistance from 160-bit to approximately 80-bit effective quantum security, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subjecto to ongoing research. SHA-256 is safe against quantum computers. NIST disallows SHA-1 for most uses (SP 800-131A Rev.2).
+      SHA-1 has known classical collision attacks (SHAttered, 2017). It may be believed that Grover's algorithm reduces its preimage resistance from 160-bit to approximately 80-bit effective quantum security, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subject to ongoing research. SHA-256 is safe against quantum computers. NIST disallows SHA-1 for most uses (SP 800-131A Rev.2).
     recommended_migration: "SHA-256 or SHA-384 (NIST FIPS 180-4)"
     references:
       - "NIST SP 800-131A Rev.2 (2019) — SHA-1 disallowed for digital signatures"
@@ -309,7 +309,7 @@ entries:
     risk_classification: quantum-safe
     risk_score: none
     rationale: >
-      AES-256 provides 256-bit classical security. It may be believed that Grover's algorithm reduces this to approximately 128-bit effective quantum security, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subjecto to ongoing research. AES-256 meets NIST's recommended threshold for post-quantum symmetric security (SP 800-131A Rev.2).
+      AES-256 provides 256-bit classical security. It may be believed that Grover's algorithm reduces this to approximately 128-bit effective quantum security, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subject to ongoing research. AES-256 meets NIST's recommended threshold for post-quantum symmetric security (SP 800-131A Rev.2).
     recommended_migration: "No migration required"
     references:
       - "NIST FIPS 197 (2001, updated 2023) — AES-256 approved"
@@ -323,7 +323,7 @@ entries:
     risk_classification: quantum-safe
     risk_score: none
     rationale: >
-      ChaCha20-Poly1305 uses a 256-bit key. It may be believed that Grover's algorithm reduces its effective quantum security to approximately 128 bits, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subjecto to ongoing research. ChaCha20-Poly1305 meets the recommended threshold.
+      ChaCha20-Poly1305 uses a 256-bit key. It may be believed that Grover's algorithm reduces its effective quantum security to approximately 128 bits, but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subject to ongoing research. ChaCha20-Poly1305 meets the recommended threshold.
     recommended_migration: "No migration required"
     references:
       - "RFC 8439 (2018) — ChaCha20-Poly1305 standardised"

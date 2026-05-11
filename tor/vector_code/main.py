@@ -8,10 +8,10 @@ DATABASE_DIR = os.path.join(OUTPUT_DIR, "databases")
 RESULTS_DIR = os.path.join(OUTPUT_DIR, "results")
 CBOM_DIR = os.path.join(OUTPUT_DIR, "cbom")
 
-from src.language_detection import detect_languages
-from src.codeql_database import create_databases
-from src.codeql_queries import run_queries
-from src.cbom_generator import generate_cbom
+from .src.language_detection import detect_languages
+from .src.codeql_database import create_databases
+from .src.codeql_queries import run_queries
+from .src.cbom_generator import generate_cbom
 
 
 def setup_directories():
@@ -20,15 +20,7 @@ def setup_directories():
     os.makedirs(CBOM_DIR, exist_ok=True)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Crypto Inventory Pipeline")
-    parser.add_argument("path", help="Path to the project to analyze")
-    parser.add_argument("--name", default="application", help="Application name for CBOM")
-    args = parser.parse_args()
-
-    project_path = args.path
-    app_name = args.name
-
+def run(project_path: str, app_name: str = "application") -> int:
     if not project_path:
         print("Error: Project path cannot be empty")
         return 1
@@ -104,6 +96,14 @@ def main():
         return 2
 
 
-if __name__ == "__main__":
+def main():
     import sys
-    sys.exit(main())
+    parser = argparse.ArgumentParser(description="Crypto Inventory Pipeline")
+    parser.add_argument("path", help="Path to the project to analyze")
+    parser.add_argument("--name", default="application", help="Application name for CBOM")
+    args = parser.parse_args()
+    sys.exit(run(args.path, args.name))
+
+
+if __name__ == "__main__":
+    main()

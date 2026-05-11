@@ -158,8 +158,8 @@ def generate_report(scored_cbom: dict) -> str:
         for item in sorted(items, key=lambda x: x["name"]):
             # Truncate long rationale for table readability
             rationale = item["rationale"]
-            if len(rationale) > 120:
-                rationale = rationale[:117] + "..."
+            if len(rationale) > 500:
+                rationale = rationale[:497] + "..."
             lines.append(_md_table_row([
                 item["name"],
                 item["primitive"] or "—",

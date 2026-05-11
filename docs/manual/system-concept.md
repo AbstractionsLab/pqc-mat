@@ -1,21 +1,5 @@
 # TOR - System Concept Document
 
----
-
-## Project Information
-
-| Field | Value |
-|-------|-------|
-| **Project Name** | TOR |
-| **Program** | CyFORT |
-| **Status** | In Development |
-| **Version** | 0.1 |
-| **Date** | May 2026 |
-| **Author** | MCI |
-| **Supervisor** | AAT |
-
----
-
 ## Document Overview
 
 This System Concept document describes the TOR project, an automated cryptographic inventory and analysis system designed to assess organizational readiness for post-quantum cryptography (PQC) migration. The system performs comprehensive cryptographic asset discovery across both source code and network infrastructure, generating standardized Cryptographic Bills of Materials (CBOM) for quantum risk assessment.
@@ -23,18 +7,6 @@ This System Concept document describes the TOR project, an automated cryptograph
 **Key Objectives:**
 - Automated detection of cryptographic algorithms in source code (Python, C, C++)
 - Network service analysis for TLS/SSH cipher suite identification
-
----
-
-## Document Change Log
-
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 0.1 | December 2025 | Initial draft | MCI |
-| 0.1.1 | May 2026 | Fix Java support status, clarify CBOMkit integration scope | MCI |
-
----
-
 
 # Background
 

@@ -47,6 +47,7 @@ This step is required before using VECTOR-Code. If it is skipped, CBOM generatio
 Run these commands inside the container to confirm all tools are available:
 
 ```bash
+vector --help            # VECTOR unified CLI — all three subcommands listed
 python3 --version        # Python 3.11.x
 codeql --version         # CodeQL CLI x.y.z
 cloc --version           # vN.NN
@@ -54,6 +55,15 @@ zgrab2 --help            # ZGrab2 usage
 cryptobom --help         # cryptobom-forge CLI (only after manual install above)
 /home/vector/tools/testssl.sh/testssl.sh --version   # testssl.sh 3.x
 ```
+
+If `vector` is not found or returns an import error, the Python package has not been installed into the active virtual environment. Run:
+
+```bash
+cd /home/vector/vector-project
+poetry install
+```
+
+This installs the `vector` package and registers the `vector` CLI entry point. The Dev Container build does this automatically, but it may need to be re-run after manually pulling updated code or switching branches.
 
 ## Troubleshooting
 

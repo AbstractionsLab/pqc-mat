@@ -57,6 +57,8 @@
 <h2 id="ARC-002">1.2 VECTOR-Code processing component <small><a href="ARC.html#ARC-002">ARC-002</a></small></h2>
 <h2>Architecture design artifact</h2>
 <p>The VECTOR-Code component accepts a readable source-tree path, detects supported languages, creates CodeQL databases, runs inventory queries, and converts resulting findings into CBOM artifacts.</p>
+<h2>Processing pipeline</h2>
+<p><img alt="VECTOR-Code: CBOM Generation Process — Detailed Flow" src="assets/diagrams/VECTOR-Code/vector-code-workflow.drawio.png" /></p>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-004">MRS-004 Support source-code analysis for current target languages</a></p>
 <p><em>Child links:</em> <a href="SWD.html#SWD-002">SWD-002 Source inventory pipeline sequencing</a></p>
 <table>
@@ -95,6 +97,8 @@
 <h2 id="ARC-004">1.4 External analysis tool adapters <small><a href="ARC.html#ARC-004">ARC-004</a></small></h2>
 <h2>Architecture design artifact</h2>
 <p>VECTOR delegates core analysis steps to external tools including cloc, CodeQL, cryptobom, testssl.sh, and zgrab2, and wraps them through thin orchestration scripts.</p>
+<h2>VECTOR-Network scanning workflow</h2>
+<p><img alt="VECTOR-Network: Network Cryptography Scanning" src="assets/diagrams/VECTOR-Network/vector-network-workflow.drawio.png" /></p>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-008">MRS-008 Orchestrate open-source analysis tooling</a></p>
 <p><em>Child links:</em> <a href="SWD.html#SWD-004">SWD-004 External command invocation contracts</a></p>
 <table>
@@ -251,7 +255,7 @@
 </tr>
 <tr>
 <td><code>quantum-weakened</code></td>
-<td>Security believed to be reduced by Grover's algorithm (<a href="AES.html#AES-128">AES-128</a>, 3DES, <a href="SHA.html#SHA-1">SHA-1</a>), but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subject to ongoing research.</td>
+<td>Security believed to be reduced by Grover's algorithm (e.g., <a href="AES.html#AES-128">AES-128</a>, 3DES, <a href="SHA.html#SHA-1">SHA-1</a>), but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subject to ongoing research.</td>
 </tr>
 <tr>
 <td><code>classically-deprecated</code></td>

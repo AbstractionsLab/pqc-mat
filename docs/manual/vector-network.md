@@ -28,8 +28,7 @@ Target host:port
 ## Invocation
 
 ```bash
-cd tor/VECTOR-Network
-python3 network-scanning.py [--protocol <ssh|tls> --target <host> --port <port>]
+vector network --protocol <ssh|tls> --target <host> --port <port>
 ```
 
 ### CLI mode
@@ -37,21 +36,21 @@ python3 network-scanning.py [--protocol <ssh|tls> --target <host> --port <port>]
 All three arguments must be provided together:
 
 ```bash
-python3 network-scanning.py --protocol tls --target example.com --port 443
-python3 network-scanning.py --protocol ssh --target github.com --port 22
+vector network --protocol tls --target example.com --port 443
+vector network --protocol ssh --target github.com --port 22
 ```
 
 ### Arguments
 
 | Argument | Required | Values | Default |
 |----------|----------|--------|---------|
-| `--protocol` | Yes (CLI mode) | `ssh`, `tls` | — |
-| `--target` | Yes (CLI mode) | domain name or IP address | — |
-| `--port` | Yes (CLI mode) | 1–65535 | — |
+| `--protocol` | Yes | `ssh`, `tls` | — |
+| `--target` | Yes | domain name or IP address | — |
+| `--port` | Yes | 1–65535 | — |
 
 ### Interactive mode
 
-Running without arguments launches an interactive menu:
+Running `tor/vector_network/main.py` directly without arguments launches an interactive menu:
 
 ```
 Select protocol
@@ -65,7 +64,7 @@ Options 1 and 2 prompt for a target hostname or IP address. Option 3 prompts for
 
 ## Output files
 
-Output files are written to the current working directory (wherever `network-scanning.py` is invoked from).
+Output files are written to the current working directory (wherever `main.py` is invoked from, or the directory the `vector network` command is run from).
 
 | Scan type | Raw scan output | CBOM output |
 |-----------|----------------|-------------|
@@ -135,7 +134,7 @@ Each cipher suite name is parsed against `tls-mapping/cipher-mapping.txt`, which
 If you already have raw scan output (e.g., from a previous scan or from running the tools manually), you can regenerate the CBOM without re-scanning:
 
 ```bash
-cd tor/VECTOR-Network
+cd tor/vector_network
 
 # Re-process an SSH scan result
 python3 zgrab2_to_cbom.py <filename>_ssh_scan.json

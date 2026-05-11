@@ -20,17 +20,24 @@ The project is divided into two complementary components:
 
 ```
 tor/
-├── VECTOR-Code/
+├── vector_code/
 │   ├── main.py
 │   └── src/
 │       ├── language_detection.py
 │       ├── codeql_database.py
 │       ├── codeql_queries.py
 │       └── cbom_generator.py
-├── VECTOR-Network/
-│   ├── network-scanning.py
+├── vector_network/
+│   ├── main.py
 │   ├── testssl_to_cbom.py
 │   └── zgrab2_to_cbom.py
+├── vector_score/
+│   ├── main.py
+│   ├── algorithm_classifier.py
+│   ├── cbom_scorer.py
+│   ├── report_generator.py
+│   └── data/
+│       └── algorithm-risk-catalog.yaml
 └── README.md
 ```
 
@@ -64,18 +71,17 @@ All commands are run from inside the Dev Container.
 Analyzes source code to detect programming languages and create CodeQL databases for cryptographic analysis.
 
 ```bash
-cd tor/VECTOR-Code
-python3 main.py <path>
+vector code <path>
 ```
 
 **Arguments:**
 - `path` (required): path to the project to analyze
+- `--name` (optional): application name for CBOM metadata (default: `application`)
 
 A test project is included in the container at `/home/vector/test-project/cryptography` (the [pyca/cryptography](https://github.com/pyca/cryptography) library). You can use it to quickly verify the pipeline:
 
 ```bash
-cd tor/VECTOR-Code
-python3 main.py /home/vector/test-project/cryptography
+vector code /home/vector/test-project/cryptography
 ```
 
 **Example output:**
@@ -116,41 +122,14 @@ output/
 
 Scans network services to identify cryptographic configurations and generate Cryptographic Bills of Materials (CBOM).
 
-Launch the interactive network scanning tool:
-
 ```bash
-cd tor/VECTOR-Network
-python3 network-scanning.py
-```
-
-#### Interactive Menu
-
-```
-Select protocol
-  1. SSH (port 22)
-  2. TLS (port 443)
-  3. Custom
-Choice (1/2/3): _
+vector network --protocol <ssh|tls> --target <host> --port <port>
 ```
 
 #### TLS Analysis with testssl.sh
 
-Provides comprehensive TLS/SSL cipher suite enumeration for target hosts:
-
 ```bash
-Select protocol
-  1. SSH (port 22)
-  2. TLS (port 443)
-  3. Custom
-Choice (1/2/3): 2
-Target (domain or IP): example.com
-
-Scanning example.com (TLS)
-  Scan saved: example_com_tls_scan.json
-
-Generating CBOM
-
-Completed
+vector network --protocol tls --target example.com --port 443
 ```
 
 **Output files generated:**
@@ -162,19 +141,7 @@ Completed
 Scans SSH services for supported key exchange and host key algorithms:
 
 ```bash
-Select protocol
-  1. SSH (port 22)
-  2. TLS (port 443)
-  3. Custom
-Choice (1/2/3): 1
-Target (domain or IP): github.com
-
-Scanning github.com (SSH)
-  Scan saved: github_com_ssh_scan.json
-
-Generating CBOM
-
-Completed
+vector network --protocol ssh --target github.com --port 22
 ```
 
 **Output files generated:**
@@ -186,25 +153,7 @@ Completed
 Analyze SSH or TLS on non-standard ports:
 
 ```bash
-Select protocol
-  1. SSH (port 22)
-  2. TLS (port 443)
-  3. Custom
-Choice (1/2/3): 3
-
-Select protocol
-  SSH
-  TLS
-Choice (1/2): 2
-Port: 8443
-Target (domain or IP): internal.example.com
-
-Scanning internal.example.com (TLS)
-  Scan saved: internal_example_com_tls_scan.json
-
-Generating CBOM
-
-Completed
+vector network --protocol tls --target internal.example.com --port 8443
 ```
 
 **Output files generated:**

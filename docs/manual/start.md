@@ -7,8 +7,7 @@ All commands are run from inside the Dev Container.
 Analyzes source code to detect programming languages and build CodeQL databases for cryptographic analysis.
 
 ```bash
-cd tor/VECTOR-Code
-python3 main.py <path> [--name <app_name>]
+vector code <path> [--name <app_name>]
 ```
 
 **Arguments:**
@@ -21,8 +20,7 @@ python3 main.py <path> [--name <app_name>]
 A test project is pre-loaded in the container at `/home/vector/test-project/cryptography` ([pyca/cryptography](https://github.com/pyca/cryptography)):
 
 ```bash
-cd tor/VECTOR-Code
-python3 main.py /home/vector/test-project/cryptography --name pyca-cryptography
+vector code /home/vector/test-project/cryptography --name pyca-cryptography
 ```
 
 **Example output:**
@@ -66,15 +64,14 @@ tor/VECTOR-Code/output/
 Scans network services to identify cryptographic configurations and generate CBOMs.
 
 ```bash
-cd tor/VECTOR-Network
-python3 network-scanning.py [--protocol <ssh|tls> --target <host> --port <port>]
+vector network --protocol <ssh|tls> --target <host> --port <port>
 ```
 
 ### CLI mode
 
 ```bash
-python3 network-scanning.py --protocol tls --target example.com --port 443
-python3 network-scanning.py --protocol ssh --target github.com --port 22
+vector network --protocol tls --target example.com --port 443
+vector network --protocol ssh --target github.com --port 22
 ```
 
 ### Interactive mode
@@ -120,7 +117,7 @@ Select option `3` to specify a non-standard port for either protocol.
 The converter scripts can be run standalone if you already have raw scan output and want to regenerate the CBOM without re-scanning:
 
 ```bash
-cd tor/VECTOR-Network
+cd tor/vector_network
 python3 zgrab2_to_cbom.py <target>_ssh_scan.json
 python3 testssl_to_cbom.py <target>_tls_scan.json
 ```

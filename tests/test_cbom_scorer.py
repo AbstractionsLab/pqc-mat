@@ -12,9 +12,7 @@ import sys
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tor", "VECTOR-Score"))
-
-from cbom_scorer import score_cbom
+from vector_score.cbom_scorer import score_cbom
 
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "content")

@@ -15,6 +15,25 @@
 
 ---
 
+### `vector: command not found` or import error
+
+**Symptom:** Running `vector` returns `command not found`, or a subcommand fails with a Python `ModuleNotFoundError`.
+
+**Cause:** The Python package has not been installed into the active virtual environment. The Dev Container build runs `poetry install` automatically, but this step may be missing after a manual code pull or branch switch.
+
+**Resolution:**
+```bash
+cd /home/vector/vector-project
+poetry install
+```
+
+Then verify:
+```bash
+vector --help
+```
+
+---
+
 ### `cryptobom: command not found`
 
 **Symptom:** VECTOR-Code fails at the "Generating CBOM" step with a command-not-found error.

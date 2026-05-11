@@ -11,7 +11,7 @@ import copy
 from datetime import datetime, timezone
 from typing import Optional
 
-from algorithm_classifier import classify
+from .algorithm_classifier import classify
 
 
 _SCORER_VERSION = "0.1"

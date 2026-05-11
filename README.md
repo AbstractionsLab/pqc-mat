@@ -4,7 +4,7 @@ The Post-Quantum Cryptography Migration Assistance Theory and Tools (**PQC-MAT**
 
 <img src="./docs/manual/assets/CyFORT-PQC-MAT-logo.png" alt="cyfort_logo" width="500"/>
 
-This repository hosts resources for a secure and methodological migration from classical to post-quantum cryptography (PQC) in cyber-physical systems. PQC migration replaces algorithms based on classical public-key cryptography with quantum-secure alternatives built on mathematical problems that cannot be efficiently solved by a Cryptographically Relevant Quantum Computer (CRQC). It currently provides two subsystems — **VEC** (Verified Cryptography) and **TOR** (Transition via Observable Registry) — which together form **VECTOR**: **VE**rified **C**ryptography and **T**ransition via **O**bservable **R**egistry.
+This repository hosts resources for a secure and methodological migration from classical to post-quantum cryptography (PQC) in cyber-physical systems. PQC migration replaces algorithms based on classical public-key cryptography with quantum-secure alternatives built on mathematical problems that cannot be efficiently solved by a Cryptographically Relevant Quantum Computer (CRQC). It currently provides two subsystems — **VEC** and **TOR**, which together form **VECTOR**: **VE**rified **C**ryptography and **T**ransition via **O**bservable **R**egistry.
 
 Technical specifications are available on the [traceability web page](https://abstractionslab.github.io/pqc-mat/traceability/index.html). See the [user manual](/docs/manual/README.md) for details on installation, quick start, feature matrix, and system concept.
 
@@ -70,19 +70,17 @@ The container automatically installs Python 3.11, Poetry, Go 1.24, CodeQL CLI, t
 ### VECTOR-Code: static source analysis
 
 ```bash
-cd tor/VECTOR-Code
-
 # Analyse the bundled test project
-python3 main.py /home/vector/test-project/cryptography
+vector code /home/vector/test-project/cryptography
 
 # Analyse your own project, with a custom CBOM application name
-python3 main.py /path/to/your/project --name my-application
+vector code /path/to/your/project --name my-application
 ```
 
 **Output structure:**
 
 ```
-tor/VECTOR-Code/output/
+tor/vector_code/output/
 ├── databases/    # CodeQL databases per detected language
 ├── results/      # SARIF findings
 └── cbom/         # CycloneDX CBOM JSON files
@@ -91,14 +89,9 @@ tor/VECTOR-Code/output/
 ### VECTOR-Network: network scanning
 
 ```bash
-cd tor/VECTOR-Network
-
-# Interactive mode (menu-driven)
-python3 network-scanning.py
-
 # CLI mode
-python3 network-scanning.py --protocol tls --target example.com --port 443
-python3 network-scanning.py --protocol ssh --target 192.168.1.1 --port 22
+vector network --protocol tls --target example.com --port 443
+vector network --protocol ssh --target 192.168.1.1 --port 22
 ```
 
 Each scan produces a raw scanner output file and a CycloneDX CBOM:
@@ -111,13 +104,11 @@ Each scan produces a raw scanner output file and a CycloneDX CBOM:
 ### VECTOR-Score: quantum risk scoring
 
 ```bash
-cd tor/VECTOR-Score
-
 # Score a CBOM produced by VECTOR-Code or VECTOR-Network
-python3 main.py /path/to/cbom.json
+vector score /path/to/cbom.json
 
 # Specify output paths explicitly
-python3 main.py cbom.json --output cbom_scored.json --report risk_report.md
+vector score cbom.json --output cbom_scored.json --report risk_report.md
 ```
 
 Outputs:

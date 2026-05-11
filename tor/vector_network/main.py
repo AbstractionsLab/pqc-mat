@@ -15,7 +15,7 @@ def _validate_port_range(port):
 def get_user_input_cli():
     parser = argparse.ArgumentParser(
         description="Network scanning tool for SSH and TLS protocols",
-        epilog="Example: python3 network-scanning.py --protocol ssh --target example.com --port 22"
+        epilog="Example: vector network --protocol ssh --target example.com --port 22"
     )
     parser.add_argument(
         "--protocol",
@@ -186,14 +186,13 @@ def _run_cbom_converter(converter_name, scan_output):
         sys.exit(1)
 
 
-def main():
-    if len(sys.argv) > 1:
-        protocol, port, target = get_user_input_cli()
-    else:
-        protocol, port, target = get_user_input_interactive()
-
+def run(protocol: str, port: int, target: str) -> int:
+    _validate_port_range(port)
+    if not target or target.strip() == "":
+        print("Error: Target cannot be empty")
+        return 1
+    target = target.strip()
     print(f"\nScanning {target}:{port} ({protocol.upper()})")
-
     if protocol == "ssh":
         scan_output = scan_ssh(target, port)
         print("\nGenerating CBOM")
@@ -202,8 +201,16 @@ def main():
         scan_output = scan_tls(target, port)
         print("\nGenerating CBOM")
         _run_cbom_converter("testssl_to_cbom.py", scan_output)
-
     print("\nCompleted")
+    return 0
+
+
+def main():
+    if len(sys.argv) > 1:
+        protocol, port, target = get_user_input_cli()
+    else:
+        protocol, port, target = get_user_input_interactive()
+    sys.exit(run(protocol, port, target))
 
 
 if __name__ == "__main__":
