@@ -2,6 +2,8 @@
 
 VECTOR-Code performs static analysis of source code to detect cryptographic API usage and produce a Cryptographic Bill of Materials (CBOM).
 
+> **Web interface:** VECTOR-Code is also accessible through the browser-based GUI. See [Web interface](./start.md#web-interface) in the quick start guide.
+
 ## Pipeline overview
 
 ```
@@ -11,16 +13,16 @@ Source code directory
   cloc (language detection)
         │  identifies languages present above 5% threshold
         ▼
-  codeql database create
+  codeql database create (per language)
         │  one database per CodeQL language (python, cpp)
         ▼
-  codeql database analyze
+  codeql database analyze (per language)
         │  runs crypto inventory queries → SARIF output
         ▼
   cryptobom generate
-        │  converts SARIF → CycloneDX 1.6 CBOM JSON
+        │  converts SARIF → unified CycloneDX 1.6 CBOM JSON
         ▼
-  output/cbom/crypto-<language>-cbom.json
+  output/cbom/<app_name>-cbom.json
 ```
 
 ## Invocation
@@ -68,6 +70,14 @@ Generating CBOM
 Completed
 ```
 
+### Scanning code from your host machine
+
+The code on host machine can be scanned without copying it into the container. The container has access to the home directory via the `/mnt/host-home` mount point:
+
+```bash
+vector code /mnt/host-home/path/to/your/project --name my-app
+```
+
 ## Language detection
 
 VECTOR-Code calls `cloc --json <path>` to count lines of code per language. Languages are included for analysis only if they make up at least **5%** of the total source lines.
@@ -81,9 +91,19 @@ VECTOR-Code calls `cloc --json <path>` to count lines of code per language. Lang
 | C++ | `cpp` | Supported — analyzed in the same database as C |
 | Java | `java` | **Not supported** — CodeQL query pack is not available |
 
-If a project contains both C and C++, a single `cpp` database is created and a single CBOM is generated for both.
+If a project contains both C and C++, a single `cpp` database is created and a single per-language CBOM is generated for both.
 
 If no supported language meets the 5% threshold, the tool exits with code `1` and prints an error message.
+
+## Multi-language output
+
+When multiple supported languages are detected in a single project:
+- One CodeQL database is created per unique language
+- One SARIF file is generated per language
+- A single **unified CBOM** is generated from the SARIF path
+
+The unified CBOM is the final output artifact and is named `crypto-combined-cbom.json`. Individual per-language SARIF files are retained as intermediate artifacts in `output/results/` for traceability.
+
 
 ## CodeQL database creation
 
@@ -128,7 +148,7 @@ output/results/crypto-<language>.sarif
 
 ## CBOM generation
 
-SARIF files are converted to CycloneDX 1.6 CBOM JSON using the `cryptobom` CLI (from the `cryptobom-forge` package):
+SARIF files are converted to CycloneDX 1.6 CBOM JSON using the cryptobom CLI (from the cryptobom-forge package):
 
 ```bash
 cryptobom generate <sarif_path> \
@@ -169,4 +189,4 @@ Re-running VECTOR-Code overwrites all existing output files.
 | Source-only | `--build-mode=none` means compiled binaries and dynamic behavior are not analyzed |
 | Hardcoded query paths | Queries must exist at the exact container paths listed above; no CLI override |
 | No incremental analysis | Every run recreates databases and re-runs all queries from scratch |
-| Single CBOM per language | All findings for a language are merged into one CBOM; per-file breakdown is in the SARIF |
+| Single CBOM per run | All findings across all detected languages are merged into one CBOM |

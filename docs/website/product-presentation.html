@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PQC-MAT VECTOR | Product presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef1f7;
+      --surface: #ffffff;
+      --surface-alt: #f0f4ff;
+      --ink: #0f1d33;
+      --muted: #3d5480;
+      --line: #b8d0ec;
+      --brand: #1458c8;
+      --brand-strong: #0a3a8a;
+      --accent: #e12f56;
+      --ok: #13874f;
+      --shadow: 0 12px 40px rgba(6, 25, 80, 0.15);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 10% -10%, #c4d8f5 0, transparent 40%),
+        radial-gradient(circle at 90% 0, #cce0ff 0, transparent 35%),
+        var(--bg);
+      color: var(--ink);
+      font-family: Manrope, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      scroll-behavior: smooth;
+    }
+
+    .container {
+      width: min(1200px, calc(100vw - 2.4rem));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(8px);
+      background: rgba(238, 241, 245, 0.82);
+      border-bottom: 1px solid rgba(213, 223, 236, 0.8);
+      z-index: 20;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.8rem 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.62rem;
+      font-family: "Space Grotesk", sans-serif;
+      letter-spacing: 0.02em;
+      font-weight: 700;
+      color: var(--brand-strong);
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 14px rgba(10, 58, 138, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      background: #fff;
+    }
+
+    .brand-text {
+      display: inline-block;
+      line-height: 1;
+    }
+
+    .topnav {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .topnav a {
+      text-decoration: none;
+      color: var(--brand-strong);
+      border: 1px solid transparent;
+      padding: 0.4rem 0.7rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .topnav a:hover {
+      border-color: var(--line);
+      background: var(--surface);
+    }
+
+    .hero {
+      padding: 4.2rem 0 2.5rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.35rem 0.75rem;
+      background: var(--surface);
+      color: var(--brand-strong);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 1.1rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      margin-top: 1rem;
+      color: var(--muted);
+      max-width: 62ch;
+      font-size: 1.02rem;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.4rem;
+    }
+
+    .btn {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 10px;
+      font-weight: 700;
+      padding: 0.7rem 1rem;
+      border: 1px solid transparent;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(115deg, var(--brand), var(--brand-strong));
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(10, 58, 138, 0.28);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--brand-strong);
+      border-color: var(--line);
+    }
+
+    .hero-visual {
+      background: linear-gradient(145deg, #0a1c45, #1048a0);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      box-shadow: var(--shadow);
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    .hero-visual::before {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      right: -70px;
+      top: -70px;
+      background: radial-gradient(circle, rgba(20, 88, 200, 0.5), rgba(20, 88, 200, 0));
+      z-index: -1;
+    }
+
+    .hero-visual img {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      display: block;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 0.8rem;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 1.2rem;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 1.05rem;
+      color: var(--brand-strong);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    section {
+      padding: 2.1rem 0;
+    }
+
+    .section-head {
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    h2 {
+      margin: 0;
+      letter-spacing: -0.01em;
+      font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+    }
+
+    .section-kicker {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+
+    .feature {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      box-shadow: 0 6px 24px rgba(6, 25, 80, 0.08);
+    }
+
+    .feature h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--brand-strong);
+    }
+
+    .feature p {
+      margin: 0.5rem 0 0;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .stack {
+      margin-top: 0.65rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .chip {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface-alt);
+      color: var(--brand-strong);
+      padding: 0.17rem 0.55rem;
+      font-size: 0.77rem;
+      font-weight: 700;
+    }
+
+    .showcase {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .shot {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 26px rgba(6, 25, 80, 0.08);
+      overflow: hidden;
+      transform: translateY(10px);
+      opacity: 0;
+      animation: fade-up 0.55s ease forwards;
+    }
+
+    .shot:nth-child(2) { animation-delay: 0.06s; }
+    .shot:nth-child(3) { animation-delay: 0.12s; }
+    .shot:nth-child(4) { animation-delay: 0.18s; }
+    .shot:nth-child(5) { animation-delay: 0.24s; }
+    .shot:nth-child(6) { animation-delay: 0.3s; }
+
+    @keyframes fade-up {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .shot button {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      cursor: zoom-in;
+    }
+
+    .shot img {
+      width: 100%;
+      display: block;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .shot figcaption {
+      padding: 0.85rem 0.95rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      min-height: 4.4rem;
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem;
+      position: relative;
+      min-height: 140px;
+    }
+
+    .step::after {
+      content: "";
+      position: absolute;
+      right: -0.45rem;
+      top: calc(50% - 0.45rem);
+      width: 0.9rem;
+      height: 0.9rem;
+      background: var(--brand);
+      border-radius: 999px;
+      border: 2px solid var(--bg);
+    }
+
+    .step:last-child::after {
+      display: none;
+    }
+
+    .step strong {
+      color: var(--brand-strong);
+      font-size: 0.85rem;
+      font-family: "Space Grotesk", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .step p {
+      margin: 0.45rem 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .footer {
+      margin-top: 2rem;
+      padding: 1.6rem 0 2.2rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .footer a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 18, 34, 0.86);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 40;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox figure {
+      max-width: min(1280px, 96vw);
+      margin: 0;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.45);
+    }
+
+    .lightbox img {
+      display: block;
+      width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .lightbox figcaption {
+      padding: 0.7rem 0.85rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      background: #fff;
+    }
+
+    .lightbox .close {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #fff;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 999px;
+      width: 42px;
+      height: 42px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .showcase {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow {
+        grid-template-columns: 1fr;
+      }
+
+      .step::after {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 2.7rem;
+      }
+
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .brand-logo {
+        width: 30px;
+        height: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="https://github.com/AbstractionsLab/pqc-mat">
+        <img class="brand-logo" src="assets/6D1B2_LOG_PQC-MAT-400x400_v1.0.png" alt="PQC-MAT logo">
+        <span class="brand-text">
+          <span style="display:block;font-size:0.68em;letter-spacing:0.1em;opacity:0.7;font-weight:600">PQC-MAT</span>
+          VECTOR
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Page sections">
+        <a href="#value">Value</a>
+        <a href="#features">Features</a>
+        <a href="#gallery">Screens</a>
+        <a href="#workflow">Workflow</a>
+        <a href="release-notes.html">What&#8217;s new</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="value">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">PQC-MAT &middot; CyFORT project</div>
+          <h1>VECTOR: automated cryptographic inventory and quantum risk scoring</h1>
+          <p class="lead">
+            VECTOR discovers and classifies cryptographic assets across source code and live network
+            services. It runs CodeQL-based static analysis and testssl.sh / ZGrab2 network scans,
+            converts all findings to standardized CycloneDX&nbsp;1.6 CBOMs, and applies a quantum risk
+            catalog aligned with NIST&nbsp;FIPS&nbsp;203/204/205, BSI&nbsp;TR-02102, and ANSSI to help
+            organizations plan their post-quantum cryptography migration. Built for security
+            practitioners, auditors, and researchers under the CyFORT project and EU IPCEI-CIS initiative.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/start.md">Open quick start</a>
+            <a class="btn btn-secondary" href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/README.md">Browse user manual</a>
+          </div>
+          <div class="metrics" aria-label="Product metrics">
+            <div class="metric">
+              <strong>Python &middot; C &middot; C++</strong>
+              <span>Source languages for static analysis</span>
+            </div>
+            <div class="metric">
+              <strong>TLS &middot; SSH</strong>
+              <span>Network protocols for live scanning</span>
+            </div>
+            <div class="metric">
+              <strong>CycloneDX 1.6</strong>
+              <span>Standardized CBOM output format</span>
+            </div>
+            <div class="metric">
+              <strong>NIST &middot; BSI &middot; ANSSI</strong>
+              <span><a href="https://abstractionslab.github.io/pqc-mat/traceability/index.html">Traceable specs</a> &amp; quantum risk catalog</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="assets/VECTOR-GUI-NetScanRiskReport.png" alt="VECTOR-Network TLS scan risk report">
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <div class="section-head">
+          <h2>Core capabilities</h2>
+          <div class="section-kicker">From code and network to quantum risk</div>
+        </div>
+        <div class="features">
+          <article class="feature">
+            <h3><a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/vector-code.md">VECTOR-Code</a> &mdash; CodeQL static analysis</h3>
+            <p>Analyzes Python, C, and C++ source code for cryptographic API usage. Orchestrates cloc, CodeQL (Santander queries), and cryptobom-forge into a single containerized command. Also accepts GitHub repository URLs directly.</p>
+            <div class="stack">
+              <span class="chip">CodeQL</span>
+              <span class="chip">Python / C / C++</span>
+              <span class="chip">cryptobom-forge</span>
+            </div>
+          </article>
+          <article class="feature">
+            <h3><a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/vector-network.md">VECTOR-Network &middot; TLS</a> &mdash; cipher suite inventory</h3>
+            <p>Enumerates all TLS protocol versions, cipher suites, elliptic curves, signature algorithms, and certificate properties. Decomposes cipher suites into individual algorithm components and detects hybrid and standalone post-quantum KEMs.</p>
+            <div class="stack">
+              <span class="chip">testssl.sh</span>
+              <span class="chip">TLS 1.3</span>
+              <span class="chip">Hybrid PQC KEMs</span>
+            </div>
+          </article>
+          <article class="feature">
+            <h3><a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/vector-network.md">VECTOR-Network &middot; SSH</a> &mdash; algorithm enumeration</h3>
+            <p>Performs an SSH handshake via ZGrab2 and records all offered KEX, host key, cipher, and MAC algorithms, together with the negotiated suite, host key fingerprint, and server software banner.</p>
+            <div class="stack">
+              <span class="chip">ZGrab2</span>
+              <span class="chip">SSH key exchange</span>
+              <span class="chip">Host key fingerprint</span>
+            </div>
+          </article>
+          <article class="feature">
+            <h3><a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/vector-score.md">VECTOR-Score</a> &mdash; quantum risk classification</h3>
+            <p>Classifies every CBOM component into one of six quantum risk categories using a data-driven YAML catalog covering NIST FIPS&nbsp;203/204/205, BSI&nbsp;TR-02102, and ANSSI. Produces an annotated CBOM and a Markdown risk report.</p>
+            <div class="stack">
+              <span class="chip">6 risk categories</span>
+              <span class="chip">YAML catalog</span>
+              <span class="chip">Risk report</span>
+            </div>
+          </article>
+          <article class="feature">
+            <h3>Web interface &mdash; scan submission &amp; monitoring</h3>
+            <p>Browser-based Flask interface for submitting VECTOR-Code and VECTOR-Network scans, monitoring progress with live terminal output streaming, and reviewing results &mdash; risk report, CBOM explorer, and raw scanner output &mdash; without touching the CLI.</p>
+            <div class="stack">
+              <span class="chip">Flask</span>
+              <span class="chip">Real-time streaming</span>
+              <span class="chip">CBOM explorer</span>
+            </div>
+          </article>
+          <article class="feature">
+            <h3>Open architecture &mdash; composable &amp; extensible</h3>
+            <p>Built on established open-source tools: CodeQL, testssl.sh, ZGrab2, and cryptobom-forge. VECTOR-Network's custom parsers fill the CBOM conversion gap, including full cipher suite decomposition and hybrid PQC KEM detection not available in existing tools.</p>
+            <div class="stack">
+              <span class="chip">Open source</span>
+              <span class="chip">CycloneDX</span>
+              <span class="chip">Dev Container</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery">
+      <div class="container">
+        <div class="section-head">
+          <h2>Product screenshot gallery</h2>
+          <div class="section-kicker">Click any screenshot to zoom</div>
+        </div>
+        <div class="showcase">
+          <figure class="shot">
+            <button data-full="assets/VECTOR-GUI-CodeScan.png" data-caption="VECTOR-Code scan submission form">
+              <img src="assets/VECTOR-GUI-CodeScan.png" alt="VECTOR-Code scan submission form with source path and application name fields">
+            </button>
+            <figcaption>VECTOR-Code scan form: provide a local path or GitHub URL and an optional application name. Supported languages (Python, C, C++) are listed; Java is flagged as not yet supported.</figcaption>
+          </figure>
+
+          <figure class="shot">
+            <button data-full="assets/VECTOR-GUI-NetScan.png" data-caption="VECTOR-Network scan form with TLS/SSH protocol selection">
+              <img src="assets/VECTOR-GUI-NetScan.png" alt="VECTOR-Network scan form showing TLS and SSH protocol tabs, target and port fields">
+            </button>
+            <figcaption>VECTOR-Network scan form: select TLS or SSH protocol, enter the target hostname or IP and port. A notes section reminds users to scan only systems they are authorized to scan.</figcaption>
+          </figure>
+
+          <figure class="shot">
+            <button data-full="assets/VECTOR-GUI-NetScan-Running.png" data-caption="VECTOR-Network TLS scan in progress with live output">
+              <img src="assets/VECTOR-GUI-NetScan-Running.png" alt="VECTOR-Network live scan view showing scan details panel and real-time terminal output of TLS cipher enumeration">
+            </button>
+            <figcaption>Live scan view: scan details (ID, type, target, submitted time, running status) alongside real-time terminal output streaming the full TLS cipher suite enumeration from testssl.sh.</figcaption>
+          </figure>
+
+          <figure class="shot">
+            <button data-full="assets/VECTOR-GUI-NetScanRiskReport.png" data-caption="VECTOR-Network TLS scan risk report with quantum risk distribution">
+              <img src="assets/VECTOR-GUI-NetScanRiskReport.png" alt="Risk report view showing a donut chart with 27 algorithms scored: 13 quantum-vulnerable, 7 quantum-safe, 6 unknown, and 1 classically-deprecated, with a summary table below">
+            </button>
+            <figcaption>Risk report: a donut chart summarizes the quantum risk distribution across all scored algorithm components; the summary table lists each risk classification with its score and count, followed by per-algorithm detail.</figcaption>
+          </figure>
+
+          <figure class="shot">
+            <button data-full="assets/VECTOR-GUI-NetScan-CBOM-Explorer.png" data-caption="CBOM explorer with per-algorithm quantum risk cards">
+              <img src="assets/VECTOR-GUI-NetScan-CBOM-Explorer.png" alt="CBOM explorer showing algorithm cards for ChaCha20-Poly1305, ECDHE, RSA, AES-128-GCM, and RSA-KeyTransport with quantum risk categories, migration guidance, and filter buttons">
+            </button>
+            <figcaption>CBOM explorer: each algorithm component is displayed as a card showing its primitive type, key size, quantum risk category, migration recommendation, and references to NIST, BSI, and ANSSI standards. Filter buttons narrow results by risk class.</figcaption>
+          </figure>
+
+          <figure class="shot">
+            <button data-full="assets/VECTOR-GUI-ScanHistory.png" data-caption="Scan history listing all submitted scans in the current session">
+              <img src="assets/VECTOR-GUI-ScanHistory.png" alt="Scan history table showing columns for type, target, app name, submitted time, duration, and status, with one completed Network-TLS scan against github.com:443">
+            </button>
+            <figcaption>Scan history: lists all scans submitted in the current session with their type, target, application name, submission timestamp, duration, and status. A Detail button opens the full result for any past scan.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="workflow">
+      <div class="container">
+        <div class="section-head">
+          <h2>PQC inventory pipeline</h2>
+          <div class="section-kicker">From asset discovery to migration baseline</div>
+        </div>
+        <div class="workflow" aria-label="VECTOR scanning workflow steps">
+          <article class="step">
+            <strong>1. Select</strong>
+            <p>Choose VECTOR-Code for source analysis or VECTOR-Network for TLS/SSH scanning. Provide a local path, GitHub URL, or target hostname / IP address.</p>
+          </article>
+          <article class="step">
+            <strong>2. Scan</strong>
+            <p>VECTOR-Code runs cloc and CodeQL with cryptographic queries; VECTOR-Network runs testssl.sh (TLS) or ZGrab2 (SSH) against the live endpoint to enumerate offered configurations.</p>
+          </article>
+          <article class="step">
+            <strong>3. Inventory</strong>
+            <p>Results are parsed and converted to a CycloneDX&nbsp;1.6 CBOM JSON. Cipher suites are decomposed into individual algorithm components; hybrid KEMs are split into their EC and PQC parts.</p>
+          </article>
+          <article class="step">
+            <strong>4. Score</strong>
+            <p>VECTOR-Score reads the CBOM and classifies each component against the quantum risk catalog: <em>quantum-vulnerable</em>, <em>classically-deprecated</em>, <em>non-hybrid</em>, <em>quantum-safe</em>, <em>hybrid</em>, or <em>unknown</em>.</p>
+          </article>
+          <article class="step">
+            <strong>5. Report</strong>
+            <p>An annotated CBOM and a Markdown risk report are generated, providing a clear PQC migration baseline with file paths, line numbers, risk categories, and algorithm-level detail.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      PQC-MAT VECTOR product presentation. Continue with the
+      <a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/README.md">user manual</a> or start at the
+      <a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/start.md">quick start guide</a>.
+    </div>
+  </footer>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-label="Screenshot preview" aria-modal="true">
+    <button class="close" aria-label="Close preview">&times;</button>
+    <figure>
+      <img src="" alt="">
+      <figcaption></figcaption>
+    </figure>
+  </div>
+
+  <script>
+    (function () {
+      var lightbox = document.getElementById("lightbox");
+      var lightboxImage = lightbox.querySelector("img");
+      var lightboxCaption = lightbox.querySelector("figcaption");
+      var closeButton = lightbox.querySelector(".close");
+      var triggers = document.querySelectorAll(".shot button");
+
+      function closeLightbox() {
+        lightbox.classList.remove("open");
+        lightboxImage.src = "";
+        lightboxImage.alt = "";
+      }
+
+      triggers.forEach(function (button) {
+        button.addEventListener("click", function () {
+          var full = button.getAttribute("data-full");
+          var caption = button.getAttribute("data-caption") || "Screenshot";
+          lightboxImage.src = full;
+          lightboxImage.alt = caption;
+          lightboxCaption.textContent = caption;
+          lightbox.classList.add("open");
+        });
+      });
+
+      closeButton.addEventListener("click", closeLightbox);
+      lightbox.addEventListener("click", function (event) {
+        if (event.target === lightbox) {
+          closeLightbox();
+        }
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && lightbox.classList.contains("open")) {
+          closeLightbox();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

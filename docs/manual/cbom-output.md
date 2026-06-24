@@ -1,18 +1,18 @@
 # Understanding CBOM output
 
-Both VECTOR-Code and VECTOR-Network produce output files in the Cryptographic Bill of Materials (CBOM) format — a CycloneDX extension for cryptographic asset inventories. This page explains how to read and use those files.
+Both VECTOR-Code and VECTOR-Network produce output files in the Cryptography Bill of Materials (CBOM) format, a specification of the [CycloneDX](https://cyclonedx.org/) standard for cryptographic asset inventories. This page explains how to read and use those files.
 
 ## File format
 
-CBOM files are JSON. They follow the CycloneDX CBOM 1.0 extension schema (`bomFormat: "CBOM"`, `specVersion: "1.4-cbom-1.0"`).
+[CBOM files](https://cyclonedx.org/capabilities/cbom/) are JSON files that follow the CycloneDX 1.6 standard schema.
 
 ## Top-level structure
 
 ```json
 {
-  "$schema": "...",
-  "bomFormat": "CBOM",
-  "specVersion": "1.4-cbom-1.0",
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
   "serialNumber": "urn:uuid:<uuid>",
   "version": 1,
   "metadata": { ... },
@@ -23,8 +23,8 @@ CBOM files are JSON. They follow the CycloneDX CBOM 1.0 extension schema (`bomFo
 
 | Field | Description |
 |-------|-------------|
-| `bomFormat` | Always `"CBOM"` |
-| `specVersion` | Always `"1.4-cbom-1.0"` (CycloneDX CBOM extension) |
+| `bomFormat` | Always `"CycloneDX"` |
+| `specVersion` | Always `"1.6"` |
 | `serialNumber` | Unique identifier for this CBOM document |
 | `metadata` | Information about the analyzed application and the tools used |
 | `components` | Array of cryptographic assets found — this is the main content |
@@ -80,7 +80,7 @@ Every entry in the `components` array is a cryptographic asset. The type of asse
 |-------------|-------------------|
 | `algorithm` | A cryptographic algorithm or primitive (cipher, hash, KEM, signature, etc.) |
 | `certificate` | An X.509 certificate or certificate reference |
-| `relatedCryptoMaterial` | A key, key pair, IV, nonce, or other cryptographic material |
+| `related-crypto-material` | A key, key pair, IV, nonce, or other cryptographic material |
 | `protocol` | A protocol component (e.g., TLS version + cipher suite, SSH version) |
 
 ## Algorithm components
@@ -90,21 +90,22 @@ Most components are of type `algorithm`. Example from a VECTOR-Code scan:
 ```json
 {
   "bom-ref": "cryptography:algorithm:52ebfcd4-2307-445b-9883-a72bea8983dd",
-  "type": "crypto-asset",
-  "name": "52ebfcd4-2307-445b-9883-a72bea8983dd",
+  "type": "cryptographic-asset",
+  "name": "AES",
   "cryptoProperties": {
     "assetType": "algorithm",
     "algorithmProperties": {
-      "primitive": "blockcipher",
-      "variant": "AES",
+      "primitive": "block-cipher",
       "mode": "other",
       "padding": "unknown",
       "cryptoFunctions": ["encrypt"]
-    },
-    "detectionContext": [
+    }
+  },
+  "evidence": {
+    "occurrences": [
       {
-        "filePath": "src/hazmat/primitives/ciphers/algorithms.py",
-        "lineNumbers": [42],
+        "location": "src/hazmat/primitives/ciphers/algorithms.py",
+        "line": 42,
         "additionalContext": "    alg = algorithms.AES(key)\n    mode = modes.XTS(tweak)\n"
       }
     ]
@@ -116,21 +117,20 @@ Most components are of type `algorithm`. Example from a VECTOR-Code scan:
 
 | Field | Description |
 |-------|-------------|
-| `primitive` | Cryptographic primitive class: `blockcipher`, `streamcipher`, `hash`, `signature`, `keyagree`, `kem`, `mac`, `kdf`, etc. |
-| `variant` | Algorithm name: `AES`, `RSA`, `SHA256`, `ECDH`, `ML-KEM`, etc. |
+| `primitive` | Cryptographic primitive class: `block-cipher`, `stream-cipher`, `hash`, `signature`, `key-agree`, `kem`, `mac`, `kdf`, etc. |
 | `mode` | Mode of operation for block ciphers: `cbc`, `gcm`, `ctr`, `ccm`, `xts`, etc. |
-| `padding` | Padding scheme: `pkcs1v15`, `oaep`, `pss`, `none`, `unknown` |
+| `padding` | Padding scheme: `pkcs1v15`, `oaep`, `raw`, `unknown` |
 | `cryptoFunctions` | How the algorithm is used: `encrypt`, `decrypt`, `sign`, `verify`, `keygen`, `digest`, `keyderive`, etc. |
 
-**`detectionContext` (VECTOR-Code only):**  
-Shows exactly where in the source code the API call was found — file path, line numbers, and surrounding source code snippet.
+**`evidence.occurrences` (VECTOR-Code only):**  
+Shows exactly where in the source code the API call was found — file path, line number, and surrounding source code snippet. Each entry in the array corresponds to one call site detected by CodeQL.
 
 ## Certificate components
 
 ```json
 {
   "bom-ref": "cryptography:certificate:<uuid>",
-  "type": "crypto-asset",
+  "type": "cryptographic-asset",
   "cryptoProperties": {
     "assetType": "certificate",
     "certificateProperties": {
@@ -239,12 +239,11 @@ python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(len(d['compon
 python3 -c "
 import json, sys
 d = json.load(open(sys.argv[1]))
-variants = set()
+names = set()
 for c in d['components']:
-    v = c.get('cryptoProperties', {}).get('algorithmProperties', {}).get('variant', '')
-    if v:
-        variants.add(v)
-for v in sorted(variants):
-    print(v)
+    if c.get('cryptoProperties', {}).get('assetType') == 'algorithm':
+        names.add(c.get('name', ''))
+for n in sorted(names):
+    print(n)
 " crypto-python-cbom.json
 ```

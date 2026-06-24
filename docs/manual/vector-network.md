@@ -2,6 +2,8 @@
 
 VECTOR-Network scans live network services (SSH and TLS) to enumerate their cryptographic configurations and produce a Cryptographic Bill of Materials (CBOM).
 
+> **Web interface:** VECTOR-Network is also accessible through the browser-based GUI. See [Web interface](./start.md#web-interface) in the quick start guide.
+
 ## Pipeline overview
 
 ```

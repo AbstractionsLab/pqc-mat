@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PQC-MAT VECTOR | Release notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eef1f7;
+      --surface: #ffffff;
+      --surface-alt: #f0f4ff;
+      --ink: #0f1d33;
+      --muted: #3d5480;
+      --line: #b8d0ec;
+      --brand: #1458c8;
+      --brand-strong: #0a3a8a;
+      --accent: #e12f56;
+      --ok: #13874f;
+      --shadow: 0 12px 40px rgba(6, 25, 80, 0.15);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 10% -10%, #c4d8f5 0, transparent 40%),
+        radial-gradient(circle at 90% 0, #cce0ff 0, transparent 35%),
+        var(--bg);
+      color: var(--ink);
+      font-family: Manrope, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      scroll-behavior: smooth;
+    }
+
+    .container {
+      width: min(900px, calc(100vw - 2.4rem));
+      margin: 0 auto;
+    }
+
+    /* -- topbar -- */
+    .topbar {
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(8px);
+      background: rgba(238, 241, 245, 0.82);
+      border-bottom: 1px solid rgba(213, 223, 236, 0.8);
+      z-index: 20;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.8rem 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.62rem;
+      font-family: "Space Grotesk", sans-serif;
+      letter-spacing: 0.02em;
+      font-weight: 700;
+      color: var(--brand-strong);
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 14px rgba(10, 58, 138, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      background: #fff;
+    }
+
+    .topnav {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .topnav a {
+      text-decoration: none;
+      color: var(--brand-strong);
+      border: 1px solid transparent;
+      padding: 0.4rem 0.7rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .topnav a:hover {
+      border-color: var(--line);
+      background: var(--surface);
+    }
+
+    /* -- page header -- */
+    .page-header {
+      padding: 3.5rem 0 1.5rem;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 2.5rem;
+    }
+
+    .page-header .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.35rem 0.75rem;
+      background: var(--surface);
+      color: var(--brand-strong);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 0.9rem;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .page-header .lead {
+      margin-top: 0.8rem;
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 66ch;
+    }
+
+    /* -- release block -- */
+    .release {
+      margin-bottom: 3.5rem;
+    }
+
+    .release-heading {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .release-title {
+      margin: 0;
+      font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+      letter-spacing: -0.01em;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--brand-strong);
+    }
+
+    .release-date {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* -- feature card -- */
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 1.4rem 1.5rem;
+      box-shadow: 0 6px 24px rgba(18, 43, 77, 0.07);
+      margin-bottom: 1rem;
+    }
+
+    .feature-card.highlight {
+      background: linear-gradient(115deg, #eef5ff 0%, #f9fbff 100%);
+      border-color: var(--brand);
+      border-width: 2px;
+    }
+
+    .new-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.72rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+    }
+
+    .feature-card h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.07rem;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--brand-strong);
+    }
+
+    .feature-card p {
+      margin: 0 0 0.8rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .feature-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* -- detail table inside a card -- */
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 0.9rem;
+    }
+
+    .detail-table th {
+      text-align: left;
+      font-weight: 700;
+      color: var(--brand-strong);
+      padding: 0.35rem 0.6rem;
+      background: rgba(15, 93, 184, 0.07);
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    .detail-table td {
+      padding: 0.35rem 0.6rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .detail-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.88em;
+      background: rgba(15, 93, 184, 0.08);
+      border: 1px solid rgba(15, 93, 184, 0.15);
+      border-radius: 4px;
+      padding: 0.1em 0.38em;
+      color: var(--brand-strong);
+    }
+
+    /* -- chip row -- */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.8rem;
+    }
+
+    .chip {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface-alt);
+      color: var(--brand-strong);
+      padding: 0.17rem 0.55rem;
+      font-size: 0.77rem;
+      font-weight: 700;
+    }
+
+    /* -- divider -- */
+    .release-divider {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 2.5rem 0;
+    }
+
+    /* -- footer -- */
+    .footer {
+      margin-top: 2rem;
+      padding: 1.6rem 0 2.2rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .footer a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (max-width: 760px) {
+      .page-header {
+        padding-top: 2.2rem;
+      }
+
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .brand-logo {
+        width: 30px;
+        height: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="https://github.com/AbstractionsLab/pqc-mat">
+        <img class="brand-logo" src="assets/6D1B2_LOG_PQC-MAT-400x400_v1.0.png" alt="PQC-MAT logo">
+        <span>
+          <span style="display:block;font-size:0.68em;letter-spacing:0.1em;opacity:0.7;font-weight:600">PQC-MAT</span>
+          VECTOR
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Site navigation">
+        <a href="product-presentation.html">Product</a>
+        <a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/README.md">Manual</a>
+        <a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/CHANGELOG.md">Changelog</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="page-header">
+        <div class="eyebrow">What&#8217;s new</div>
+        <h1>Release notes</h1>
+        <p class="lead">
+          Detailed notes on the features, improvements, and fixes shipped in each PQC-MAT VECTOR release.
+          For the full list of all changes see the
+          <a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/CHANGELOG.md">changelog</a>.
+        </p>
+      </div>
+
+      <!-- ===============================================
+           v0.3.0
+           =============================================== -->
+      <div class="release" id="v0.3.0">
+        <div class="release-heading">
+          <h2 class="release-title">v0.3.0</h2>
+          <span class="release-date">June 2026</span>
+        </div>
+
+        <!-- main feature -->
+        <div class="feature-card highlight">
+          <div class="new-badge">New feature</div>
+          <h3>Web interface for scan submission, monitoring, and results review</h3>
+          <p>
+            A Flask-based web interface (<code>tor/gui/app.py</code>) introduces a browser-based
+            control panel for running VECTOR-Code and VECTOR-Network scans without touching the CLI.
+            The interface streams live terminal output during scanning and provides dedicated result
+            views for the risk report, CBOM explorer, and raw scanner output.
+          </p>
+
+          <table class="detail-table" aria-label="Web interface pages">
+            <thead>
+              <tr>
+                <th>View</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>New scan &mdash; VECTOR-Code</strong></td>
+                <td>Submit a source-code analysis request via local path or GitHub URL, with an optional application name. Supported and unsupported languages are listed inline.</td>
+              </tr>
+              <tr>
+                <td><strong>New scan &mdash; VECTOR-Network</strong></td>
+                <td>Submit a TLS or SSH network scan by selecting the protocol and entering a target hostname/IP and port.</td>
+              </tr>
+              <tr>
+                <td><strong>Scan history</strong></td>
+                <td>Browse past scans with status badges, scan type, target, and submission time. Navigate to any result from the list.</td>
+              </tr>
+              <tr>
+                <td><strong>Live scan view</strong></td>
+                <td>Real-time streaming of scanner output alongside scan metadata (ID, type, target, submitted timestamp, running status).</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="chips">
+            <span class="chip">Flask</span>
+            <span class="chip">Real-time streaming</span>
+            <span class="chip">CBOM explorer</span>
+            <span class="chip">Risk report viewer</span>
+            <span class="chip">Scan history</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>GitHub URL support for VECTOR-Code</h3>
+          <p>
+            VECTOR-Code now accepts public GitHub repository URLs directly (e.g.,
+            <code>https://github.com/owner/repo</code>) in addition to local paths.
+            The repository is cloned automatically before analysis and the repository
+            name is used as the default application name when no <code>--name</code>
+            flag is provided.
+          </p>
+          <div class="chips">
+            <span class="chip">GitHub URL</span>
+            <span class="chip">auto-clone</span>
+            <span class="chip">vector code</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Dev Container host home mount</h3>
+          <p>
+            The Dev Container now mounts the host user&#8217;s home directory at
+            <code>/mnt/host-home</code>, enabling direct scanning of source code that lives
+            on the host machine without copying files into the container.
+          </p>
+          <div class="chips">
+            <span class="chip">/mnt/host-home</span>
+            <span class="chip">Dev Container</span>
+            <span class="chip">host code scanning</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Multi-language unified risk report</h3>
+          <p>
+            When VECTOR-Code detects multiple supported languages in a repository, it now
+            generates a single consolidated risk report covering all languages, in addition to
+            the per-language CBOM files. Source code location tracking has been added so the
+            report includes file paths and line numbers for each detected algorithm.
+          </p>
+          <div class="chips">
+            <span class="chip">unified report</span>
+            <span class="chip">multi-language</span>
+            <span class="chip">file path tracking</span>
+            <span class="chip">line numbers</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Streamlined quantum risk classifications</h3>
+          <p>
+            The VECTOR-Score risk classification model has been simplified from seven to
+            six categories. The <code>quantum-weakened</code> and <code>post-quantum</code>
+            categories have been merged into a single <code>non-hybrid</code> category,
+            reflecting cleaner alignment with NIST FIPS 203/204/205 terminology.
+            Documentation, specifications, and tests have been updated accordingly.
+          </p>
+          <div class="chips">
+            <span class="chip">6 risk categories</span>
+            <span class="chip">non-hybrid</span>
+            <span class="chip">NIST alignment</span>
+            <span class="chip">VECTOR-Score</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Enhanced algorithm risk catalog</h3>
+          <p>
+            The data-driven YAML algorithm risk catalog has been updated with improved
+            regular expression patterns, increasing detection accuracy and reducing
+            false classifications for edge-case algorithm name variants.
+          </p>
+          <div class="chips">
+            <span class="chip">YAML catalog</span>
+            <span class="chip">regex patterns</span>
+            <span class="chip">detection accuracy</span>
+          </div>
+        </div>
+
+      </div>
+      <!-- /v0.3.0 -->
+
+      <hr class="release-divider">
+
+      <!-- ===============================================
+           v0.2.0
+           =============================================== -->
+      <div class="release" id="v0.2.0">
+        <div class="release-heading">
+          <h2 class="release-title">v0.2.0</h2>
+          <span class="release-date">May 2026</span>
+        </div>
+
+        <!-- main feature -->
+        <div class="feature-card highlight">
+          <div class="new-badge">New feature</div>
+          <h3>Unified <code>vector</code> CLI entry point</h3>
+          <p>
+            A single top-level <code>vector</code> command replaces the previous per-module
+            entry points. Three subcommands cover the full workflow:
+            <code>vector code</code> for static source analysis,
+            <code>vector network</code> for TLS/SSH network scanning, and
+            <code>vector score</code> for quantum risk classification of any CycloneDX CBOM.
+            The entry point is registered via <code>[tool.poetry.scripts]</code> in
+            <code>pyproject.toml</code> and is available immediately after <code>poetry install</code>.
+          </p>
+
+          <table class="detail-table" aria-label="CLI subcommands">
+            <thead>
+              <tr>
+                <th>Subcommand</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>vector code &lt;path&gt; [--name &lt;app&gt;]</code></td>
+                <td>Run CodeQL static analysis on a local path or GitHub URL and produce a CycloneDX CBOM.</td>
+              </tr>
+              <tr>
+                <td><code>vector network --protocol tls|ssh --target &lt;host&gt; --port &lt;port&gt;</code></td>
+                <td>Enumerate cryptographic configurations of a live TLS or SSH endpoint and produce a CBOM.</td>
+              </tr>
+              <tr>
+                <td><code>vector score --cbom &lt;file.json&gt;</code></td>
+                <td>Classify each component in a CycloneDX CBOM by quantum risk posture and generate an annotated CBOM plus a Markdown risk report.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="chips">
+            <span class="chip">vector CLI</span>
+            <span class="chip">vector code</span>
+            <span class="chip">vector network</span>
+            <span class="chip">vector score</span>
+            <span class="chip">Poetry script</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Module restructuring to Python-valid package names</h3>
+          <p>
+            The source directories have been renamed to valid Python package names:
+            <code>tor/VECTOR-Code/</code> &#8594; <code>tor/vector_code/</code>,
+            <code>tor/VECTOR-Network/</code> &#8594; <code>tor/vector_network/</code>, and
+            <code>tor/VECTOR-Score/</code> &#8594; <code>tor/vector_score/</code>.
+            Implicit relative imports have been fixed to use dotted relative form throughout
+            all modules. <code>__init__.py</code> files have been added to make all packages
+            importable.
+          </p>
+          <div class="chips">
+            <span class="chip">vector_code</span>
+            <span class="chip">vector_network</span>
+            <span class="chip">vector_score</span>
+            <span class="chip">relative imports</span>
+            <span class="chip">package structure</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Documentation update &mdash; CLI throughout</h3>
+          <p>
+            All user manual pages (<code>start.md</code>, <code>vector-code.md</code>,
+            <code>vector-network.md</code>, <code>vector-score.md</code>,
+            <code>installation.md</code>, <code>troubleshooting.md</code>) have been updated
+            to use <code>vector</code> CLI commands. <code>README.md</code> and
+            <code>tor/README.md</code> quick-start sections reflect the new entry point.
+          </p>
+          <div class="chips">
+            <span class="chip">user manual</span>
+            <span class="chip">README</span>
+            <span class="chip">CLI examples</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Architecture diagrams embedded in specs</h3>
+          <p>
+            The VECTOR-Code CBOM generation pipeline diagram has been embedded in
+            <strong>ARC-002</strong> (VECTOR-Code processing component) and the
+            VECTOR-Network cryptography scanning diagram in <strong>ARC-004</strong>
+            (external analysis tool adapters), improving traceability between design
+            artifacts and the visual architecture overview.
+          </p>
+          <div class="chips">
+            <span class="chip">ARC-002</span>
+            <span class="chip">ARC-004</span>
+            <span class="chip">architecture diagrams</span>
+            <span class="chip">Doorstop</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Cross-platform Dev Container fix</h3>
+          <p>
+            <code>dev.Dockerfile</code> has been made cross-platform: CodeQL CLI installation
+            is skipped on ARM-based hosts (non-x64 architectures) where the CodeQL binary is
+            not available. VECTOR-Network and VECTOR-Score continue to work on all platforms.
+          </p>
+          <div class="chips">
+            <span class="chip">dev.Dockerfile</span>
+            <span class="chip">ARM support</span>
+            <span class="chip">cross-platform</span>
+          </div>
+        </div>
+
+      </div>
+      <!-- /v0.2.0 -->
+
+      <hr class="release-divider">
+
+      <!-- ===============================================
+           v0.1.0
+           =============================================== -->
+      <div class="release" id="v0.1.0">
+        <div class="release-heading">
+          <h2 class="release-title">v0.1.0</h2>
+          <span class="release-date">May 2026</span>
+        </div>
+
+        <!-- main feature -->
+        <div class="feature-card highlight">
+          <div class="new-badge">Initial release</div>
+          <h3>PQC-MAT VECTOR &mdash; first public release</h3>
+          <p>
+            The initial release of PQC-MAT delivers the VECTOR subsystem: a containerized
+            toolchain for automated cryptographic inventory and quantum risk scoring.
+            VECTOR combines static source code analysis, live network scanning, and a
+            catalog-driven risk classifier into a single, unified workflow running inside
+            a Docker Dev Container.
+          </p>
+          <p>
+            All tools operate on standardized CycloneDX&nbsp;1.6 CBOM output, making results
+            interoperable with any CycloneDX-compatible platform. The quantum risk catalog
+            is aligned with NIST FIPS&nbsp;203/204/205, BSI&nbsp;TR-02102, and ANSSI guidance.
+          </p>
+          <div class="chips">
+            <span class="chip">VECTOR-Code</span>
+            <span class="chip">VECTOR-Network</span>
+            <span class="chip">VECTOR-Score</span>
+            <span class="chip">CycloneDX 1.6</span>
+            <span class="chip">Dev Container</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>VECTOR-Code &mdash; CodeQL static analysis for Python, C, and C++</h3>
+          <p>
+            Detects cryptographic API usage in source code via CodeQL queries from
+            <a href="https://github.com/santandersecurityresearch/codeql-crypto">Santandersecurityresearch</a>.
+            Orchestrates language detection (<code>cloc</code>), database creation and
+            query execution (CodeQL CLI), and CBOM generation (<code>cryptobom-forge</code>)
+            into a single <code>vector code &lt;path&gt;</code> invocation.
+            A pre-loaded test project (<a href="https://github.com/pyca/cryptography">pyca/cryptography</a>)
+            is available at <code>/home/vector/test-project/cryptography</code> inside the container.
+          </p>
+          <div class="chips">
+            <span class="chip">CodeQL</span>
+            <span class="chip">Python / C / C++</span>
+            <span class="chip">cloc</span>
+            <span class="chip">cryptobom-forge</span>
+            <span class="chip">SARIF</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>VECTOR-Network &mdash; TLS and SSH scanning with CBOM output</h3>
+          <p>
+            TLS scanning via testssl.sh enumerates protocol versions, full cipher suite offers,
+            elliptic curves, DH groups, signature algorithms, certificate properties, and
+            post-quantum / hybrid KEMs (ML-KEM-512/768/1024, X25519Kyber768Draft00,
+            SecP256r1MLKEM768, X25519MLKEM768, SecP384r1MLKEM1024).
+            SSH scanning via ZGrab2 records KEX, host key, cipher, and MAC algorithm offers,
+            the negotiated suite, server banner, and host key fingerprint.
+            Custom parsers convert raw scanner output to CycloneDX&nbsp;1.6 CBOM format,
+            with full cipher suite decomposition into individual algorithm components.
+          </p>
+          <div class="chips">
+            <span class="chip">testssl.sh</span>
+            <span class="chip">ZGrab2</span>
+            <span class="chip">TLS + SSH</span>
+            <span class="chip">cipher decomposition</span>
+            <span class="chip">Hybrid KEMs</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>VECTOR-Score &mdash; quantum risk classification</h3>
+          <p>
+            Accepts any CycloneDX&nbsp;1.6 CBOM JSON and classifies each component
+            against a data-driven YAML catalog covering algorithms from NIST FIPS&nbsp;203/204/205,
+            BSI&nbsp;TR-02102, and ANSSI. Components are assigned one of seven initial risk
+            categories. Output is an annotated CBOM plus a Markdown risk report
+            suitable for inclusion in PQC migration assessments.
+          </p>
+          <div class="chips">
+            <span class="chip">YAML catalog</span>
+            <span class="chip">NIST FIPS 203/204/205</span>
+            <span class="chip">BSI TR-02102</span>
+            <span class="chip">ANSSI</span>
+            <span class="chip">risk report</span>
+          </div>
+        </div>
+
+      </div>
+      <!-- /v0.1.0 -->
+
+    </div><!-- /container -->
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      PQC-MAT VECTOR release notes.
+      See the <a href="product-presentation.html">product overview</a>,
+      the <a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/docs/manual/README.md">user manual</a>,
+      or the full <a href="https://github.com/AbstractionsLab/pqc-mat/blob/main/CHANGELOG.md">changelog</a>.
+    </div>
+  </footer>
+
+</body>
+</html>

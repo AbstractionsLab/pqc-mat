@@ -19,10 +19,9 @@ _CATALOG_PATH = os.path.join(os.path.dirname(__file__), "data", "algorithm-risk-
 
 VALID_CLASSIFICATIONS = frozenset({
     "quantum-vulnerable",
-    "quantum-weakened",
+    "non-hybrid",
     "classically-deprecated",
     "quantum-safe",
-    "post-quantum",
     "hybrid",
     "unknown",
 })
@@ -73,8 +72,7 @@ def _param_in_range(entry: dict, param_set_identifier: Optional[str]) -> bool:
     if min_bits is None and max_bits is None:
         return True
     if param_set_identifier is None:
-        # No key size information — only match entries with no key-size constraint
-        return min_bits is None and max_bits is None
+        return True
     try:
         bits = int(param_set_identifier)
     except (ValueError, TypeError):

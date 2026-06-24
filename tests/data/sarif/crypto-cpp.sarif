@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "CodeQL",
+          "organization": "GitHub",
+          "semanticVersion": "2.25.4",
+          "rules": [
+            {
+              "id": "cpp/quantum-readiness/cbom/symmetric-encryption-algorithms",
+              "name": "cpp/quantum-readiness/cbom/symmetric-encryption-algorithms",
+              "shortDescription": {
+                "text": "Symmetric Encryption Algorithms"
+              },
+              "fullDescription": {
+                "text": "Finds all potential usage of symmetric encryption algorithms using the supported libraries."
+              },
+              "defaultConfiguration": {
+                "enabled": true,
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "cbom",
+                  "cryptography"
+                ],
+                "description": "Finds all potential usage of symmetric encryption algorithms using the supported libraries.",
+                "id": "cpp/quantum-readiness/cbom/symmetric-encryption-algorithms",
+                "kind": "problem",
+                "name": "Symmetric Encryption Algorithms",
+                "problem.severity": "error"
+              },
+              "index": 0
+            }
+          ]
+        }
+      },
+      "artifacts": [
+        {
+          "location": {
+            "uri": "src/gen_ssl_cert/gen_ssl_cert.cpp",
+            "uriBaseId": "%SRCROOT%",
+            "index": 0
+          }
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "cpp/quantum-readiness/cbom/symmetric-encryption-algorithms",
+          "ruleIndex": 0,
+          "rule": {
+            "id": "cpp/quantum-readiness/cbom/symmetric-encryption-algorithms",
+            "index": 0
+          },
+          "message": {
+            "text": "Use of algorithm AES-128-CFB"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/gen_ssl_cert/gen_ssl_cert.cpp",
+                  "uriBaseId": "%SRCROOT%",
+                  "index": 0
+                },
+                "region": {
+                  "startLine": 191,
+                  "startColumn": 93,
+                  "endColumn": 108
+                },
+                "contextRegion": {
+                  "startLine": 189,
+                  "endLine": 193,
+                  "snippet": {
+                    "text": "  // write private key\r\n  BIO *bio_pkey = BIO_new(BIO_s_mem());\r\n  r = PEM_write_bio_PKCS8PrivateKey(bio_pkey, pkey, private_key_passphrase.empty() ? NULL : EVP_aes_128_cfb(), private_key_passphrase.data(), private_key_passphrase.size(), NULL, NULL);\r\n  if (!r)\r\n  {\r\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "2b5c048212844bb5:1",
+            "primaryLocationStartColumnFingerprint": "90"
+          }
+        }
+      ],
+      "automationDetails":{"id":"cpp/"},
+      "columnKind": "utf16CodeUnits"
+    }
+  ]
+}

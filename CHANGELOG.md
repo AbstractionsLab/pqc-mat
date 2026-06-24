@@ -1,3 +1,26 @@
+# 0.3.0 (2026-06-24)
+
+## Added
+
+- Dev Container mount of host home directory to `/mnt/host-home`, enabling direct scanning of code on the host machine via `vector code /mnt/host-home/...`
+- VECTOR-Code multi-language unified reporting: generates a single consolidated risk report when multiple languages are detected.
+- Source code location tracking: the report includes file paths and line numbers of algorithms found in code scanning
+- Web Interface: Added Flask-based web interface for submitting VECTOR-Code and VECTOR-Network scans, monitoring progress in real time, and reviewing risk findings (risk report, CBOM explorer, raw output)
+- Scanning source code via Github URL is supported in VECTOR Code
+- Product presentation page (`docs/website/product-presentation.html`) and release notes page (`docs/website/release-notes.html`) published as standalone HTML artifacts
+- Unit tests for CBOM generator (`test_cbom_generator.py`) and risk report validation (`test_risk_report.py`)
+
+## Modified
+
+- Streamlined VECTOR-Score quantum risk classifications from 7 to 6 categories (merged `quantum-weakened` and `post-quantum` into `non-hybrid`)
+- Updated documentation, specifications, and tests to reflect the new classification model
+- Enhanced algorithm risk catalog with improved regex patterns
+- Renamed `tests/content/` to `tests/data/` for clarity
+
+## Fixed
+
+- Unknown algorithms were silently omitted from the risk report; they now appear under the `unknown` classification
+
 # 0.2.0 (2026-05-11)
 
 ## Added

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}VECTOR Results{% endblock %}
+{% block page_title %}
+  Results
+  <span style="font-size:13px;font-weight:400;color:var(--text-muted);margin-left:8px">{{ scan.target }}</span>
+{% endblock %}
+{% block page_subtitle %}
+  <p class="page-header__subtitle">
+    {% if scan.type == 'code' %}VECTOR-Code
+    {% elif scan.type == 'network-tls' %}VECTOR-Network · TLS
+    {% elif scan.type == 'network-ssh' %}VECTOR-Network · SSH
+    {% endif %}
+    &nbsp;·&nbsp;{{ scan.submitted_at[:16].replace('T',' ') }} UTC
+  </p>
+{% endblock %}
+{% block page_actions %}
+  {% if scan.report_md %}
+  <a href="/api/scan/{{ scan.id }}/download/report" class="btn">Download report</a>
+  {% endif %}
+  {% if scan.scored_cbom %}
+  <a href="/api/scan/{{ scan.id }}/download/cbom" class="btn">Download CBOM</a>
+  {% endif %}
+  <a href="{{ url_for('history') }}" class="btn">History</a>
+{% endblock %}
+
+{% block subnav %}
+<div class="subnav">
+  <div class="subnav__item subnav__item--active" data-tab="report" onclick="switchTab('report')">Risk report</div>
+  <div class="subnav__item" data-tab="cbom"   onclick="switchTab('cbom')">CBOM explorer</div>
+  <div class="subnav__item" data-tab="raw"    onclick="switchTab('raw')">Raw output</div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div id="tab-report" class="tab-panel">
+  {% if scan.scored_cbom %}
+  <div class="risk-overview">
+    <div class="risk-overview__chart">
+      <canvas id="risk-pie" width="200" height="200"></canvas>
+    </div>
+    <div class="risk-overview__legend" id="risk-legend"></div>
+  </div>
+  {% endif %}
+
+  {% if scan.report_html %}
+  <div class="report-body">{{ scan.report_html | safe }}</div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state__title">No risk report available</div>
+    <div class="empty-state__sub">VECTOR-Score did not produce a report for this scan.</div>
+  </div>
+  {% endif %}
+</div>
+
+<div id="tab-cbom" class="tab-panel" style="display:none">
+  {% if scan.cbom_html %}
+  <div class="filter-bar" style="margin-bottom:14px">
+    <span class="filter-bar__label">Filter by risk</span>
+    <span class="filter-bar__sep"></span>
+    <button class="pill pill--active" onclick="filterCbom('all', this)">All</button>
+    <button class="pill" onclick="filterCbom('quantum-vulnerable', this)">Quantum vulnerable</button>
+    <button class="pill" onclick="filterCbom('classically-deprecated', this)">Classically deprecated</button>
+    <button class="pill" onclick="filterCbom('non-hybrid', this)">Non-hybrid</button>
+    <button class="pill" onclick="filterCbom('quantum-safe', this)">Quantum safe</button>
+    <button class="pill" onclick="filterCbom('hybrid', this)">Hybrid</button>
+    <button class="pill" onclick="filterCbom('unknown', this)">Unknown</button>
+  </div>
+  <div class="cbom-grid" id="cbom-grid">{{ scan.cbom_html | safe }}</div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state__title">No CBOM data available</div>
+    <div class="empty-state__sub">The scan did not produce a scored CBOM.</div>
+  </div>
+  {% endif %}
+</div>
+
+<div id="tab-raw" class="tab-panel" style="display:none">
+  {% if scan.raw_html %}
+  <div class="section-header" style="margin-bottom:10px">
+    <div class="section-header__title">Raw output</div>
+  </div>
+  <div class="json-tree-wrap">{{ scan.raw_html | safe }}</div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state__title">No raw output</div>
+    <div class="empty-state__sub">No raw output is available for this scan.</div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.VECTOR_CBOM = {{ (scan.scored_cbom | tojson) if scan.scored_cbom else 'null' }};
+</script>
+<script src="{{ url_for('static', filename='js/results.js') }}"></script>
+{% endblock %}

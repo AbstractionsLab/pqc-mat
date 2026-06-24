@@ -1,0 +1,197 @@
+{
+  "serialNumber": "urn:uuid:c3000000-0000-0000-0000-000000000000",
+  "version": 1,
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "components": [
+    {
+      "bom-ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000001",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "RSA",
+      "type": "cryptographic-asset",
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "auth/signer.py",
+            "line": 12,
+            "additionalContext": "from cryptography.hazmat.primitives.asymmetric import rsa\nprivate_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000002",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "kem"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "ML-KEM-768",
+      "type": "cryptographic-asset",
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "kem/encapsulate.py",
+            "line": 5,
+            "additionalContext": "from oqs import KeyEncapsulation\nkem = KeyEncapsulation('Kyber768')\npublic_key = kem.generate_keypair()"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000003",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "hash"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "MD5",
+      "type": "cryptographic-asset",
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "utils/checksum.py",
+            "line": 8,
+            "additionalContext": "import hashlib\nhash_val = hashlib.md5(data).hexdigest()"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000004",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "mode": "gcm",
+          "primitive": "block-cipher"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "AES-256-GCM",
+      "type": "cryptographic-asset",
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "crypto/encrypt.py",
+            "line": 14,
+            "additionalContext": "from cryptography.hazmat.primitives.ciphers.aead import AESGCM\nkey = os.urandom(32)\naesgcm = AESGCM(key)"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000005",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "key-agree"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "X25519MLKEM768",
+      "type": "cryptographic-asset",
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "tls/handshake.go",
+            "line": 42,
+            "additionalContext": "cfg := &tls.Config{\n    CurvePreferences: []tls.CurveID{tls.X25519MLKEM768},\n}"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000006",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "block-cipher"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "BLOWFISH",
+      "type": "cryptographic-asset",
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "legacy/cipher.py",
+            "line": 7,
+            "additionalContext": "from Crypto.Cipher import Blowfish\ncipher = Blowfish.new(key, Blowfish.MODE_CBC)"
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "proto-tls13-001",
+      "type": "cryptographic-asset",
+      "name": "TLSv1.3",
+      "cryptoProperties": {
+        "assetType": "protocol",
+        "protocolProperties": {
+          "type": "tls",
+          "version": "TLSv1.3",
+          "cipherSuites": [
+            {
+              "name": "TLS_AES_256_GCM_SHA384",
+              "algorithms": ["algo-aes256-001", "algo-sha256-001"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "bom-ref": "cryptography:algorithm:a20496ed-ecc0-4719-87ad-f99068f99807",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "padding": "unknown",
+          "primitive": "unknown"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "unknown",
+      "type": "cryptographic-asset",
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "crypto_func.py",
+            "line": 6,
+            "additionalContext": "with open(filepath, \"rb\") as f:\n        for chunk in iter(lambda: f.read(8192), b\"\"):\n            digest.update(chunk)\n    return digest.hexdigest()"
+          }
+        ]
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "cryptography:algorithm:a1000000-0000-0000-0000-000000000001",
+        "cryptography:algorithm:a1000000-0000-0000-0000-000000000002",
+        "cryptography:algorithm:a1000000-0000-0000-0000-000000000003",
+        "cryptography:algorithm:a1000000-0000-0000-0000-000000000004",
+        "cryptography:algorithm:a1000000-0000-0000-0000-000000000005",
+        "cryptography:algorithm:a1000000-0000-0000-0000-000000000006"
+      ],
+      "ref": "b2000000-0000-0000-0000-000000000000"
+    },
+    { "ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000001" },
+    { "ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000002" },
+    { "ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000003" },
+    { "ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000004" },
+    { "ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000005" },
+    { "ref": "cryptography:algorithm:a1000000-0000-0000-0000-000000000006" }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "b2000000-0000-0000-0000-000000000000",
+      "name": "application",
+      "type": "application",
+      "description": "Sample CBOM file with one algorithm per risk category and one non-algorithmic asset for VECTOR-Score tests"
+    },
+    "timestamp": "2026-06-18T15:49:48.753363+00:00"
+  }
+}

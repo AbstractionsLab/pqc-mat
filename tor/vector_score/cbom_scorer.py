@@ -36,9 +36,13 @@ def _annotate_component(component: dict) -> dict:
     if algo_props is None:
         return component
 
-    algo_name = component.get("name", "")
+    algo_name = component.get("name", "") or algo_props.get("variant", "")
     primitive = algo_props.get("primitive")
     param_set = algo_props.get("parameterSetIdentifier")
+
+    # Skip sentinels that are tooling artifacts, not real algorithm names:
+    if not algo_name or algo_name.strip().lower() == "none":
+        return component
 
     result = classify(algo_name, primitive, param_set)
 

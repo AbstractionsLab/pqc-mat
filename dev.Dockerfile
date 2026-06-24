@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.24 AS go-stage
+FROM golang:1.25 AS go-stage
 FROM python:3.11.0
 
 # General environment settings
@@ -8,7 +8,8 @@ ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_VERSION=1.8.0
+    POETRY_VERSION=1.8.0 \
+    GOTOOLCHAIN=local
 
 # Project settings
 ENV user=vector \

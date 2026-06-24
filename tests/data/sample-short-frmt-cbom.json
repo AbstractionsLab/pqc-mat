@@ -40,18 +40,6 @@
       }
     },
     {
-      "bom-ref": "crypto-asset-rc4-001",
-      "type": "crypto-asset",
-      "name": "RC4",
-      "cryptoProperties": {
-        "assetType": "algorithm",
-        "algorithmProperties": {
-          "primitive": "stream-cipher",
-          "cryptoFunctions": ["encrypt", "decrypt"]
-        }
-      }
-    },
-    {
       "bom-ref": "crypto-asset-material-001",
       "type": "crypto-asset",
       "name": "private-key-rsa",
@@ -62,6 +50,27 @@
           "algorithmRef": "crypto-asset-rsa-001",
           "size": 2048
         }
+      }
+    },
+    {
+      "bom-ref": "cryptography:algorithm:a20496ed-ecc0-4719-87ad-f99068f99807",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "padding": "unknown",
+          "primitive": "unknown"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "unknown",
+      "type": "crypto-asset",
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "crypto_func.py",
+            "line": 6,
+            "additionalContext": "with open(filepath, \"rb\") as f:\n        for chunk in iter(lambda: f.read(8192), b\"\"):\n            digest.update(chunk)\n    return digest.hexdigest()"
+          }
+        ]
       }
     }
   ]

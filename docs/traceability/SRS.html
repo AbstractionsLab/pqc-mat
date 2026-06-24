@@ -20,24 +20,35 @@
       <div class="col-lg-2 hidden-sm hidden-xs">
           <nav id="TOC" class="nav nav-stacked fixed sidebar">
               <h3>Table of Contents</h3>
-<pre><code>* [1.1 Persist output artifacts in predictable locations](#<a href="SRS.html#SRS-001">SRS-001</a>)
-* [1.2 Detect supported source languages from the target project](#<a href="SRS.html#SRS-002">SRS-002</a>)
-* [1.3 Create CodeQL databases through the external CLI](#<a href="SRS.html#SRS-003">SRS-003</a>)
-* [1.4 Run cryptographic inventory queries on created databases](#<a href="SRS.html#SRS-004">SRS-004</a>)
-* [1.5 Convert source-analysis findings into CBOM artifacts](#<a href="SRS.html#SRS-005">SRS-005</a>)
-* [1.6 Scan TLS-enabled services by target and port](#<a href="SRS.html#SRS-006">SRS-006</a>)
-* [1.7 Model TLS findings with classical, hybrid, and PQ-aware decomposition](#<a href="SRS.html#SRS-007">SRS-007</a>)
-* [1.8 Scan SSH-enabled services by target and port](#<a href="SRS.html#SRS-008">SRS-008</a>)
-* [1.9 Execute within a Linux workspace with explicit runtime assumptions](#<a href="SRS.html#SRS-009">SRS-009</a>)
-* [1.10 Fail safely for invalid inputs, missing tools, and incomplete outputs](#<a href="SRS.html#SRS-010">SRS-010</a>)
-* [1.11 Classify cryptographic algorithm components in a CBOM by quantum risk](#<a href="SRS.html#SRS-011">SRS-011</a>)
-* [1.12 Produce an annotated CBOM with quantum risk properties on each scored component](#<a href="SRS.html#SRS-012">SRS-012</a>)
-* [1.13 Produce a human-readable Markdown risk report grouped by classification](#<a href="SRS.html#SRS-013">SRS-013</a>)
-</code></pre>
+<ul>
+<li><a href="#SRS-TOR">1 TOR SRSs</a><ul>
+<li><a href="#SRS-001">1.1 Persist output artifacts in predictable locations</a></li>
+<li><a href="#SRS-002">1.2 Detect supported source languages from the target project</a></li>
+<li><a href="#SRS-003">1.3 Create CodeQL databases through the external CLI</a></li>
+<li><a href="#SRS-004">1.4 Run cryptographic inventory queries on created databases</a></li>
+<li><a href="#SRS-005">1.5 Convert source-analysis findings into CBOM artifacts</a></li>
+<li><a href="#SRS-006">1.6 Scan TLS-enabled services by target and port</a></li>
+<li><a href="#SRS-007">1.7 Model TLS findings with classical, hybrid, and PQ-aware decomposition</a></li>
+<li><a href="#SRS-008">1.8 Scan SSH-enabled services by target and port</a></li>
+<li><a href="#SRS-009">1.9 Provide a ready-to-use Linux execution environment</a></li>
+<li><a href="#SRS-010">1.10 Fail safely for invalid inputs, missing tools, and incomplete outputs</a></li>
+<li><a href="#SRS-011">1.11 Classify cryptographic algorithms in a CBOM by quantum risk</a></li>
+<li><a href="#SRS-012">1.12 Produce a CBOM annotated with quantum risk properties</a></li>
+<li><a href="#SRS-013">1.13 Produce a Markdown risk report grouped by classification</a></li>
+<li><a href="#SRS-014">1.14 Produce a single unified CBOM for multi-language projects</a></li>
+<li><a href="#SRS-015">1.15 Show source locations of VECTOR-Code output in risk report</a></li>
+<li><a href="#SRS-016">1.16 Accept a GitHub repository URL as a source analysis target</a></li>
+<li><a href="#SRS-017">1.17 Provide a web-based interface for running scans and visualizing results</a></li>
+<li><a href="#SRS-018">1.18 Support standalone container deployment</a></li>
+</ul>
+</li>
+</ul>
           </nav>
       </div>
       <div class="col-lg-8" id="main">
-        <h2 id="SRS-001">1.1 Persist output artifacts in predictable locations <small><a href="SRS.html#SRS-001">SRS-001</a></small></h2>
+        <h1 id="SRS-TOR">1 TOR SRSs <small>SRS-TOR</small></h1>
+<p>System-level requirements for the TOR subsystem.</p>
+<h2 id="SRS-001">1.1 Persist output artifacts in predictable locations <small><a href="SRS.html#SRS-001">SRS-001</a></small></h2>
 <p>VECTOR SHALL write generated source-analysis and network-analysis artifacts to predictable output files and directories under the local workspace.</p>
 <h2>Rationale</h2>
 <p>The current implementation writes databases, SARIF results, raw scan results, and CBOM files to the filesystem for later inspection and reuse.</p>
@@ -373,7 +384,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="SRS-009">1.9 Execute within a Linux workspace with explicit runtime assumptions <small><a href="SRS.html#SRS-009">SRS-009</a></small></h2>
+<h2 id="SRS-009">1.9 Provide a ready-to-use Linux execution environment <small><a href="SRS.html#SRS-009">SRS-009</a></small></h2>
 <p>VECTOR SHALL rely on a Linux workspace that provides access to its expected local tool paths and writable output locations for both source-analysis and network-analysis workflows.</p>
 <h2>Rationale</h2>
 <p>The current implementation hard-codes several command-line tools and output locations, making runtime assumptions part of the operational contract.</p>
@@ -457,20 +468,20 @@
 </tr>
 </tbody>
 </table>
-<h2 id="SRS-011">1.11 Classify cryptographic algorithm components in a CBOM by quantum risk <small><a href="SRS.html#SRS-011">SRS-011</a></small></h2>
+<h2 id="SRS-011">1.11 Classify cryptographic algorithms in a CBOM by quantum risk <small><a href="SRS.html#SRS-011">SRS-011</a></small></h2>
 <p>VECTOR SHALL accept a CycloneDX CBOM JSON file as input and classify each algorithm component according to its quantum risk level, using a data-driven catalog that encodes normative guidance from NIST, BSI <a href="TR.html#TR-02102">TR-02102</a>, and ANSSI.</p>
 <h2>Rationale</h2>
 <p>The classification step decouples the scoring logic from the inventory tools, allowing any CBOM produced by VECTOR-Code or VECTOR-Network (or any third-party tool producing a compliant CycloneDX CBOM) to be scored. A data-driven catalog (YAML) ensures the classification rules can be updated as standards evolve without modifying source code.</p>
 <h2>Acceptance criteria</h2>
 <ul>
 <li>Given a CBOM containing RSA, ECDH, or DH algorithm components, the scorer assigns the <code>quantum-vulnerable</code> classification to each.</li>
-<li>Given a CBOM containing ML-KEM or ML-DSA components, the scorer assigns the <code>post-quantum</code> classification to each.</li>
+<li>Given a CBOM containing ML-KEM or ML-DSA components, the scorer assigns the <code>non-hybrid</code> classification to each.</li>
 <li>Given a CBOM containing <a href="AES.html#AES-256">AES-256</a> or <a href="SHA.html#SHA-256">SHA-256</a> components, the scorer assigns the <code>quantum-safe</code> classification.</li>
 <li>Given an unrecognized algorithm name, the scorer assigns the <code>unknown</code> classification.</li>
 <li>Only components with <code>cryptoProperties.assetType</code> equal to <code>algorithm</code> are scored; protocol, certificate, and related-crypto-material components are left unmodified.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-011">MRS-011 Assess quantum risk of discovered cryptographic assets</a></p>
-<p><em>Child links:</em> <a href="TCS.html#TCS-011">TCS-011 Verify classification of quantum-vulnerable algorithms</a>, <a href="TCS.html#TCS-012">TCS-012 Verify classification of post-quantum algorithms</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-011">TCS-011 Verify quantum risk classification</a></p>
 <table>
 <thead>
 <tr>
@@ -501,7 +512,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="SRS-012">1.12 Produce an annotated CBOM with quantum risk properties on each scored component <small><a href="SRS.html#SRS-012">SRS-012</a></small></h2>
+<h2 id="SRS-012">1.12 Produce a CBOM annotated with quantum risk properties <small><a href="SRS.html#SRS-012">SRS-012</a></small></h2>
 <p>VECTOR SHALL produce an annotated copy of the input CBOM in which each scored algorithm component carries additional <code>pqcmat:</code>-namespaced properties recording its risk classification, risk score, rationale, recommended migration target, and normative reference.</p>
 <h2>Rationale</h2>
 <p>Embedding the risk classification directly into the CBOM document allows downstream tools and workflows to consume the scored output using standard CycloneDX tooling. The <code>pqcmat:</code> namespace prefix prevents collisions with other CycloneDX tool annotations. The original CBOM structure and all existing fields are preserved.</p>
@@ -514,7 +525,7 @@
 <li>The annotated CBOM <code>metadata.properties</code> array contains a <code>pqcmat:scored-at</code> entry recording the scoring timestamp.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-011">MRS-011 Assess quantum risk of discovered cryptographic assets</a></p>
-<p><em>Child links:</em> <a href="TCS.html#TCS-013">TCS-013 Verify annotated CBOM contains pqcmat risk properties</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-012">TCS-012 Verify that annotated CBOM contains 'pqcmat' risk properties</a></p>
 <table>
 <thead>
 <tr>
@@ -545,10 +556,10 @@
 </tr>
 </tbody>
 </table>
-<h2 id="SRS-013">1.13 Produce a human-readable Markdown risk report grouped by classification <small><a href="SRS.html#SRS-013">SRS-013</a></small></h2>
-<p>VECTOR SHALL produce a Markdown report summarising the quantum risk findings from a scored CBOM, grouping algorithm findings by risk classification and including a count summary table, per-finding details (algorithm name, primitive, key size, rationale, migration target), and a normative references section.</p>
+<h2 id="SRS-013">1.13 Produce a Markdown risk report grouped by classification <small><a href="SRS.html#SRS-013">SRS-013</a></small></h2>
+<p>VECTOR SHALL produce a Markdown report summarizing the quantum-threat risk findings from a scored CBOM, grouping algorithm findings by risk classification and including a count summary table, per-finding details (algorithm name, primitive, key size, rationale, migration target), and a normative references section.</p>
 <h2>Rationale</h2>
-<p>While the annotated CBOM is the machine-readable output, security and engineering teams require a human-readable artefact that can be reviewed without CBOM tooling. Grouping findings by risk level allows reviewers to prioritise remediation efforts.</p>
+<p>While the annotated CBOM is the machine-readable output, security and engineering teams require a human-readable artefact that can be reviewed without CBOM tooling. Grouping findings by risk level allows reviewers to prioritize remediation efforts.</p>
 <h2>Acceptance criteria</h2>
 <ul>
 <li>The report is a valid Markdown document with a header identifying the scored target and timestamp.</li>
@@ -558,6 +569,7 @@
 <li>The report contains a normative references section listing all standards cited.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-011">MRS-011 Assess quantum risk of discovered cryptographic assets</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-014">TCS-014 Verify Markdown risk report structure and source locations</a></p>
 <table>
 <thead>
 <tr>
@@ -581,6 +593,347 @@
 <tr>
 <td>urgency</td>
 <td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-014">1.14 Produce a single unified CBOM for multi-language projects <small><a href="SRS.html#SRS-014">SRS-014</a></small></h2>
+<p>VECTOR-Code SHALL merge the per-language CBOM files generated during a single run into one unified CBOM artifact that represents the complete cryptographic inventory of the analyzed project, regardless of how many programming languages were detected.</p>
+<h2>Rationale</h2>
+<p>To provide a centralized input for risk reporting (VECTOR-Score) and a single information source for downstream consumers — CBOMkit and manual reviewers – to obtain a complete picture of the project's cryptographic posture when a project contains multiple supported languages (e.g., Python and C++).</p>
+<p>The per-language SARIF files and CodeQL databases are retained as intermediate artifacts for traceability.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>A single CBOM file with suffix <code>-cbom.json</code> is written to the <code>output/cbom/</code> directory at the end of every VECTOR-Code run, regardless of the number of languages detected.</li>
+<li>The unified CBOM contains all algorithm, certificate, related-crypto-material, and protocol components from every per-language CBOM produced during the same run.</li>
+<li>Each component in the unified CBOM retains its <code>evidence.occurrences</code> entries, including the source file path and line number from the original per-language CBOM.</li>
+<li>When only one language is detected, the unified CBOM is produced in the same way; behaviour is identical to the current single-language output.</li>
+<li>Individual per-language CBOM files (e.g., <code>crypto-python-cbom.json</code>) are no longer written as final output; the unified file is the sole CBOM artifact.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-003">MRS-003 Produce standardized CBOM artifacts</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-013">TCS-013 Verify creation of unified CBOM</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Functional (F)</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>3</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>2</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-015">1.15 Show source locations of VECTOR-Code output in risk report <small><a href="SRS.html#SRS-015">SRS-015</a></small></h2>
+<p>For every cryptographic algorithm identified during a vector code scan, VECTOR-Score SHALL include the file path and line number of the source where it was found, in the Markdown risk report.</p>
+<h2>Rationale</h2>
+<p>Displaying the exact file path and line number of each cryptographic API call in the risk report provides developers with a convenient and readable index and allows them to navigate directly to the code lines without having to search in the raw CBOM file. This information is already recorded in the <code>evidence.occurrences</code> entries of the CBOM file generated by VECTOR-Code.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>For each algorithm in the CBOM file that has at least one <code>evidence.occurrences</code> entry, the risk report table row includes the source file path and the first associated line number.</li>
+<li>When multiple <code>evidence.occurrences</code> entries exist for a single component, all distinct file-path/line-number pairs are listed.</li>
+<li>For algorithm findings that have no <code>evidence.occurrences</code> (e.g., from VECTOR-Network CBOMs), the location column is left blank or marked as not applicable; no error is raised.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-011">MRS-011 Assess quantum risk of discovered cryptographic assets</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-014">TCS-014 Verify Markdown risk report structure and source locations</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Functional (F)</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>4</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>3</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-016">1.16 Accept a GitHub repository URL as a source analysis target <small><a href="SRS.html#SRS-016">SRS-016</a></small></h2>
+<p>VECTOR-Code SHALL accept a GitHub repository URL in place of a local directory path, clone the repository into a temporary workspace inside the container, and proceed with the standard source-analysis pipeline against the cloned content.</p>
+<h2>Rationale</h2>
+<p>Analysts frequently work from public or internally hosted GitHub repositories without maintaining a local checkout. Requiring a manual <code>git clone</code> before running VECTOR-Code adds friction. Supporting a URL directly makes the workflow consistent with how repository-level scanning is done in other security tooling and reduces setup steps for ad-hoc assessments.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li><code>vector code</code> accepts a <code>https://github.com/&lt;owner&gt;/&lt;repo&gt;</code> URL as the <code>path</code> argument in addition to local filesystem paths.</li>
+<li>When a GitHub URL is supplied, the tool clones the repository into a temporary directory before analysis and removes it after the pipeline completes.</li>
+<li>The <code>--name</code> argument, if omitted, defaults to the repository name extracted from the URL (e.g., <code>cryptography</code> from <code>https://github.com/pyca/cryptography</code>).</li>
+<li>Clone failures (network error, repository not found, authentication required) terminate the run with an explicit error message and exit code <code>1</code>; no partial output is written.</li>
+<li>The standard language-detection, CodeQL database creation, query execution, and CBOM generation steps run unchanged against the cloned content.</li>
+<li>Private repositories that require authentication are out of scope for this requirement; an attempt to clone such a repository results in an explicit authentication-failure error rather than silent failure.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-004">MRS-004 Support source-code analysis for current target languages</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Functional (F)</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>3</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>3</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-017">1.17 Provide a web-based interface for running scans and visualizing results <small><a href="SRS.html#SRS-017">SRS-017</a></small></h2>
+<p>VECTOR SHALL expose a web-based user interface that allows non-technical users to submit source-code analysis and network scan requests, monitor their progress, and review risk findings without using the CLI.</p>
+<h2>Rationale</h2>
+<p>The current CLI-only interaction model requires familiarity with the Dev Container environment, command-line arguments, and raw JSON or Markdown output. A web interface lowers the barrier to adoption.</p>
+<h2>Acceptance criteria</h2>
+<h3>Deployment and access</h3>
+<ul>
+<li>The web interface is served from within the VECTOR container and is accessible from the host browser at a documented local port without additional configuration.</li>
+<li>The interface does not require user authentication for the initial release; single-user local deployment is assumed.</li>
+</ul>
+<h3>Navigation structure</h3>
+<p>The interface is organized into four top-level sections reachable from a persistent navigation bar:</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>New scan</strong></td>
+<td>Submit a VECTOR-Code or VECTOR-Network scan</td>
+</tr>
+<tr>
+<td><strong>Scan history</strong></td>
+<td>List of all past and in-progress scans with status</td>
+</tr>
+<tr>
+<td><strong>Results</strong></td>
+<td>Risk report and CBOM viewer for a selected scan</td>
+</tr>
+</tbody>
+</table>
+<h3>Scan submission — VECTOR-Code</h3>
+<p>The <strong>New scan</strong> page presents a VECTOR-Code form with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source</td>
+<td>File/text input</td>
+<td>Yes</td>
+<td>Accepts a local filesystem path (e.g. <code>/mnt/host-home/myproject</code>) or a <code>https://github.com/</code> URL (per <a href="SRS.html#SRS-016">SRS-016</a>)</td>
+</tr>
+<tr>
+<td>Application name</td>
+<td>Text input</td>
+<td>No</td>
+<td>Passed as <code>--name</code>; defaults to the repository name when a GitHub URL is entered</td>
+</tr>
+</tbody>
+</table>
+<h3>Scan submission — VECTOR-Network</h3>
+<p>The <strong>New scan</strong> page also presents a VECTOR-Network form with the following fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Protocol</td>
+<td>Dropdown</td>
+<td>Yes</td>
+<td>Options: <code>TLS</code>, <code>SSH</code></td>
+</tr>
+<tr>
+<td>Target</td>
+<td>Text input</td>
+<td>Yes</td>
+<td>Domain name or IP address</td>
+</tr>
+<tr>
+<td>Port</td>
+<td>Number input</td>
+<td>Yes</td>
+<td>Pre-filled with <code>443</code> when TLS is selected, <code>22</code> when SSH is selected; editable</td>
+</tr>
+</tbody>
+</table>
+<p>On submission, the form validates that the target is non-empty, that the port is an integer between 1 and 65535, and that the protocol is one of the two supported values before sending the request to the API.</p>
+<h3>Scan progress monitoring</h3>
+<ul>
+<li>After submission, the user is navigated automatically to a <strong>scan detail page</strong> for the new job.</li>
+<li>The scan detail page displays the current status and refreshes without a full page reload (polling or server-sent events are acceptable).</li>
+<li>The elapsed time since submission is displayed and updated in real time.</li>
+<li>If a scan fails, the detail page displays the error message returned by the CLI and an exit code.</li>
+</ul>
+<h3>Scan history</h3>
+<p>The <strong>Scan history</strong> page lists all scans that have been submitted in the current session, showing:</p>
+<ul>
+<li>Scan type (Code / Network)</li>
+<li>Target (path, URL, or <code>host:port</code>)</li>
+<li>Application name or scan identifier</li>
+<li>Submission timestamp</li>
+<li>Status</li>
+</ul>
+<p>Each row links to the scan detail page for that job. Completed rows also link directly to the Results page for that job.</p>
+<h3>Results viewer</h3>
+<p>The <strong>Results</strong> page for a completed scan presents findings in three tabs:</p>
+<h4>Risk report tab</h4>
+<ul>
+<li>The Markdown risk report produced by VECTOR-Score is rendered as HTML.</li>
+<li>The summary classification table (counts by risk level) is shown at the top with colour-coded risk badges: red for <code>HIGH</code>, orange for <code>MEDIUM</code>, blue for <code>LOW</code>, green for <code>NONE</code>.</li>
+<li>Each per-classification section is collapsible; sections for <code>quantum-vulnerable</code> and <code>classically-deprecated</code> are expanded by default.</li>
+<li>For VECTOR-Code results, each finding row that contains source location data (<code>detectionContext</code>) shows the file path and line number as a non-interactive inline code label.</li>
+<li>The report is downloadable as a <code>.md</code> file via a <strong>Download report</strong> button.</li>
+</ul>
+<h4>CBOM explorer tab</h4>
+<ul>
+<li>The annotated CBOM JSON (output of VECTOR-Score) is displayed as a structured, collapsible tree, not as raw JSON text.</li>
+<li>The explorer is filterable by classification value using a dropdown so the user can isolate, for example, all <code>quantum-vulnerable</code> components.</li>
+<li>Each algorithm component node shows: variant name, primitive type, key size (if present), mode (if present), risk classification badge.</li>
+<li>The full annotated CBOM JSON is downloadable via a <strong>Download CBOM</strong> button.</li>
+</ul>
+<h4>Raw scan output tab</h4>
+<ul>
+<li>For VECTOR-Network scans, the raw scanner output file (<code>_tls_scan.json</code> or <code>_ssh_scan.json</code>) is displayed as collapsible JSON and is downloadable.</li>
+<li>For VECTOR-Code scans, the CBOM results file is displayed as collapsible JSON and is downloadable.</li>
+</ul>
+<h3>General UI requirements</h3>
+<ul>
+<li>All user-facing error messages state what went wrong and what the user can do next; raw stack traces are not shown in the interface (they are written to a server log only).</li>
+<li>The interface remains responsive during long-running scans; submitting a new scan while one is in progress is permitted.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-012">MRS-012 Provide a browser-accessible interface</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Functional (F)</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>3</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>4</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-018">1.18 Support standalone container deployment <small><a href="SRS.html#SRS-018">SRS-018</a></small></h2>
+<p>VECTOR SHALL be deployable as a standalone Docker container that can be invoked from the command line or from a CI/CD pipeline without requiring VS Code or the Dev Containers extension.</p>
+<h2>Rationale</h2>
+<p>The current deployment model is tightly coupled to VS Code Dev Containers, which requires an interactive development environment on the analyst's machine. Embedding VECTOR into automated pipelines (GitLab CI, GitHub Actions, Jenkins) is not possible under this model because pipeline runners do not run VS Code. A standalone container image that exposes the <code>vector</code> CLI as its entry point enables automated, unattended scanning as part of a repository's security workflow.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>A Docker image is buildable from the project repository without the VS Code Dev Containers extension or any VS Code-specific configuration.</li>
+<li>The image entry point is the <code>vector</code> CLI; standard <code>docker run</code> invocations (e.g., <code>docker run --rm vector-image vector code /src --name my-app</code>) execute without additional setup.</li>
+<li>Source code to be analyzed can be mounted into the container via a Docker volume (e.g., <code>-v $(pwd):/src</code>) without requiring file copies into the image at build time.</li>
+<li>Output artifacts are written to a mountable output directory so that results are accessible on the host after the container exits.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-007">MRS-007 Run in a reproducible Linux-based environment</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Functional (F)</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>3</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>2</td>
 </tr>
 <tr>
 <td>vm</td>

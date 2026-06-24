@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}VECTOR Scan Detail{% endblock %}
+{% block page_title %}<span id="ph-title">Scan</span>{% endblock %}
+{% block page_subtitle %}<p class="page-header__subtitle" id="ph-sub">Loading…</p>{% endblock %}
+{% block page_actions %}
+  <a href="{{ url_for('new_scan') }}" class="btn">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    New scan
+  </a>
+{% endblock %}
+
+{% block content %}
+
+<div id="status-strip" class="strip strip--blue" style="margin-bottom:20px">
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" class="spin"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.8" stroke-dasharray="28" stroke-dashoffset="10"/></svg>
+  <span id="status-text">Initialising scan…</span>
+  <span id="elapsed" class="elapsed-badge"></span>
+</div>
+
+<div class="grid-2" style="gap:18px">
+
+  <div>
+    <div class="card">
+      <div class="section-header">
+        <div class="section-header__title">Scan details</div>
+      </div>
+      <table class="detail-table">
+        <tr><td class="detail-table__label">ID</td><td class="detail-table__value mono">{{ scan.id[:12] }}…</td></tr>
+        <tr><td class="detail-table__label">Type</td><td class="detail-table__value" id="dt-type">—</td></tr>
+        <tr><td class="detail-table__label">Target</td><td class="detail-table__value mono" id="dt-target">{{ scan.target }}</td></tr>
+        <tr><td class="detail-table__label">App name</td><td class="detail-table__value mono" id="dt-appname">{{ scan.app_name }}</td></tr>
+        <tr><td class="detail-table__label">Submitted</td><td class="detail-table__value">{{ scan.submitted_at[:16].replace('T',' ') }} UTC</td></tr>
+        <tr><td class="detail-table__label">Status</td><td class="detail-table__value" id="dt-status"><span class="badge badge--blue">pending</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="section-header" style="margin-bottom:8px">
+        <div class="section-header__title">Live output</div>
+        <span id="log-lines-count" class="section-header__sub"></span>
+      </div>
+      <div id="log-container" class="log-container">
+        <div id="log-inner"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="error-panel" class="strip strip--red" style="display:none;margin-top:16px">
+  <strong>Scan failed:</strong>&nbsp;<span id="error-msg"></span>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.VECTOR_SCAN_ID      = "{{ scan.id }}";
+  window.VECTOR_SUBMITTED_AT = "{{ scan.submitted_at }}";
+</script>
+<script src="{{ url_for('static', filename='js/scan_detail.js') }}"></script>
+{% endblock %}

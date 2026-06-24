@@ -20,22 +20,29 @@
       <div class="col-lg-2 hidden-sm hidden-xs">
           <nav id="TOC" class="nav nav-stacked fixed sidebar">
               <h3>Table of Contents</h3>
-<pre><code>* [1.1 Inventory cryptography across code and network surfaces](#<a href="MRS.html#MRS-001">MRS-001</a>)
-* [1.2 Recognize post-quantum and hybrid algorithms](#<a href="MRS.html#MRS-002">MRS-002</a>)
-* [1.3 Produce standardized CBOM artifacts](#<a href="MRS.html#MRS-003">MRS-003</a>)
-* [1.4 Support source-code analysis for current target languages](#<a href="MRS.html#MRS-004">MRS-004</a>)
-* [1.5 Support TLS service assessment](#<a href="MRS.html#MRS-005">MRS-005</a>)
-* [1.6 Support SSH service assessment](#<a href="MRS.html#MRS-006">MRS-006</a>)
-* [1.7 Run in a reproducible Linux-based environment](#<a href="MRS.html#MRS-007">MRS-007</a>)
-* [1.8 Orchestrate open-source analysis tooling](#<a href="MRS.html#MRS-008">MRS-008</a>)
-* [1.9 Preserve non-invasive assessment behavior](#<a href="MRS.html#MRS-009">MRS-009</a>)
-* [1.10 Produce open, reusable output artifacts](#<a href="MRS.html#MRS-010">MRS-010</a>)
-* [1.11 Assess quantum risk of discovered cryptographic assets](#<a href="MRS.html#MRS-011">MRS-011</a>)
-</code></pre>
+<ul>
+<li><a href="#MRS-TOR">1 TOR MRSs</a><ul>
+<li><a href="#MRS-001">1.1 Inventory cryptography across code and network surfaces</a></li>
+<li><a href="#MRS-002">1.2 Recognize post-quantum and hybrid algorithms</a></li>
+<li><a href="#MRS-003">1.3 Produce standardized CBOM artifacts</a></li>
+<li><a href="#MRS-004">1.4 Support source-code analysis for current target languages</a></li>
+<li><a href="#MRS-005">1.5 Support TLS service assessment</a></li>
+<li><a href="#MRS-006">1.6 Support SSH service assessment</a></li>
+<li><a href="#MRS-007">1.7 Run in a reproducible Linux-based environment</a></li>
+<li><a href="#MRS-008">1.8 Orchestrate open-source analysis tooling</a></li>
+<li><a href="#MRS-009">1.9 Preserve non-invasive assessment behavior</a></li>
+<li><a href="#MRS-010">1.10 Produce open, reusable output artifacts</a></li>
+<li><a href="#MRS-011">1.11 Assess quantum risk of discovered cryptographic assets</a></li>
+<li><a href="#MRS-012">1.12 Provide a browser-accessible interface</a></li>
+</ul>
+</li>
+</ul>
           </nav>
       </div>
       <div class="col-lg-8" id="main">
-        <h2 id="MRS-001">1.1 Inventory cryptography across code and network surfaces <small><a href="MRS.html#MRS-001">MRS-001</a></small></h2>
+        <h1 id="MRS-TOR">1 TOR MRSs <small>MRS-TOR</small></h1>
+<p>Mission-level requirements for TOR (Transition via Observable Registry), an automated cryptographic inventory and analysis system that assesses organizational readiness for PQC migration.</p>
+<h2 id="MRS-001">1.1 Inventory cryptography across code and network surfaces <small><a href="MRS.html#MRS-001">MRS-001</a></small></h2>
 <p>VECTOR SHALL provide a single technical baseline for identifying cryptographic mechanisms used in software source code and in externally exposed network services.</p>
 <h2>Rationale</h2>
 <p>PQC migration planning depends on knowing where cryptography appears across both development-time and runtime-facing assets.</p>
@@ -124,7 +131,7 @@
 <li>Child requirements define how analysis results are converted into CBOM artifacts.</li>
 <li>Verification artifacts confirm that generated inventory files are produced in JSON form.</li>
 </ul>
-<p><em>Child links:</em> <a href="SRS.html#SRS-005">SRS-005 Convert source-analysis findings into CBOM artifacts</a>, <a href="ARC.html#ARC-007">ARC-007 CBOM generation and storage</a></p>
+<p><em>Child links:</em> <a href="SRS.html#SRS-005">SRS-005 Convert source-analysis findings into CBOM artifacts</a>, <a href="ARC.html#ARC-007">ARC-007 CBOM generation and storage</a>, <a href="SRS.html#SRS-014">SRS-014 Produce a single unified CBOM for multi-language projects</a></p>
 <table>
 <thead>
 <tr>
@@ -164,7 +171,7 @@
 <li>Child requirements define the supported language-detection and source-analysis workflow.</li>
 <li>Verification artifacts demonstrate handling of the implemented source-language set.</li>
 </ul>
-<p><em>Child links:</em> <a href="ARC.html#ARC-002">ARC-002 VECTOR-Code processing component</a>, <a href="SRS.html#SRS-002">SRS-002 Detect supported source languages from the target project</a></p>
+<p><em>Child links:</em> <a href="ARC.html#ARC-002">ARC-002 VECTOR-Code processing component</a>, <a href="SRS.html#SRS-002">SRS-002 Detect supported source languages from the target project</a>, <a href="SRS.html#SRS-016">SRS-016 Accept a GitHub repository URL as a source analysis target</a></p>
 <table>
 <thead>
 <tr>
@@ -284,7 +291,7 @@
 <li>Child requirements define the runtime assumptions for local execution and artifact generation.</li>
 <li>Verification artifacts demonstrate that the runtime environment assumptions are explicit and testable.</li>
 </ul>
-<p><em>Child links:</em> <a href="ARC.html#ARC-001">ARC-001 VECTOR runtime context</a>, <a href="SRS.html#SRS-009">SRS-009 Execute within a Linux workspace with explicit runtime assumptions</a></p>
+<p><em>Child links:</em> <a href="ARC.html#ARC-001">ARC-001 VECTOR runtime context</a>, <a href="SRS.html#SRS-009">SRS-009 Provide a ready-to-use Linux execution environment</a>, <a href="SRS.html#SRS-018">SRS-018 Support standalone container deployment</a></p>
 <table>
 <thead>
 <tr>
@@ -444,7 +451,7 @@
 <li>Child requirements define the classification rules, output formats, and verification conditions for the quantum risk scoring workflow.</li>
 <li>Verification artifacts confirm that known quantum-vulnerable algorithms (RSA, ECDH, DH), quantum-safe algorithms (<a href="AES.html#AES-256">AES-256</a>, <a href="SHA.html#SHA-256">SHA-256</a>), and post-quantum algorithms (ML-KEM, ML-DSA) are each classified correctly.</li>
 </ul>
-<p><em>Child links:</em> <a href="ARC.html#ARC-011">ARC-011 VECTOR-Score: standalone quantum risk scoring module</a>, <a href="SRS.html#SRS-011">SRS-011 Classify cryptographic algorithm components in a CBOM by quantum risk</a>, <a href="SRS.html#SRS-012">SRS-012 Produce an annotated CBOM with quantum risk properties on each scored component</a>, <a href="SRS.html#SRS-013">SRS-013 Produce a human-readable Markdown risk report grouped by classification</a></p>
+<p><em>Child links:</em> <a href="ARC.html#ARC-011">ARC-011 VECTOR-Score: standalone quantum risk scoring module</a>, <a href="SRS.html#SRS-011">SRS-011 Classify cryptographic algorithms in a CBOM by quantum risk</a>, <a href="SRS.html#SRS-012">SRS-012 Produce a CBOM annotated with quantum risk properties</a>, <a href="SRS.html#SRS-013">SRS-013 Produce a Markdown risk report grouped by classification</a>, <a href="SRS.html#SRS-015">SRS-015 Show source locations of VECTOR-Code output in risk report</a></p>
 <table>
 <thead>
 <tr>
@@ -464,6 +471,46 @@
 <tr>
 <td>urgency</td>
 <td>5</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+</tbody>
+</table>
+<h2 id="MRS-012">1.12 Provide a browser-accessible interface <small><a href="MRS.html#MRS-012">MRS-012</a></small></h2>
+<p>VECTOR SHALL expose its scan submission, progress monitoring, and results review capabilities through a web-based interface that requires no CLI access or Dev Container familiarity.</p>
+<h2>Rationale</h2>
+<p>Client engagements involve stakeholders - security managers, compliance officers, project leads - who need to initiate scans and review quantum risk findings without access to a terminal or a VS Code Dev Container. A browser-accessible interface removes this dependency and makes VECTOR usable by the full range of project participants, not only the engineers who set up the tooling.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>Child requirements define the scan submission forms, progress monitoring behaviour, results viewer, and configuration surface of the web interface.</li>
+<li>Verification artifacts confirm that all three VECTOR workflows can be initiated and their results reviewed entirely through the browser without invoking the CLI.</li>
+</ul>
+<p><em>Child links:</em> <a href="SRS.html#SRS-017">SRS-017 Provide a web-based interface for running scans and visualizing results</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td>F</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>3</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>3</td>
 </tr>
 <tr>
 <td>vm</td>

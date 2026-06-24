@@ -20,22 +20,28 @@
       <div class="col-lg-2 hidden-sm hidden-xs">
           <nav id="TOC" class="nav nav-stacked fixed sidebar">
               <h3>Table of Contents</h3>
-<pre><code>* [1.1 Entry points and directory initialization](#<a href="SWD.html#SWD-001">SWD-001</a>)
-* [1.2 Source inventory pipeline sequencing](#<a href="SWD.html#SWD-002">SWD-002</a>)
-* [1.3 Inventory artifact segregation by analysis surface](#<a href="SWD.html#SWD-003">SWD-003</a>)
-* [1.4 External command invocation contracts](#<a href="SWD.html#SWD-004">SWD-004</a>)
-* [1.5 TLS scan lifecycle and parser handoff](#<a href="SWD.html#SWD-005">SWD-005</a>)
-* [1.6 SSH scan lifecycle and parser handoff](#<a href="SWD.html#SWD-006">SWD-006</a>)
-* [1.7 CBOM generation routines](#<a href="SWD.html#SWD-007">SWD-007</a>)
-* [1.8 Defensive validation and failure boundaries](#<a href="SWD.html#SWD-008">SWD-008</a>)
-* [1.9 Algorithm decomposition and modeling](#<a href="SWD.html#SWD-009">SWD-009</a>)
-* [1.10 JSON interface and naming conventions](#<a href="SWD.html#SWD-010">SWD-010</a>)
-* [1.11 VECTOR-Score module decomposition and internal design](#<a href="SWD.html#SWD-011">SWD-011</a>)
-</code></pre>
+<ul>
+<li><a href="#SWD-TOR">1 TOR SWDs</a><ul>
+<li><a href="#SWD-001">1.1 Entry points and directory initialization</a></li>
+<li><a href="#SWD-002">1.2 Source inventory pipeline sequencing</a></li>
+<li><a href="#SWD-003">1.3 Inventory artifact segregation by analysis surface</a></li>
+<li><a href="#SWD-004">1.4 External command invocation contracts</a></li>
+<li><a href="#SWD-005">1.5 TLS scan lifecycle and parser handoff</a></li>
+<li><a href="#SWD-006">1.6 SSH scan lifecycle and parser handoff</a></li>
+<li><a href="#SWD-007">1.7 CBOM generation routines</a></li>
+<li><a href="#SWD-008">1.8 Defensive validation and failure boundaries</a></li>
+<li><a href="#SWD-009">1.9 Algorithm decomposition and modeling</a></li>
+<li><a href="#SWD-010">1.10 JSON interface and naming conventions</a></li>
+<li><a href="#SWD-011">1.11 VECTOR-Score module decomposition and internal design</a></li>
+</ul>
+</li>
+</ul>
           </nav>
       </div>
       <div class="col-lg-8" id="main">
-        <h2 id="SWD-001">1.1 Entry points and directory initialization <small><a href="SWD.html#SWD-001">SWD-001</a></small></h2>
+        <h1 id="SWD-TOR">1 TOR SWDs <small>SWD-TOR</small></h1>
+<p>Software design artifacts for TOR.</p>
+<h2 id="SWD-001">1.1 Entry points and directory initialization <small><a href="SWD.html#SWD-001">SWD-001</a></small></h2>
 <h2>Design intent</h2>
 <p>The VECTOR entry scripts establish runtime assumptions before analysis by validating CLI input and preparing the output filesystem layout.</p>
 <h2>Inputs</h2>
@@ -84,11 +90,11 @@
 <li><code>detect_languages</code> determines supported languages from cloc output.</li>
 <li><code>create_databases</code> deduplicates by CodeQL language and creates analysis databases.</li>
 <li><code>run_queries</code> generates SARIF findings.</li>
-<li><code>generate_cbom</code> converts SARIF results into CBOM files.</li>
+<li><code>generate_cbom</code> converts SARIF results into a CBOM file.</li>
 </ul>
 <h2>Outputs</h2>
 <ul>
-<li>Per-language SARIF artifacts and CBOM artifacts.</li>
+<li>Per-language SARIF artifacts and CBOM file.</li>
 </ul>
 <h2>Failure handling</h2>
 <ul>

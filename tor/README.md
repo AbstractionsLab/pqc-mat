@@ -5,41 +5,19 @@ TOR provides tools for cryptographic inventory, helping organizations identify c
 ## Table of contents
 
 - [Overview](#overview)
-- [Project structure](#project-structure)
 - [Getting started](#getting-started)
 - [Usage](#usage)
 
 ## Overview
 
-The project is divided into two complementary components:
+The project is divided into two complementary scanning components:
 
 - **VECTOR-Code**: Analyzes source code to detect cryptographic algorithms using CodeQL
 - **VECTOR-Network**: Scans network services (SSH, TLS) to identify cryptographic configurations
 
-## Project Structure
+An additional component, **VECTOR-Score**, is used on the output of any or both of the components above, to assign a risk classification and a score to the inventorized cryptographic algorithms.
 
-```
-tor/
-├── vector_code/
-│   ├── main.py
-│   └── src/
-│       ├── language_detection.py
-│       ├── codeql_database.py
-│       ├── codeql_queries.py
-│       └── cbom_generator.py
-├── vector_network/
-│   ├── main.py
-│   ├── testssl_to_cbom.py
-│   └── zgrab2_to_cbom.py
-├── vector_score/
-│   ├── main.py
-│   ├── algorithm_classifier.py
-│   ├── cbom_scorer.py
-│   ├── report_generator.py
-│   └── data/
-│       └── algorithm-risk-catalog.yaml
-└── README.md
-```
+**VECTOR-GUI** provides a browser-based Flask interface that covers the full pipeline — scan submission, live output monitoring, and results browsing — without requiring the CLI.
 
 ## Getting Started
 
@@ -78,45 +56,27 @@ vector code <path>
 - `path` (required): path to the project to analyze
 - `--name` (optional): application name for CBOM metadata (default: `application`)
 
-A test project is included in the container at `/home/vector/test-project/cryptography` (the [pyca/cryptography](https://github.com/pyca/cryptography) library). You can use it to quickly verify the pipeline:
+The [pyca/cryptography](https://github.com/pyca/cryptography) library is included as a test project in the container.
+You can use it to quickly verify the pipeline with:
 
 ```bash
 vector code /home/vector/test-project/cryptography
 ```
 
-**Example output:**
-```
-Language detection
-  Detected: Python (18.8%)
+**Output:**
 
-Creating CodeQL databases
-  Created: db-python
+Results are written to an `output/` directory containing three sub-folders: `databases/` with the generated CodeQL databases, `results/` with the SARIF files, and `cbom/` with the CBOM file.
 
-Running crypto queries
-  Generated: crypto-python.sarif
-
-Generating CBOM
-  Generated: crypto-python-cbom.json
-
-Completed
-```
+The CBOM file is the end result compiling all the cryptographic assets found during the scan in a CycloneDX formatted file.
 
 **Supported Languages:**
 - Python
 - C/C++
-- Java (planned)
 
-**Output structure:**
-```
-output/
-├── databases/   (CodeQL databases)
-├── results/     (SARIF files)
-└── cbom/        (CBOM files)
-```
-
-**Notes:**
-- Language threshold is set to 5% by default
-- CodeQL databases stored in `output/databases/`
+> **NOTES:**
+>
+> - Languages used in less than 5% of the codebase at the input path are ignored during detection and thus not scanned
+> - In C/C++ projects, the compiled object files (`<name>.o`) are needed for the scan to give results
 
 ### VECTOR-Network
 
@@ -163,6 +123,24 @@ vector network --protocol tls --target internal.example.com --port 8443
 ## Known Limitations
 
 - **x86_64 only**: The Dev Container uses the CodeQL CLI which is only available for x86_64. GitHub does not provide ARM64.
+
+## VECTOR-GUI: web interface
+
+VECTOR-GUI is a Flask-based browser interface for submitting scans, monitoring live terminal output, and reviewing results without the CLI.
+
+**Starting the server:**
+
+```bash
+VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5000 python3 tor/gui/app.py
+```
+
+Forward port `5000` in the VS Code **Ports** panel, then open `http://localhost:5000`.
+
+The interface provides three result views for each completed scan: a **risk report** with a quantum risk distribution chart and per-classification summary, a **CBOM explorer** with filterable per-algorithm risk cards and migration guidance, and a **raw output** tab with the original scanner output. Past scans are accessible from the **scan history** page.
+
+<img src="../docs/manual/assets/VECTOR-GUI-NetScanRiskReport.png" alt="Risk report view showing a donut chart with quantum risk distribution and classification summary table" width="800"/>
+
+<img src="../docs/manual/assets/VECTOR-GUI-NetScan-CBOM-Explorer.png" alt="CBOM explorer showing per-algorithm quantum risk cards with migration guidance and standards references" width="800"/>
 
 ## Documentation
 

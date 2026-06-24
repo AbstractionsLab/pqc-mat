@@ -7,7 +7,21 @@ QUERIES_PATHS = {
 }
 
 
-def run_query_sarif(database_path, query_path, output_path, codeql_lang):
+def run_query_sarif(database_path: str, query_path: str, output_path: str, codeql_lang: str) -> bool:
+    """Runs a CodeQL query and writes results to a SARIF file.
+
+    Args:
+        database_path: Path to the CodeQL database.
+        query_path: Path to the query or query suite to run.
+        output_path: Destination path for the SARIF output file.
+        codeql_lang: Language identifier used for SARIF category tagging.
+
+    Returns:
+        True if the query succeeded, False otherwise.
+
+    Raises:
+        RuntimeError: If the CodeQL CLI is not found on PATH.
+    """
     cmd = [
         'codeql', 'database', 'analyze',
         database_path,
@@ -19,7 +33,7 @@ def run_query_sarif(database_path, query_path, output_path, codeql_lang):
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        subprocess.run(cmd, capture_output=True, text=True, check=True)
         return True
     except subprocess.CalledProcessError as e:
         print(f"  Error running CodeQL query for {codeql_lang}:")
@@ -34,7 +48,17 @@ def run_query_sarif(database_path, query_path, output_path, codeql_lang):
         )
 
 
-def run_queries(databases, output_dir):
+def run_queries(databases: dict[str, str], output_dir: str) -> list[str]:
+    """Runs CodeQL crypto inventory queries for each provided database.
+
+    Args:
+        databases: Mapping of language identifier to CodeQL database path
+            (e.g. ``{'python': '/path/to/db', 'cpp': '/path/to/db'}``).
+        output_dir: Directory where SARIF output files will be written.
+
+    Returns:
+        List of paths to the generated SARIF files.
+    """
     sarif_files = []
     
     if not databases:
@@ -55,5 +79,5 @@ def run_queries(databases, output_dir):
         
         if run_query_sarif(db_path, query_path, sarif_path, codeql_lang):
             sarif_files.append(sarif_path)
-    
+
     return sarif_files

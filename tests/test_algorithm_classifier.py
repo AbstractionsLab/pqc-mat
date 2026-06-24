@@ -1,14 +1,9 @@
 """
 Tests for algorithm_classifier.py — quantum risk classification logic.
 
-Covers TCS-011 (quantum-vulnerable classification) and TCS-012 (post-quantum classification),
-plus additional cases for quantum-safe, quantum-weakened, classically-deprecated, and unknown.
+Covers TCS-011 (quantum-vulnerable classification) and TCS-012 (non-hybrid classification),
+plus additional cases for quantum-safe, classically-deprecated, and unknown.
 """
-
-import sys
-import os
-
-import pytest
 
 from vector_score.algorithm_classifier import classify, RiskClassification
 
@@ -59,48 +54,53 @@ class TestAlgorithmClassifier:
         result = classify("ffdhe2048", "dh", None)
         assert result.classification == "quantum-vulnerable"
 
-    # ── TCS-012: post-quantum algorithms ───────────────────────────────────────
+    # ── TCS-012: non-hybrid algorithms ─────────────────────────────────────────
 
-    def test_mlkem768_is_post_quantum(self):
-        """TCS-012 step 2: ML-KEM-768 classified as post-quantum."""
+    def test_mlkem768_is_non_hybrid(self):
+        """TCS-012 step 2: ML-KEM-768 classified as non-hybrid."""
         result = classify("ML-KEM-768", "kem", None)
-        assert result.classification == "post-quantum"
-        assert result.risk_score == "none"
+        assert result.classification == "non-hybrid"
+        assert result.risk_score == "medium"
 
-    def test_mlkem1024_is_post_quantum(self):
-        """TCS-012 step 3: ML-KEM-1024 classified as post-quantum."""
+    def test_mlkem1024_is_non_hybrid(self):
+        """TCS-012 step 3: ML-KEM-1024 classified as non-hybrid."""
         result = classify("ML-KEM-1024", "kem", None)
-        assert result.classification == "post-quantum"
-        assert result.risk_score == "none"
+        assert result.classification == "non-hybrid"
+        assert result.risk_score == "medium"
 
-    def test_mldsa65_is_post_quantum(self):
-        """TCS-012 step 4: ML-DSA-65 classified as post-quantum."""
+    def test_mldsa65_is_non_hybrid(self):
+        """TCS-012 step 4: ML-DSA-65 classified as non-hybrid."""
         result = classify("ML-DSA-65", "signature", None)
-        assert result.classification == "post-quantum"
-        assert result.risk_score == "none"
+        assert result.classification == "non-hybrid"
+        assert result.risk_score == "medium"
 
-    def test_slhdsa_is_post_quantum(self):
-        """TCS-012 step 5: SLH-DSA classified as post-quantum."""
+    def test_slhdsa_is_non_hybrid(self):
+        """TCS-012 step 5: SLH-DSA classified as non-hybrid."""
         result = classify("SLH-DSA", "signature", None)
-        assert result.classification == "post-quantum"
-        assert result.risk_score == "none"
+        assert result.classification == "non-hybrid"
+        assert result.risk_score == "medium"
 
-    def test_mlkem512_is_post_quantum(self):
+    def test_mlkem512_is_non_hybrid(self):
         result = classify("ML-KEM-512", "kem", None)
-        assert result.classification == "post-quantum"
+        assert result.classification == "non-hybrid"
 
-    def test_crystals_kyber_is_post_quantum(self):
+    def test_crystals_kyber_is_non_hybrid(self):
         result = classify("CRYSTALS-Kyber-768", "kem", None)
-        assert result.classification == "post-quantum"
+        assert result.classification == "non-hybrid"
 
-    def test_sntrup761_is_post_quantum(self):
+    def test_sntrup761_is_non_hybrid(self):
         result = classify("sntrup761", "kem", None)
-        assert result.classification == "post-quantum"
+        assert result.classification == "non-hybrid"
 
     # ── Quantum-safe algorithms ─────────────────────────────────────────────────
 
     def test_aes256_gcm_is_quantum_safe(self):
         result = classify("AES-256-GCM", "block-cipher", "256")
+        assert result.classification == "quantum-safe"
+        assert result.risk_score == "none"
+
+    def test_aes128_is_quantum_safe(self):
+        result = classify("AES-128-GCM", "block-cipher", "128")
         assert result.classification == "quantum-safe"
         assert result.risk_score == "none"
 
@@ -121,21 +121,6 @@ class TestAlgorithmClassifier:
         result = classify("ChaCha20-Poly1305", "ae", None)
         assert result.classification == "quantum-safe"
 
-    # ── Quantum-weakened algorithms ─────────────────────────────────────────────
-
-    def test_aes128_is_quantum_weakened(self):
-        result = classify("AES-128-GCM", "block-cipher", "128")
-        assert result.classification == "quantum-weakened"
-        assert result.risk_score == "medium"
-
-    def test_sha1_is_quantum_weakened(self):
-        result = classify("SHA-1", "hash", None)
-        assert result.classification == "quantum-weakened"
-        assert result.risk_score == "medium"
-
-    def test_3des_is_quantum_weakened(self):
-        result = classify("3DES-EDE", "block-cipher", None)
-        assert result.classification == "quantum-weakened"
 
     # ── Classically deprecated algorithms ──────────────────────────────────────
 
@@ -156,6 +141,16 @@ class TestAlgorithmClassifier:
         result = classify("NULL", None, None)
         assert result.classification == "classically-deprecated"
 
+    def test_sha1_is_classically_deprecated(self):
+        result = classify("SHA-1", "hash", None)
+        assert result.classification == "classically-deprecated"
+        assert result.risk_score == "high"
+
+    def test_3des_is_classically_deprecated(self):
+        result = classify("3DES-EDE", "block-cipher", None)
+        assert result.classification == "classically-deprecated"
+        assert result.risk_score == "high"
+
     # ── Hybrid algorithms ───────────────────────────────────────────────────────
 
     def test_x25519mlkem768_is_hybrid(self):
@@ -166,6 +161,7 @@ class TestAlgorithmClassifier:
     def test_secp256r1mlkem768_is_hybrid(self):
         result = classify("SecP256r1MLKEM768", None, None)
         assert result.classification == "hybrid"
+        assert result.risk_score == "low"
 
     # ── Unknown algorithm ───────────────────────────────────────────────────────
 

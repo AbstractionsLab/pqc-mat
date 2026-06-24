@@ -7,27 +7,24 @@ Exposes a single generate_report() function that returns a Markdown string.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Optional
 
 
 _SCORER_VERSION = "0.1"
 
 _CLASSIFICATION_ORDER = [
-    "quantum-vulnerable",
     "classically-deprecated",
-    "quantum-weakened",
+    "quantum-vulnerable",
+    "non-hybrid",
     "hybrid",
     "quantum-safe",
-    "post-quantum",
     "unknown",
 ]
 
 _CLASSIFICATION_LABELS = {
     "quantum-vulnerable":    "Quantum-Vulnerable",
-    "quantum-weakened":      "Quantum-Weakened",
+    "non-hybrid":            "Non-Hybrid",
     "classically-deprecated":"Classically Deprecated",
     "quantum-safe":          "Quantum-Safe",
-    "post-quantum":          "Post-Quantum",
     "hybrid":                "Hybrid (Classical + PQC)",
     "unknown":               "Unknown / Unclassified",
 }
@@ -51,6 +48,45 @@ def _get_all_pqcmat_props(props: list, prop_name: str) -> list:
     return [p.get("value", "") for p in props if p.get("name") == prop_name]
 
 
+def _extract_locations(component: dict) -> list[dict]:
+    """Return a list of {file, lines} dicts from a component.
+
+    Supports two formats:
+    - CycloneDX 1.6 (after normalization): component["evidence"]["occurrences"]
+      Each occurrence: {"location": str, "line": int, "additionalContext": str}
+    - IBM draft (before normalization): cryptoProperties["detectionContext"]
+      Each entry: {"filePath": str, "lineNumbers": [int, ...]}
+    """
+    locations = []
+
+    # CycloneDX 1.6 format — evidence.occurrences
+    occurrences = component.get("evidence", {}).get("occurrences", [])
+    if occurrences:
+        for occ in occurrences:
+            file_path = occ.get("location", "").strip()
+            if not file_path:
+                continue
+            line = occ.get("line")
+            locations.append({
+                "file": file_path,
+                "lines": [line] if line is not None else [],
+            })
+        return locations
+
+    # IBM draft fallback — cryptoProperties.detectionContext
+    detection_context = component.get("cryptoProperties", {}).get("detectionContext", [])
+    for ctx in detection_context:
+        file_path = ctx.get("filePath", "").strip()
+        if not file_path:
+            continue
+        line_numbers = ctx.get("lineNumbers", [])
+        locations.append({
+            "file": file_path,
+            "lines": line_numbers,
+        })
+    return locations
+
+
 def _get_algo_findings(components: list) -> list:
     """Extract a list of finding dicts from scored algorithm components."""
     findings = []
@@ -63,8 +99,13 @@ def _get_algo_findings(components: list) -> list:
         if not classification:
             continue
         algo_props = crypto.get("algorithmProperties", {})
+
+        # Collect source-code locations
+        # for both CycloneDX 1.6 (evidence.occurrences) and IBM draft format (cryptoProperties.detectionContext).
+        locations = _extract_locations(comp)
+
         findings.append({
-            "name": comp.get("name", ""),
+            "name": algo_props.get("variant", "") or comp.get("name", ""),
             "primitive": algo_props.get("primitive", ""),
             "key_size": algo_props.get("parameterSetIdentifier", ""),
             "classification": classification,
@@ -72,6 +113,7 @@ def _get_algo_findings(components: list) -> list:
             "rationale": _get_pqcmat_prop(props, "pqcmat:rationale"),
             "migration": _get_pqcmat_prop(props, "pqcmat:recommended-migration"),
             "references": _get_all_pqcmat_props(props, "pqcmat:reference"),
+            "locations": locations,
         })
     return findings
 
@@ -83,6 +125,10 @@ def _md_table_row(cells: list) -> str:
 def _md_table_header(headers: list) -> str:
     separator = "| " + " | ".join("---" for _ in headers) + " |"
     return _md_table_row(headers) + "\n" + separator
+
+
+def _has_any_locations(findings: list) -> bool:
+    return any(f["locations"] for f in findings)
 
 
 def generate_report(scored_cbom: dict) -> str:
@@ -117,10 +163,12 @@ def generate_report(scored_cbom: dict) -> str:
                 all_refs.append(ref)
                 seen_refs.add(ref)
 
+    source_locations_present = _has_any_locations(findings)
+
     lines = []
 
     # ── Header ──────────────────────────────────────────────────────────────────
-    lines.append(f"# Quantum risk report — {target_name}")
+    lines.append(f"# Quantum-threat and cryptography risk report — {target_name}")
     lines.append("")
     lines.append(f"**Scored at:** {scored_at}  ")
     lines.append(f"**VECTOR-Score version:** {_SCORER_VERSION}  ")
@@ -144,7 +192,7 @@ def generate_report(scored_cbom: dict) -> str:
     lines.append("")
 
     # ── Per-classification sections ──────────────────────────────────────────────
-    lines.append("## Findings by classification")
+    lines.append("## Identified algorithms per risk category")
     lines.append("")
 
     for cls in _CLASSIFICATION_ORDER:
@@ -154,20 +202,58 @@ def generate_report(scored_cbom: dict) -> str:
         label = _CLASSIFICATION_LABELS.get(cls, cls)
         lines.append(f"### {label}")
         lines.append("")
-        lines.append(_md_table_header(["Algorithm", "Primitive", "Key size", "Rationale", "Recommended migration"]))
-        for item in sorted(items, key=lambda x: x["name"]):
-            # Truncate long rationale for table readability
-            rationale = item["rationale"]
-            if len(rationale) > 500:
-                rationale = rationale[:497] + "..."
-            lines.append(_md_table_row([
-                item["name"],
-                item["primitive"] or "—",
-                item["key_size"] or "—",
-                rationale,
-                item["migration"],
+
+        if source_locations_present:
+            # Extended table: includes a Source locations column
+            lines.append(_md_table_header([
+                "Algorithm", "Primitive", "Key size",
+                "Rationale", "Recommended migration", "Source locations",
             ]))
-        lines.append("")
+            for item in sorted(items, key=lambda x: x["name"]):
+                rationale = item["rationale"]
+                if len(rationale) > 500:
+                    rationale = rationale[:497] + "..."
+
+                loc_items = item["locations"]
+                if loc_items:
+                    loc_cell = "<br>".join(
+                        f"`{loc['file']}`"
+                        + (
+                            (" L" + ",".join(str(n) for n in loc["lines"]))
+                            if loc["lines"] else ""
+                        )
+                        for loc in loc_items
+                    )
+                else:
+                    loc_cell = "—"
+
+                lines.append(_md_table_row([
+                    item["name"],
+                    item["primitive"] or "—",
+                    item["key_size"] or "—",
+                    rationale,
+                    item["migration"],
+                    loc_cell,
+                ]))
+            lines.append("")
+
+        else:
+            # No location data
+            lines.append(_md_table_header([
+                "Algorithm", "Primitive", "Key size", "Rationale", "Recommended migration",
+            ]))
+            for item in sorted(items, key=lambda x: x["name"]):
+                rationale = item["rationale"]
+                if len(rationale) > 500:
+                    rationale = rationale[:497] + "..."
+                lines.append(_md_table_row([
+                    item["name"],
+                    item["primitive"] or "—",
+                    item["key_size"] or "—",
+                    rationale,
+                    item["migration"],
+                ]))
+            lines.append("")
 
     # ── Normative references ─────────────────────────────────────────────────────
     if all_refs:

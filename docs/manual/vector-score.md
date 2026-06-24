@@ -58,21 +58,20 @@ A Markdown file containing:
 
 1. Header — target application name, timestamp, scorer version, total algorithm count.
 2. Summary table — counts grouped by risk classification with the associated risk score level.
-3. Per-classification finding tables — algorithm name, primitive type, key size (if present), rationale, and recommended migration target.
+3. Per-classification finding tables — algorithm name, primitive type, key size (if present), rationale, recommended migration target, and source code locations (for VECTOR-Code findings).
 4. Normative references — links to NIST FIPS 203/204/205, BSI TR-02102-1, ANSSI, SP 800-131A Rev.2.
 
 ## Risk classifications
 
-VECTOR-Score assigns one of seven classifications to each algorithm component.
+VECTOR-Score assigns one of six classifications to each algorithm component.
 
 | Classification | Risk score | Description |
 |---------------|------------|-------------|
-| `quantum-vulnerable` | High | Relies on integer factorisation or discrete logarithm problems that are broken by Shor's algorithm on a cryptographically relevant quantum computer (CRQC). Includes RSA, ECDH/ECDHE, DHE, ECDSA, DSA, EdDSA, X25519/X448. Immediate migration planning required. |
-| `quantum-weakened` | Medium | Symmetric or hash algorithms with key/output sizes, the search spaces of which are often said to be halved by Grover's algorithm. However, this is not accurate as Grover's algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subject to ongoing research. The algorithm remains usable at appropriate sizes but should be reviewed for long-term security (as suggested by NIST or BSI). Includes AES-128, SHA-1, 3DES-EDE, HMAC-SHA1. |
+| `quantum-vulnerable` | High | Relies on integer factorization or discrete logarithm problems that are broken by Shor's algorithm on a cryptographically relevant quantum computer (CRQC). Includes RSA, ECDH/ECDHE, DHE, ECDSA, DSA, EdDSA, X25519/X448. Immediate migration planning required. |
 | `classically-deprecated` | High | Already broken or deprecated by classical cryptanalysis, independent of quantum threats. Includes RC4, DES, MD5, IDEA, SEED, NULL ciphers, and EXPORT suites. Remove immediately. |
+| `non-hybrid` | Medium | NIST-standardized or NIST-candidate post-quantum algorithms that are not used in hybrid combinations. Includes ML-KEM (FIPS 203), ML-DSA (FIPS 204), SLH-DSA (FIPS 205), FN-DSA, and candidates such as CRYSTALS-Kyber, sntrup761, NTRU. Recommended for constrained environments (embedded devices, IoT), being aware that PQC algorithm are still young and vulnerabilities might be discovered. |
+| `hybrid` | Low | Combinations of a classical with a post-quantum cryptographic algorithms (e.g. X25519MLKEM768, SecP256r1MLKEM768). Recommended for a smooth transition, maintaining interoperability and providing security relying on both, battle-tested classical algorithms and PQC algorithms. |
 | `quantum-safe` | None | Symmetric and hash algorithms with sufficient key/output sizes to provide at least 128-bit post-quantum security under Grover's algorithm. Includes AES-256, ChaCha20-Poly1305, SHA-256/384/512, HMAC-SHA-256+. No migration required. |
-| `post-quantum` | None | NIST-standardised or NIST-candidate post-quantum algorithms. Includes ML-KEM (FIPS 203), ML-DSA (FIPS 204), SLH-DSA (FIPS 205), FN-DSA, and candidates such as CRYSTALS-Kyber, sntrup761, NTRU. |
-| `hybrid` | None | Combinations of a classical key exchange with a post-quantum KEM (e.g. X25519MLKEM768, SecP256r1MLKEM768). Provides a hedge against both classical and quantum attacks. |
 | `unknown` | High | Algorithm name did not match any catalog entry. Manual review required. |
 
 ## Data-driven catalog

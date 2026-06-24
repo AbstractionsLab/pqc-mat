@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}VECTOR History{% endblock %}
+{% block page_title %}Scan History{% endblock %}
+{% block page_subtitle %}<p class="page-header__subtitle">All scans submitted in the current session</p>{% endblock %}
+{% block page_actions %}
+  <a href="{{ url_for('new_scan') }}" class="btn btn--primary">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    New scan
+  </a>
+{% endblock %}
+
+{% block content %}
+
+{% if not scans %}
+<div class="empty-state">
+  <div class="empty-state__icon">
+    <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><rect x="8" y="12" width="32" height="28" rx="3" stroke="currentColor" stroke-width="2"/><path d="M16 20h16M16 27h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M24 4v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </div>
+  <div class="empty-state__title">No scans yet</div>
+  <div class="empty-state__sub">Submit a VECTOR-Code or VECTOR-Network scan to get started.</div>
+  <a href="{{ url_for('new_scan') }}" class="btn btn--primary" style="margin-top:14px">Start a scan</a>
+</div>
+{% else %}
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Target</th>
+        <th>App name</th>
+        <th>Submitted</th>
+        <th>Duration</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for scan in scans %}
+      <tr>
+        <td>
+          {% if scan.type == 'code' %}
+            <span class="badge badge--purple">Code</span>
+          {% elif scan.type == 'network-tls' %}
+            <span class="badge badge--blue">Network · TLS</span>
+          {% elif scan.type == 'network-ssh' %}
+            <span class="badge badge--blue">Network · SSH</span>
+          {% else %}
+            <span class="badge badge--gray">{{ scan.type }}</span>
+          {% endif %}
+        </td>
+        <td class="mono" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ scan.target }}">{{ scan.target }}</td>
+        <td class="muted">{{ scan.app_name or '—' }}</td>
+        <td class="muted">{{ scan.submitted_at[:16].replace('T',' ') }} UTC</td>
+        <td class="muted">
+          {% if scan.finished_at %}
+            {{ ((scan.finished_at[:19] | int if False else 0)) }}
+            <span class="duration-calc" data-start="{{ scan.submitted_at }}" data-end="{{ scan.finished_at }}">—</span>
+          {% else %}
+            <span class="duration-running" data-start="{{ scan.submitted_at }}">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if scan.status == 'done' %}
+            <span class="badge badge--green">done</span>
+          {% elif scan.status == 'running' %}
+            <span class="badge badge--blue">running</span>
+          {% elif scan.status == 'failed' %}
+            <span class="badge badge--red">failed</span>
+          {% else %}
+            <span class="badge badge--amber">pending</span>
+          {% endif %}
+        </td>
+        <td style="text-align:right">
+          {% if scan.status in ('done',) and scan.has_results %}
+            <a href="/results/{{ scan.id }}" class="btn btn--sm btn--primary">Results</a>
+          {% endif %}
+          <a href="/scan/{{ scan.id }}" class="btn btn--sm">Detail</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Compute durations for finished scans
+document.querySelectorAll('.duration-calc').forEach(el => {
+  const start = new Date(el.dataset.start);
+  const end   = new Date(el.dataset.end);
+  const s = Math.round((end - start) / 1000);
+  el.textContent = s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`;
+});
+
+// Live elapsed for running scans
+function tickRunning() {
+  document.querySelectorAll('.duration-running').forEach(el => {
+    const start = new Date(el.dataset.start);
+    const s = Math.round((Date.now() - start) / 1000);
+    el.textContent = s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`;
+  });
+}
+setInterval(tickRunning, 1000);
+tickRunning();
+
+// Auto-refresh page every 10 s if any scan is running
+const hasRunning = document.querySelectorAll('.duration-running').length > 0;
+if (hasRunning) setTimeout(() => location.reload(), 10000);
+</script>
+{% endblock %}

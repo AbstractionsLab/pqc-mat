@@ -5,9 +5,10 @@
 | **Source languages (VECTOR-Code)** | Python, C, C++ | Java has no CodeQL queries — not supported |
 | **Network protocols (VECTOR-Network)** | TLS, SSH | No additional protocols planned at this stage |
 | **Deployment** | Docker Dev Container | Local install without Docker is not supported |
-| **Output format** | CycloneDX 1.6 CBOM (JSON) | One CBOM file per language (code) or per scan (network) |
+| **Web interface** | Available | Flask-based browser UI; supports VECTOR-Code and VECTOR-Network scans with live output terminal; alternative to CLI |
+| **Output format** | CycloneDX 1.6 CBOM (JSON) | VECTOR-Code produces a unified CBOM per project (for repositories with code in multiple programming languages); VECTOR-Network produces one CBOM per scan |
 | **Architecture** | Static code analysis (VECTOR-Code) + live network scanning (VECTOR-Network) + quantum risk scoring (VECTOR-Score) | Tools operate independently |
-| **Risk scoring** | 7 risk classifications: `quantum-vulnerable`, `quantum-weakened`, `classically-deprecated`, `quantum-safe`, `post-quantum`, `hybrid`, `unknown` | Data-driven YAML catalog; covers NIST, BSI TR-02102, ANSSI |
+| **Risk scoring** | 6 risk classifications: `quantum-vulnerable`, `classically-deprecated`, `non-hybrid`, `quantum-safe`, `hybrid`, `unknown` | Data-driven YAML catalog; covers NIST, BSI TR-02102, ANSSI |
 | **Risk scoring input** | Any CycloneDX 1.6 CBOM JSON | Compatible with VECTOR-Code and VECTOR-Network output |
 
 ---

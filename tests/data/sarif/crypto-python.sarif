@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "CodeQL",
+          "organization": "GitHub",
+          "semanticVersion": "2.25.4",
+          "rules": [
+            {
+              "id": "py/quantum-readiness/cbom/classic-model/hash-algorithms",
+              "name": "py/quantum-readiness/cbom/classic-model/hash-algorithms",
+              "shortDescription": {
+                "text": "Hash Algorithms"
+              },
+              "fullDescription": {
+                "text": "Finds all potential usage of cryptographic hash algorithms using the supported libraries."
+              },
+              "defaultConfiguration": {
+                "enabled": true,
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "cbom",
+                  "cryptography"
+                ],
+                "description": "Finds all potential usage of cryptographic hash algorithms using the supported libraries.",
+                "id": "py/quantum-readiness/cbom/classic-model/hash-algorithms",
+                "kind": "problem",
+                "name": "Hash Algorithms",
+                "problem.severity": "error"
+              },
+              "index": 0
+            }
+          ]
+        }
+      },
+      "artifacts": [
+        {
+          "location": {
+            "uri": "tuf/api/_payload.py",
+            "uriBaseId": "%SRCROOT%",
+            "index": 0
+          }
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "py/quantum-readiness/cbom/classic-model/hash-algorithms",
+          "ruleIndex": 0,
+          "rule": {
+            "id": "py/quantum-readiness/cbom/classic-model/hash-algorithms",
+            "index": 0
+          },
+          "message": {
+            "text": "Use of algorithm SHA256"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tuf/api/_payload.py",
+                  "uriBaseId": "%SRCROOT%",
+                  "index": 0
+                },
+                "region": {
+                  "startLine": 1219,
+                  "startColumn": 13,
+                  "endColumn": 66
+                },
+                "contextRegion": {
+                  "startLine": 1217,
+                  "endLine": 1221,
+                  "snippet": {
+                    "text": "            # to determine in which bin to find the target.\r\n            digest_object = hashlib.new(name=\"sha256\")\r\n            digest_object.update(target_filepath.encode(\"utf-8\"))\r\n            target_filepath_hash = digest_object.hexdigest()\r\n\r\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "da6733c500f6f743:1",
+            "primaryLocationStartColumnFingerprint": "0"
+          }
+        },
+        {
+          "ruleId": "py/quantum-readiness/cbom/classic-model/hash-algorithms",
+          "ruleIndex": 0,
+          "rule": {
+            "id": "py/quantum-readiness/cbom/classic-model/hash-algorithms",
+            "index": 0
+          },
+          "message": {
+            "text": "Use of algorithm SHA256"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tuf/api/_payload.py",
+                  "uriBaseId": "%SRCROOT%",
+                  "index": 0
+                },
+                "region": {
+                  "startLine": 1341,
+                  "startColumn": 9,
+                  "endColumn": 55
+                },
+                "contextRegion": {
+                  "startLine": 1339,
+                  "endLine": 1343,
+                  "snippet": {
+                    "text": "        \"\"\"\r\n        hasher = hashlib.new(name=\"sha256\")\r\n        hasher.update(target_filepath.encode(\"utf-8\"))\r\n\r\n        # We can't ever need more than 4 bytes (32 bits).\r\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "9163ec4f02a3ab47:1",
+            "primaryLocationStartColumnFingerprint": "0"
+          }
+        }
+      ],
+      "automationDetails":{"id":"python/"},
+      "columnKind": "unicodeCodePoints"
+    }
+  ]
+}

@@ -4,6 +4,9 @@
 		"context": "..",
 		"dockerfile": "../dev.Dockerfile"
 	},
+	"mounts": [
+		"source=${localEnv:HOME}${localEnv:USERPROFILE},target=/mnt/host-home,type=bind"
+	],
 	"workspaceFolder": "/home/vector/vector-project",
 	"workspaceMount": "source=${localWorkspaceFolder},target=/home/vector/vector-project,type=bind",
 	"postCreateCommand": "pip install black",
