@@ -6,12 +6,9 @@ Supports:
   https://github.com/owner/repo.git
   https://github.com/owner/repo/tree/branch-or-tag
   https://github.com/owner/repo/tree/branch/subdir  (clones repo, returns subdir path)
-  git@github.com:owner/repo.git
 
 The clone is shallow (--depth=1) to minimise disk and network usage.
 """
-
-from __future__ import annotations
 
 import os
 import re
@@ -19,7 +16,6 @@ import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 _HTTPS_RE = re.compile(
@@ -34,6 +30,21 @@ _SSH_RE = re.compile(
     r'^git@github\.com:(?P<owner>[^/]+)/(?P<repo>[^/]+?)(\.git)?$'
 )
 
+_AUTH_OR_MISSING_MARKERS = (
+    "could not read username",
+    "could not read password",
+    "authentication failed",
+    "invalid username or password",
+    "terminal prompts disabled",
+    "support for password authentication was removed",
+    "permission denied (publickey)",
+    "not found",
+)
+
+def _is_auth_or_missing_repo_failure(stderr: str) -> bool:
+    """True if there is a missing, private, or credential-gated repo"""
+    lowered = stderr.lower()
+    return any(marker in lowered for marker in _AUTH_OR_MISSING_MARKERS)
 
 @dataclass
 class CloneResult:
@@ -55,8 +66,8 @@ def is_github_url(source: str) -> bool:
     return bool(_HTTPS_RE.match(s) or _SSH_RE.match(s))
 
 
-def _parse_github_url(url: str) -> tuple[str, str, str, Optional[str]]:
-    """Return (clone_url, owner, repo, subpath_or_None)"""
+def _parse_github_url(url: str) -> tuple[str, str, str, str|None, str| None]:
+    """Return (clone_url, owner, repo, ref_or_None, subpath_or_None)"""
     url = url.strip()
 
     m = _HTTPS_RE.match(url)
@@ -70,10 +81,12 @@ def _parse_github_url(url: str) -> tuple[str, str, str, Optional[str]]:
 
     m = _SSH_RE.match(url)
     if m:
-        owner = m.group('owner')
-        repo  = m.group('repo')
-        clone_url = f"https://github.com/{owner}/{repo}.git"
-        return clone_url, owner, repo, None, None
+        raise ValueError(
+            f"SSH-style GitHub URLs are not supported: {url!r}. VECTOR-Code "
+            f"only supports public GitHub repositories over HTTPS; private "
+            f"repositories requiring SSH authentication are out of scope. "
+            f"Use the HTTPS form instead, e.g. 'https://github.com/<owner>/<repo>'."
+        )
 
     raise ValueError(f"Cannot parse GitHub URL: {url!r}")
 
@@ -83,12 +96,6 @@ def resolve(url: str) -> CloneResult:
     clone_url, owner, repo, ref, subpath = _parse_github_url(url)
     app_name = f"{owner}/{repo}"
 
-    if shutil.which('git') is None:
-        raise RuntimeError(
-            "git is not installed or not on PATH. "
-            "Install git: sudo apt-get install git"
-        )
-
     tmp_dir = tempfile.mkdtemp(prefix="vector_code_")
 
     cmd = ['git', 'clone', '--depth=1', '--single-branch']
@@ -96,11 +103,19 @@ def resolve(url: str) -> CloneResult:
         cmd += ['--branch', ref]
     cmd += [clone_url, tmp_dir]
 
+    clone_env = dict(os.environ)
+    clone_env["GIT_TERMINAL_PROMPT"] = "0"
+    clone_env["GCM_INTERACTIVE"] = "never"
+    clone_env.pop("GIT_ASKPASS", None)
+    clone_env.pop("SSH_ASKPASS", None)
+
     try:
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
+            stdin=subprocess.DEVNULL,
+            env=clone_env,
         )
     except Exception as exc:
         shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -110,6 +125,13 @@ def resolve(url: str) -> CloneResult:
         shutil.rmtree(tmp_dir, ignore_errors=True)
         stderr_lines = [l for l in result.stderr.splitlines() if l.strip()]
         detail = stderr_lines[-1] if stderr_lines else result.stderr.strip()
+
+        if _is_auth_or_missing_repo_failure(result.stderr):
+            raise RuntimeError(
+                f"git clone failed for {clone_url!r}: the repository was not found, "
+                f"or it may be private and require authentication. \n"
+            )
+
         raise RuntimeError(
             f"git clone failed for {clone_url!r}:\n  {detail}"
         )

@@ -50,6 +50,9 @@ def generate_cbom(sarif_dir: str, output_dir: str, app_name: str) -> str | None:
         print(f"    Command: {' '.join(cmd)}")
         print(f"    Error: {e.stderr}")
         return None
+    except FileNotFoundError:
+        print("  Error: 'cryptobom' command not found. Install cryptobom-forge and ensure it is in PATH.")
+        return None
 
     if not os.path.exists(output_path):
         print(f"  Error generating CBOM from '{sarif_dir}'.",

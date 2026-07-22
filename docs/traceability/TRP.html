@@ -35,6 +35,10 @@
 <li><a href="#TRP-012">12 Test report for CBOM annotated with pqcmat properties</a></li>
 <li><a href="#TRP-013">13 Test report for unified CBOM creation verification</a></li>
 <li><a href="#TRP-014">14 Test report for Markdown risk report</a></li>
+<li><a href="#TRP-015">15 Test report for the VECTOR web interface</a></li>
+<li><a href="#TRP-016">16 Test report standalone container deployment</a></li>
+<li><a href="#TRP-017">17 Test report for the runner script VECTOR in CLI and GUI mode</a></li>
+<li><a href="#TRP-018">18 Test report for GitHub repository URL support for VECTOR-Code</a></li>
 </ul>
           </nav>
       </div>
@@ -1031,6 +1035,407 @@ To avoid making the column look crowded, the path of the source code repository 
 <tr>
 <td>release-version</td>
 <td>0.3</td>
+</tr>
+<tr>
+<td>verification-method</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TRP-015">15 Test report for the VECTOR web interface <small><a href="TRP.html#TRP-015">TRP-015</a></small></h1>
+<h2>Relevant test environment and configuration details</h2>
+<ul>
+<li>Environment: <code>vector</code> container in VS Code with the Dev Containers extension</li>
+<li>Server started as: <code>VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5992 python3 tor/gui/app.py</code></li>
+</ul>
+<h2>Test execution results</h2>
+<ol>
+<li>The navigation sidebar shows exactly two items:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The navigation sidebar showed exactly two items: New scan, Scan history.</li>
+</ul>
+<ol start="2">
+<li>VECTOR-Code scan submission:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The inline error "Source path or GitHub URL is required" was shown and no scan was created.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - Local-path source: the scan was created and the browser navigated to its scan detail page automatically.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - GitHub URL source: the scan was created and the browser navigated to its scan detail page automatically. The application name <code>crypto-app</code> was shown in the scan details page as entered.</li>
+</ul>
+<ol start="3">
+<li>VECTOR-Network scan submission:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - Protocol defaulted to TLS and Port defaulted to <code>443</code>.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - Port updated to <code>22</code> automatically on switching to SSH, and returned to <code>443</code> on switching back to TLS.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The inline error "Target is required" was shown.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The inline error "Port must be between 1 and 65535" was shown.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - A new scan is created and the browser navigates automatically to a scan details page which shows the real-time CLI output.</li>
+</ul>
+<ol start="4">
+<li>Scan progress monitoring:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The scan's status and output updated on the page without a full page reload while running.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The second submission was accepted while the first was still running; both proceeded independently and the interface stayed responsive. The scan result fails.</li>
+</ul>
+<ol start="5">
+<li>Failure display:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The detail page displayed a specific error message describing the failure: <code>Error: testssl.sh exited with code 246 - target likely unreachable, refused the connection, or DNS resolution failed</code></li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The detail page displayed a specific error message describing the failure: <code>Error: CBOM generation failed. Please check the source or network availability</code></li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The detail page displayed a specific error message describing the failure: <code>Error: Path '/tmp/test' does not exist</code></li>
+</ul>
+<ol start="6">
+<li>Scan history:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The history table included scan type, target, application name, submission timestamp, duration and status.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - Every row, including the failed scan, linked to its scan detail page.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - Only the completed ("done") row linked directly to a Results page; the failed scan did not.</li>
+</ul>
+<ol start="7">
+<li>Results:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The Risk report tab was shown by default with a visual summary of findings at the top. The risk report was rendered as formatted HTML, not raw Markdown text.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - "Download report" produced a <code>.md</code> file matching the content shown in the tab.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The CBOM explorer showed distinct, structured components, one per algorithm found, not raw JSON. Each component showed variant name, primitive type, and a colour-coded risk classification badge.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The classification filter correctly isolated a single value and correctly reset to show all components.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - "Download CBOM" produced a <code>.json</code> file containing the full annotated CBOM.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The Raw output tab showed the VECTOR-Network scan's raw output as collapsible JSON.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - Checked that 7.1-7.6 are validated for VECTOR-Code scan results.</li>
+</ul>
+<ol start="8">
+<li>No step at any point displays a raw Python stack trace in the browser.</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - There were no raw Python stack trace in the browser.</li>
+</ul>
+<h3>Defect summary description</h3>
+<p>Defect-free test execution, i.e., defect category: <span style="color:green"><strong>0 = flawless</strong></span></p>
+<h3>Test execution evidence</h3>
+<p>See reported output.</p>
+<p><em>Parent links:</em> <a href="TCS.html#TCS-015">TCS-015 Validate a web-based interface for running scans and visualizing results</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test-date</td>
+<td>2026-07-02</td>
+</tr>
+<tr>
+<td>tester</td>
+<td>GDU</td>
+</tr>
+<tr>
+<td>defect-category</td>
+<td><span style="color:green"><strong>0 = flawless</strong></span></td>
+</tr>
+<tr>
+<td>passed-steps</td>
+<td>8</td>
+</tr>
+<tr>
+<td>failed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>not-executed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>release-version</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>verification-method</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TRP-016">16 Test report standalone container deployment <small><a href="TRP.html#TRP-016">TRP-016</a></small></h1>
+<h2>Relevant test environment and configuration details</h2>
+<ul>
+<li>Environment is GNU/Linux workstation and Docker engine is running</li>
+<li>Container is created as: <code>docker build -t vector -f Dockerfile .</code></li>
+<li>The results directory is created</li>
+</ul>
+<h2>Test execution results</h2>
+<ol>
+<li>The VECTOR-Code scan finishes successfully:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The <code>results/</code> folder on the host contains the following, confirming output was written via the mount:<ul>
+<li><code>cbom/</code>: containing the <code>crypto-combined-cbom.json</code> file</li>
+<li><code>databases/</code>: with folders <code>db-cpp</code> and <code>db-python</code></li>
+<li><code>results/</code>: containing two SARIF files, one for C++ and one for Python</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>The VECTOR-Network scan finishes successfully and the <code>results/</code> folder on the host contains the resulted CBOM file.</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The scan finished successfully and the CBOM is written in the <code>results/</code> folder:</li>
+</ul>
+<pre><code class="language-bash">ls results/ | grep tls
+github.com_tls_cbom.json
+github_com_tls_scan.json
+
+ls results/ | grep ssh
+github.com_ssh_cbom.json
+github_com_ssh_scan.json
+</code></pre>
+<ol start="3">
+<li>The VECTOR-Score successfully generated the risk report for VECTOR-Code and VECTOR-Network CBOM outputs:</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The reports are generated:</li>
+</ul>
+<pre><code class="language-bash">ls results/ | grep risk_report
+github.com_ssh_cbom_risk_report.md
+github.com_tls_cbom_risk_report.md
+
+ls results/cbom | grep risk_report
+crypto-combined-cbom_risk_report.md
+</code></pre>
+<p><em>Parent links:</em> <a href="TCS.html#TCS-016">TCS-016 Verify standalone container deployment</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test-date</td>
+<td>2026-07-08</td>
+</tr>
+<tr>
+<td>tester</td>
+<td>GDU</td>
+</tr>
+<tr>
+<td>defect-category</td>
+<td><span style="color:green"><strong>0 = flawless</strong></span></td>
+</tr>
+<tr>
+<td>passed-steps</td>
+<td>3</td>
+</tr>
+<tr>
+<td>failed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>not-executed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>release-version</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>verification-method</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TRP-017">17 Test report for the runner script VECTOR in CLI and GUI mode <small><a href="TRP.html#TRP-017">TRP-017</a></small></h1>
+<h2>Relevant test environment and configuration details</h2>
+<ul>
+<li>Environment is GNU/Linux workstation and Docker engine is running</li>
+<li>The script is executable</li>
+<li>The results directory is created</li>
+<li>The CRLF was eliminated</li>
+</ul>
+<h2>Test execution results</h2>
+<p><strong>Step 1</strong> — script help/dispatch:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — verified that <code>help</code>, <code>-h</code>, and<code>--help</code> all print usage and exit <code>0</code> without any Docker call</li>
+</ul>
+<p><strong>Step 2.1</strong> — build when no image exists:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — build was followed by the <code>vector</code> CLI help listing <code>code</code>, <code>network</code>, <code>score</code>, <code>gui</code></li>
+</ul>
+<p><strong>Step 2.2</strong> — re-run does not rebuild:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — printed only the <code>vector</code> CLI help listing <code>code</code>, <code>network</code>, <code>score</code>, <code>gui</code></li>
+</ul>
+<p><strong>Step 2.3</strong> — <code>build</code> always rebuilds:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the image was rebuilt</li>
+</ul>
+<p><strong>Step 2.4</strong> — build failure stops before any container starts:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the expected error message was shown</li>
+</ul>
+<p><strong>Step 3.1</strong> — the GUI opened in the browser:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the GUI was operational according to <code><a href="TCS.html#TCS-015">TCS-015</a></code>.</li>
+</ul>
+<p><img alt="VECTOR-Code GUI" src="assets/VECTOR-GUI-vector.sh.png" width="80%" /></p>
+<p><img alt="VECTOR-Code GUI" src="assets/VECTOR-GUI-vector.sh-scan-finished.png" width="80%" /></p>
+<p><img alt="VECTOR-Network GUI" src="assets/VECTOR-GUI-vector.sh-network-scan-finished.png" width="80%" /></p>
+<p><img alt="VECTOR History GUI" src="assets/VECTOR-GUI-vector.sh-history.png" width="50%" /></p>
+<p><strong>Step 3.2.1 / 3.2.2</strong> — mounted-directory scan (<code>pycryptodome</code> cloned to <code>/tmp</code>):</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the GUI with port 8080 opened and inserted path was accepted. The scan finished successfully.</li>
+</ul>
+<p><img alt="VECTOR-Code GUI" src="assets/VECTOR-GUI-vector.sh-8080.png" width="80%" /></p>
+<p><strong>Step 4.1</strong> — <code>code tests/data/mixed_repo</code> via CLI:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the scan finished successfully</li>
+</ul>
+<p><strong>Step 4.2</strong> — <code>network --target github.com</code> via CLI:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the scan finished successfully</li>
+</ul>
+<p><strong>Step 4.3</strong> — <code>score</code> producing a risk report via CLI:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the risk report was generated successfully</li>
+</ul>
+<p><strong>Step 4.4</strong> — <code>code</code> against a GitHub URL via CLI:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the scan finished successfully</li>
+</ul>
+<p><strong>Step 5.1 / 5.2 / 5.3</strong> — invalid source, output, and CBOM paths:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — the error messages were shown correctly</li>
+</ul>
+<p><strong>Step 6</strong> — no host-side Python/Poetry dependency:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> — confirmed by inspection, the script invokes <code>docker</code> and script only.</li>
+</ul>
+<h3>Defect summary description</h3>
+<p>Defect-free test execution, i.e., defect category: <span style="color:green"><strong>0 = flawless</strong></span></p>
+<h2>Guide</h2>
+<ul>
+<li>Defect category: <span style="color:green"><strong>0 = flawless</strong></span>; <span style="color:SeaGreen"><strong>1 = insignificant defect</strong></span>; <span style="color:orange"><strong>2 = minor defect</strong></span>; <span style="color:DarkOrange"><strong>3 = major defect</strong></span>; <span style="color:red"><strong>4 = critical defect</strong></span></li>
+<li>Verification method (VM): Test (T), Review of design (R), Inspection (I), Analysis (A)</li>
+</ul>
+<p><em>Parent links:</em> <a href="TCS.html#TCS-017">TCS-017 Verify the runner script VECTOR in CLI and GUI mode</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test-date</td>
+<td>2026-07-13</td>
+</tr>
+<tr>
+<td>tester</td>
+<td>GDU</td>
+</tr>
+<tr>
+<td>defect-category</td>
+<td><span style="color:green"><strong>0 = flawless</strong></span></td>
+</tr>
+<tr>
+<td>passed-steps</td>
+<td>6</td>
+</tr>
+<tr>
+<td>failed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>not-executed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>release-version</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>verification-method</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TRP-018">18 Test report for GitHub repository URL support for VECTOR-Code <small><a href="TRP.html#TRP-018">TRP-018</a></small></h1>
+<h2>Relevant test environment and configuration details</h2>
+<ul>
+<li>Environment: GNU/Linux workstation with Docker Engine, using <code>./vector.sh</code> (standalone container mode)</li>
+</ul>
+<h2>Test execution results</h2>
+<ol>
+<li>GitHub repository scan completes successfully and the clone is removed once databases are built</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: <code>./vector.sh cli code https://github.com/pycrypto/pycrypto --output ./results</code> completed with exit code <code>0</code>. <code>scan.log</code> contained the line <code>Removing cloned source (databases built)</code>, confirming the cloned repository is removed once the CodeQL databases are built.</li>
+</ul>
+<ol start="2">
+<li>Clone failure is handled explicitly</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: <code>./vector.sh cli code https://github.com/vector-tor-integration-test/non_existent_repository_that_should_not_exist --output ./results</code> exited with code <code>1</code> and printed the expected error message. <code>./results</code> contained no <code>databases</code>, <code>results</code>, or <code>cbom</code> subdirectories.</li>
+</ul>
+<ol start="3">
+<li>Non-GitHub URL is rejected before Docker is invoked</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: <code>./vector.sh cli code https://gitlab.com/owner/repo --output ./results</code> exited with code <code>1</code>, printing the expected error message, confirming the argument was validated as a local path rather than misrouted into a clone attempt.</li>
+</ul>
+<ol start="4">
+<li>GitHub URL scan via the Web GUI</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: <code>./vector.sh gui</code> started the web interface; submitting <code>https://github.com/pycrypto/pycrypto</code> as the Source on the VECTOR-Code New Scan form created a scan, navigated automatically to its scan detail page, and the Results page showed the generated CBOM once the scan finished successfully.</li>
+</ul>
+<h3>Defect summary description</h3>
+<p>Defect-free test execution, i.e., defect category: <span style="color:green"><strong>0 = flawless</strong></span></p>
+<h3>Test execution evidence</h3>
+<p>See reported output.</p>
+<p><em>Parent links:</em> <a href="TCS.html#TCS-018">TCS-018 Verify GitHub repository URL support for VECTOR-Code</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test-date</td>
+<td>2026-07-20</td>
+</tr>
+<tr>
+<td>tester</td>
+<td>GDU</td>
+</tr>
+<tr>
+<td>defect-category</td>
+<td><span style="color:green"><strong>0 = flawless</strong></span></td>
+</tr>
+<tr>
+<td>passed-steps</td>
+<td>4</td>
+</tr>
+<tr>
+<td>failed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>not-executed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>release-version</td>
+<td>0.4</td>
 </tr>
 <tr>
 <td>verification-method</td>

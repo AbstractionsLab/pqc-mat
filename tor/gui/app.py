@@ -2,8 +2,11 @@
 
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import uuid
@@ -46,6 +49,24 @@ def _append_output(scan_id: str, line: str) -> None:
     with _scans_lock:
         if scan_id in _scans:
             _scans[scan_id]["output_lines"].append(line)
+
+
+_ANSI_RE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+def _strip_ansi(text: str) -> str:
+    return _ANSI_RE.sub("", text)
+
+
+_FAILURE_LINE_RE = re.compile(r"^(Error|Warning|Unexpected error)\b", re.IGNORECASE)
+def _extract_failure_reason(output_lines: list[str], fallback: str) -> str:
+    for i in range(len(output_lines) - 1, -1, -1):
+        stripped = output_lines[i].strip()
+        if _FAILURE_LINE_RE.match(stripped):
+            if i + 1 < len(output_lines):
+                nxt = output_lines[i + 1].strip()
+                if nxt.startswith("Details:"):
+                    return f"{stripped} — {nxt}"
+            return stripped
+    return fallback
 
 
 def _new_scan_record(scan_type: str, target: str, app_name: str) -> dict:
@@ -363,13 +384,15 @@ def _run_code_scan(scan_id: str, source: str, app_name: str) -> None:
     _update_scan(scan_id, status=SCAN_STATUS_RUNNING)
     _append_output(scan_id, f"Starting VECTOR-Code scan: {source}")
 
+    scan_output_dir = tempfile.mkdtemp(prefix=f"vector-code-{scan_id[:8]}-")
+
     try:
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
 
         cmd = [
             sys.executable, "-m", "tor.vector_code.main",
-            source, "--name", app_name,
+            source, "--name", app_name, "--output", scan_output_dir,
         ]
 
         proc = subprocess.Popen(
@@ -383,13 +406,13 @@ def _run_code_scan(scan_id: str, source: str, app_name: str) -> None:
         )
 
         for line in proc.stdout:
-            _append_output(scan_id, line.rstrip("\n"))
+            _append_output(scan_id, _strip_ansi(line.rstrip("\n")))
         proc.wait()
         exit_code = proc.returncode
         _update_scan(scan_id, exit_code=exit_code)
 
         if exit_code == 0:
-            cbom_dir = VECTOR_ROOT / "tor" / "vector_code" / "output" / "cbom"
+            cbom_dir = Path(scan_output_dir) / "cbom"
             cbom_files = sorted(cbom_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True) if cbom_dir.exists() else []
             _update_scan(scan_id, cbom_files=[str(p) for p in cbom_files])
 
@@ -403,14 +426,21 @@ def _run_code_scan(scan_id: str, source: str, app_name: str) -> None:
             _update_scan(scan_id, status=SCAN_STATUS_DONE, finished_at=_now_iso())
             _append_output(scan_id, "Scan completed successfully")
         else:
+            scan_now = _get_scan(scan_id)
+            reason = _extract_failure_reason(
+                scan_now["output_lines"] if scan_now else [],
+                fallback=f"VECTOR-Code exited with code {exit_code}",
+            )
             _update_scan(scan_id, status=SCAN_STATUS_FAILED, finished_at=_now_iso(),
-                         error=f"VECTOR-Code exited with code {exit_code}")
+                         error=reason)
             _append_output(scan_id, f"Scan failed (exit code {exit_code})")
 
     except Exception as exc:
         _update_scan(scan_id, status=SCAN_STATUS_FAILED, finished_at=_now_iso(),
                      error=str(exc))
         _append_output(scan_id, f"Unexpected error: {exc}")
+    finally:
+        shutil.rmtree(scan_output_dir, ignore_errors=True)
 
 def _run_network_scan(scan_id: str, protocol: str, target: str, port: int) -> None:
     _update_scan(scan_id, status=SCAN_STATUS_RUNNING)
@@ -438,7 +468,7 @@ def _run_network_scan(scan_id: str, protocol: str, target: str, port: int) -> No
         )
 
         for line in proc.stdout:
-            _append_output(scan_id, line.rstrip("\n"))
+            _append_output(scan_id, _strip_ansi(line.rstrip("\n")))
 
         proc.wait()
         exit_code = proc.returncode
@@ -474,8 +504,13 @@ def _run_network_scan(scan_id: str, protocol: str, target: str, port: int) -> No
             _update_scan(scan_id, status=SCAN_STATUS_DONE, finished_at=_now_iso())
             _append_output(scan_id, "Scan completed successfully")
         else:
+            scan_now = _get_scan(scan_id)
+            reason = _extract_failure_reason(
+                scan_now["output_lines"] if scan_now else [],
+                fallback=f"VECTOR-Network exited with code {exit_code}",
+            )
             _update_scan(scan_id, status=SCAN_STATUS_FAILED, finished_at=_now_iso(),
-                         error=f"VECTOR-Network exited with code {exit_code}")
+                         error=reason)
             _append_output(scan_id, f"Scan failed (exit code {exit_code})")
 
     except Exception as exc:
@@ -680,6 +715,6 @@ def api_scan_stream(scan_id):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("VECTOR_PORT", 5000))
+    port = int(os.environ.get("VECTOR_PORT", 5992))
     print(f"VECTOR Web Interface running at http://localhost:{port}")
     app.run(host="0.0.0.0", port=port, debug=False, threaded=True)

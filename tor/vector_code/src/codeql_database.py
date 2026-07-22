@@ -19,7 +19,12 @@ def create_database(project_path, codeql_lang, database_dir, db_name):
         '--build-mode=none'
     ]
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        raise RuntimeError(
+            "CodeQL CLI not found. Please install it and make sure 'codeql' is in your PATH"
+        )
     
     if result.returncode == 0:
         return db_path

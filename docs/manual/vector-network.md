@@ -49,6 +49,7 @@ vector network --protocol ssh --target github.com --port 22
 | `--protocol` | Yes | `ssh`, `tls` | — |
 | `--target` | Yes | domain name or IP address | — |
 | `--port` | Yes | 1–65535 | — |
+| `--output` | No | Output path for the annotated CBOM | `output` |
 
 ### Interactive mode
 
@@ -66,7 +67,7 @@ Options 1 and 2 prompt for a target hostname or IP address. Option 3 prompts for
 
 ## Output files
 
-Output files are written to the current working directory (wherever `main.py` is invoked from, or the directory the `vector network` command is run from).
+Output files are written by default to `output` directory if `--output` flag is not specified.
 
 | Scan type | Raw scan output | CBOM output |
 |-----------|----------------|-------------|

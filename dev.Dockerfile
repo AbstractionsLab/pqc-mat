@@ -31,7 +31,7 @@ ENV GOPATH="/home/${user}/go"
 ENV PATH="${GOPATH}/bin:${PATH}"
 
 # Create non-root user
-RUN useradd -ms /bin/bash ${user} && echo '${user} ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
+RUN useradd -ms /bin/bash ${user} && echo "${user} ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
 
 # NOTE: CodeQL CLI is only available for x86_64; installation is skipped on other architectures.
 RUN if [ "$(uname -m)" = "x86_64" ]; then \
@@ -43,9 +43,6 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
     fi
 
 ENV PATH="/opt/codeql:${PATH}"
-
-RUN pip install npm
-
 USER ${user}
 
 # Install pipx and add to PATH
@@ -71,25 +68,28 @@ ENV TOOLS_DIR=/home/${user}/tools
 RUN mkdir -p ${TOOLS_DIR}
 
 RUN git clone --depth 1 https://github.com/testssl/testssl.sh.git --branch 3.3dev ${TOOLS_DIR}/testssl.sh \
+    && git -C ${TOOLS_DIR}/testssl.sh checkout 5296954a701dd00240bec32feadffaa7eacb2bba \
     && chmod +x ${TOOLS_DIR}/testssl.sh/testssl.sh
 
-RUN git clone https://github.com/zmap/zgrab2.git ${TOOLS_DIR}/zgrab2 \
+RUN git clone --depth 1 https://github.com/zmap/zgrab2.git --branch v1.0.0 ${TOOLS_DIR}/zgrab2 \
+    && git -C ${TOOLS_DIR}/zgrab2 checkout ea734bcf60ef2921684cb522dfb87a07a322afa6 \
     && cd ${TOOLS_DIR}/zgrab2 \
     && make
 
 ENV PATH="${TOOLS_DIR}/zgrab2/cmd/zgrab2:${PATH}"
 
-RUN git clone --depth 1 https://github.com/github/codeql.git ${TOOLS_DIR}/codeql-queries
+RUN git clone --depth 1 https://github.com/github/codeql.git ${TOOLS_DIR}/codeql-queries \
+    && git -C ${TOOLS_DIR}/codeql-queries checkout 5690ec71b0efb11fca5e5566b13e1d848b6d0381
 
 # Clone a test project for VECTOR-Code demo
 ENV TEST_PROJECT_DIR=/home/${user}/test-project
 RUN mkdir -p ${TEST_PROJECT_DIR}
-RUN git clone --depth 1 https://github.com/pyca/cryptography.git ${TEST_PROJECT_DIR}/cryptography
+RUN git clone --depth 1 https://github.com/pyca/cryptography.git --branch 49.0.0 ${TEST_PROJECT_DIR}/cryptography
 
 USER root
 RUN wget -O ${TOOLS_DIR}/cryptobom_forge-1.1.0-py3-none-any.whl https://github.com/Santandersecurityresearch/cryptobom-forge/releases/download/1.1.0/cryptobom_forge-1.1.0-py3-none-any.whl
 RUN pip install --break-system-packages --no-deps ${TOOLS_DIR}/cryptobom_forge-1.1.0-py3-none-any.whl
-RUN pip install --break-system-packages git+https://github.com/pre-quantum-research/cyclonedx-python-lib.git@cbom
+RUN pip install --break-system-packages git+https://github.com/pre-quantum-research/cyclonedx-python-lib.git@3efcbb9a22ed4235ebb126ad80836deb2a27d25f
 RUN pip install --break-system-packages jsonschema click pyyaml requests packageurl-python sortedcontainers
 USER ${user}
 # Install dependencies

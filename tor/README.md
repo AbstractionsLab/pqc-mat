@@ -35,90 +35,55 @@ The project runs inside a VS Code Dev Container, which automatically installs al
 3. Wait for the container to build 
 
 The container automatically installs all required dependencies and tools:
-- Python 3.11, Poetry, Go 1.24
+- Python 3.11, Poetry, Go 1.25
 - CodeQL CLI and CodeQL cryptographic queries
 - testssl.sh, ZGrab2, cloc
 - cryptobom-forge
 
 ## Usage
 
-All commands are run from inside the Dev Container.
+All commands are run from inside the Dev Container. For standalone container usage, see the [quick start guide](../docs/manual/start.md).
 
 ### VECTOR-Code
 
-Analyzes source code to detect programming languages and create CodeQL databases for cryptographic analysis.
+Analyzes source code to detect cryptographic API usage and produce a CBOM.
 
 ```bash
-vector code <path>
+# Local path
+vector code <path> [--name <app_name>] [--output <dir>]
+
+# GitHub repository URL (no local checkout needed)
+vector code https://github.com/<owner>/<repo> [--name <app_name>] [--output <dir>]
 ```
 
-**Arguments:**
-- `path` (required): path to the project to analyze
-- `--name` (optional): application name for CBOM metadata (default: `application`)
-
-The [pyca/cryptography](https://github.com/pyca/cryptography) library is included as a test project in the container.
-You can use it to quickly verify the pipeline with:
+Quick test with the bundled test project:
 
 ```bash
 vector code /home/vector/test-project/cryptography
 ```
 
-**Output:**
-
-Results are written to an `output/` directory containing three sub-folders: `databases/` with the generated CodeQL databases, `results/` with the SARIF files, and `cbom/` with the CBOM file.
-
-The CBOM file is the end result compiling all the cryptographic assets found during the scan in a CycloneDX formatted file.
-
-**Supported Languages:**
-- Python
-- C/C++
-
-> **NOTES:**
->
-> - Languages used in less than 5% of the codebase at the input path are ignored during detection and thus not scanned
-> - In C/C++ projects, the compiled object files (`<name>.o`) are needed for the scan to give results
+See [VECTOR-Code reference](../docs/manual/vector-code.md) for arguments, output structure, and language support.
 
 ### VECTOR-Network
 
-Scans network services to identify cryptographic configurations and generate Cryptographic Bills of Materials (CBOM).
+Scans SSH or TLS services to enumerate cryptographic configurations and produce a CBOM.
 
 ```bash
-vector network --protocol <ssh|tls> --target <host> --port <port>
+vector network --protocol tls --target example.com --port 443 --output results
+vector network --protocol ssh --target github.com --port 22 --output results
 ```
 
-#### TLS Analysis with testssl.sh
+See [VECTOR-Network reference](../docs/manual/vector-network.md) for output file naming and TLS/SSH field coverage.
+
+### VECTOR-Score
+
+Classifies each algorithm in a CycloneDX CBOM by quantum risk posture and produces a Markdown risk report.
 
 ```bash
-vector network --protocol tls --target example.com --port 443
+vector score <cbom.json> [--output <path>] [--report <path>] [--no-report]
 ```
 
-**Output files generated:**
-- `example_com_tls_scan.json`: Raw testssl.sh scan results
-- `example_com_tls_cbom.json`: Cryptographic Bill of Materials in CycloneDX format
-
-#### SSH Analysis with ZGrab2
-
-Scans SSH services for supported key exchange and host key algorithms:
-
-```bash
-vector network --protocol ssh --target github.com --port 22
-```
-
-**Output files generated:**
-- `github_com_ssh_scan.json`: Raw ZGrab2 scan results
-- `github_com_ssh_cbom.json`: Cryptographic Bill of Materials in CycloneDX format
-
-#### Custom Port Scanning
-
-Analyze SSH or TLS on non-standard ports:
-
-```bash
-vector network --protocol tls --target internal.example.com --port 8443
-```
-
-**Output files generated:**
-- `internal_example_com_tls_scan.json`: Raw scan results on custom port
-- `internal_example_com_tls_cbom.json`: Cryptographic Bill of Materials
+See [VECTOR-Score reference](../docs/manual/vector-score.md) for risk classifications and output format.
 
 ## Known Limitations
 
@@ -126,21 +91,22 @@ vector network --protocol tls --target internal.example.com --port 8443
 
 ## VECTOR-GUI: web interface
 
-VECTOR-GUI is a Flask-based browser interface for submitting scans, monitoring live terminal output, and reviewing results without the CLI.
-
-**Starting the server:**
+Browser-based interface for scan submission, live monitoring, and results browsing.
 
 ```bash
-VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5000 python3 tor/gui/app.py
+vector gui            # default port 5992
+vector gui --port 8080  # custom port
 ```
 
-Forward port `5000` in the VS Code **Ports** panel, then open `http://localhost:5000`.
+Forward the port in the VS Code **Ports** panel, then open `http://localhost:<port>`.
 
 The interface provides three result views for each completed scan: a **risk report** with a quantum risk distribution chart and per-classification summary, a **CBOM explorer** with filterable per-algorithm risk cards and migration guidance, and a **raw output** tab with the original scanner output. Past scans are accessible from the **scan history** page.
 
 <img src="../docs/manual/assets/VECTOR-GUI-NetScanRiskReport.png" alt="Risk report view showing a donut chart with quantum risk distribution and classification summary table" width="800"/>
 
 <img src="../docs/manual/assets/VECTOR-GUI-NetScan-CBOM-Explorer.png" alt="CBOM explorer showing per-algorithm quantum risk cards with migration guidance and standards references" width="800"/>
+
+See [VECTOR-GUI quick start](../docs/manual/start.md#web-interface) for usage details.
 
 ## Documentation
 

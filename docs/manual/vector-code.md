@@ -2,30 +2,32 @@
 
 VECTOR-Code performs static analysis of source code to detect cryptographic API usage and produce a Cryptographic Bill of Materials (CBOM).
 
-> **Web interface:** VECTOR-Code is also accessible through the browser-based GUI. See [Web interface](./start.md#web-interface) in the quick start guide.
+This document describes how a VECTOR-Code scan works.
 
 ## Pipeline overview
 
 ```
-Source code directory
+Local path or GitHub URL
         │
         ▼
   cloc (language detection)
-        │  identifies languages present above 5% threshold
+        │  identifies languages used in at least 5% of the codebase
         ▼
   codeql database create (per language)
-        │  one database per CodeQL language (python, cpp)
+        │  creates one database per CodeQL language (python, cpp)
         ▼
   codeql database analyze (per language)
         │  runs crypto inventory queries → SARIF output
         ▼
   cryptobom generate
-        │  converts SARIF → unified CycloneDX 1.6 CBOM JSON
+        │  merges SARIF files into a unified CycloneDX 1.6 CBOM JSON
         ▼
-  output/cbom/<app_name>-cbom.json
+  <output_dir>/cbom/<app_name>-cbom.json
 ```
 
-## Invocation
+## Starting point
+
+VECTOR-Code can be launched either from the VECTOR CLI or through the [browser-based GUI](./start.md#web-interface). From the CLI:
 
 ```bash
 vector code <path> [--name <app_name>]
@@ -35,8 +37,9 @@ vector code <path> [--name <app_name>]
 
 | Argument | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `path` | Yes | — | Absolute or relative path to the source code directory to analyze |
-| `--name` | No | `application` | Application name written into the `metadata` section of every generated CBOM |
+| `path` | Yes | — | Absolute or relative path to the source code directory, or a GitHub repository URL (`https://github.com/<owner>/<repo>` to analyze |
+| `--name` | No | `application` or `<owner>/<repo>` | Name for the analyzed project to be written into the generated CBOM. Defaults to `application` for local paths and to `<owner>/<repo>` (extracted from the URL) when a GitHub URL is supplied |
+| `--output` | No | `output` | Output path for the annotated CBOM (<output_dir>) |
 
 ### Exit codes
 
@@ -78,6 +81,25 @@ The code on host machine can be scanned without copying it into the container. T
 vector code /mnt/host-home/path/to/your/project --name my-app
 ```
 
+### Analyzing a GitHub repository
+
+A GitHub repository URL can be supplied in place of a local path:
+
+```bash
+vector code https://github.com/pyca/cryptography --name pyca-cryptography
+```
+
+Supported URL forms:
+
+| Form | Example |
+|------|---------|
+| Repository root | `https://github.com/<owner>/<repo>` |
+| Specific branch | `https://github.com/<owner>/<repo>/tree/<branch>` |
+
+The repository is cloned with `git clone --depth=1 --single-branch` into a temporary directory inside the container; the clone is removed once the CodeQL databases have been created (the databases themselves are retained in `<output_dir>/databases/`). 
+
+If `--name` is omitted, the default name assigned to the analyzed project is `<owner>/<repo>`, extracted from the URL.
+
 ## Language detection
 
 VECTOR-Code calls `cloc --json <path>` to count lines of code per language. Languages are included for analysis only if they make up at least **5%** of the total source lines.
@@ -93,7 +115,7 @@ VECTOR-Code calls `cloc --json <path>` to count lines of code per language. Lang
 
 If a project contains both C and C++, a single `cpp` database is created and a single per-language CBOM is generated for both.
 
-If no supported language meets the 5% threshold, the tool exits with code `1` and prints an error message.
+If a non-supported language meets the 5% threshold, the tool exits with code `1` and prints an error message.
 
 ## Multi-language output
 
@@ -102,7 +124,7 @@ When multiple supported languages are detected in a single project:
 - One SARIF file is generated per language
 - A single **unified CBOM** is generated from the SARIF path
 
-The unified CBOM is the final output artifact and is named `crypto-combined-cbom.json`. Individual per-language SARIF files are retained as intermediate artifacts in `output/results/` for traceability.
+The unified CBOM is the final output artifact and is named `crypto-combined-cbom.json`. Individual per-language SARIF files are retained as intermediate artifacts in `<output_dir>/results/` for traceability.
 
 
 ## CodeQL database creation
@@ -110,7 +132,7 @@ The unified CBOM is the final output artifact and is named `crypto-combined-cbom
 One CodeQL database is created per unique CodeQL language. The database is stored in:
 
 ```
-output/databases/db-<codeql-language>/
+<output_dir>/databases/db-<codeql-language>/
 ```
 
 For example, a Python project produces `output/databases/db-python/`.
@@ -143,7 +165,7 @@ The Santandersecurityresearch queries identify calls to cryptographic APIs — f
 SARIF output is written to:
 
 ```
-output/results/crypto-<language>.sarif
+<output_dir>/results/crypto-<language>.sarif
 ```
 
 ## CBOM generation
@@ -159,17 +181,17 @@ cryptobom generate <sarif_path> \
 Output is written to:
 
 ```
-output/cbom/crypto-<language>-cbom.json
+<output_dir>/cbom/crypto-<language>-cbom.json
 ```
 
 `cryptobom-forge` must be installed manually before running VECTOR-Code. See [Installation](./installation.md#installing-cryptobom-forge-required--manual-step).
 
 ## Output files
 
-All output is relative to the `tor/vector_code/` directory.
+The output files are by default in the `output` folder relative to the `tor/vector_code/` directory. If `--output` flag is specified the files will be written into the folder specified.
 
 ```
-output/
+<output_dir>/
 ├── databases/
 │   └── db-python/          CodeQL database (queryable representation of source)
 ├── results/
@@ -190,3 +212,4 @@ Re-running VECTOR-Code overwrites all existing output files.
 | Hardcoded query paths | Queries must exist at the exact container paths listed above; no CLI override |
 | No incremental analysis | Every run recreates databases and re-runs all queries from scratch |
 | Single CBOM per run | All findings across all detected languages are merged into one CBOM |
+| Private repositories not supported | Cloning a GitHub repository that requires authentication fails with an explicit error rather than prompting for credentials |

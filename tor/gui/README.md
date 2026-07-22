@@ -6,24 +6,18 @@
 
 Open the project in VS Code and when prompted click **Reopen in Container**, or run **Dev Containers: Reopen in Container** from the Command Palette (`Ctrl+Shift+P`).
 
-### Install Flask
-
-```bash
-pip install flask --break-system-packages
-```
-
 ### Start the server
 
 ```bash
-VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5000 python3 tor/gui/app.py
+VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5992 python3 tor/gui/app.py
 ```
 
 ### Open in browser
 
-Forward port `5000` in the VS Code **Ports** panel if not already forwarded, then open:
+Forward port `5992` in the VS Code **Ports** panel if not already forwarded, then open:
 
 ```
-http://localhost:5000
+http://localhost:5992
 ```
 
 ## Usage notes

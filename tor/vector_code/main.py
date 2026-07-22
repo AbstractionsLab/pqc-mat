@@ -17,16 +17,24 @@ RESULTS_DIR = os.path.join(OUTPUT_DIR, "results")
 CBOM_DIR = os.path.join(OUTPUT_DIR, "cbom")
 
 
-def setup_directories():
-    # each run of 'vector code' deletes the output of a previous run
-    if os.path.exists(OUTPUT_DIR):
-        shutil.rmtree(OUTPUT_DIR)
-    os.makedirs(DATABASE_DIR, exist_ok=True)
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-    os.makedirs(CBOM_DIR, exist_ok=True)
+def setup_directories(output_dir=None):
+    global OUTPUT_DIR, DATABASE_DIR, RESULTS_DIR, CBOM_DIR
+
+    if output_dir is not None:
+        OUTPUT_DIR = os.path.abspath(output_dir)
+        DATABASE_DIR = os.path.join(OUTPUT_DIR, "databases")
+        RESULTS_DIR = os.path.join(OUTPUT_DIR, "results")
+        CBOM_DIR = os.path.join(OUTPUT_DIR, "cbom")
+
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    for managed_dir in (DATABASE_DIR, RESULTS_DIR, CBOM_DIR):
+        if os.path.exists(managed_dir):
+            shutil.rmtree(managed_dir)
+        os.makedirs(managed_dir, exist_ok=True)
 
 
-def run(source: str, app_name: str = "application") -> int:
+def run(source: str, app_name: str = "application", output_dir: str = None) -> int:
     if not source:
         print("Error: Project path or Github URL cannot be empty")
         return 1
@@ -71,7 +79,7 @@ def run(source: str, app_name: str = "application") -> int:
                 print(f"Error: No read permission for '{project_path}'")
                 return 1
 
-        setup_directories()
+        setup_directories(output_dir)
 
         print("Language detection")
         languages = detect_languages(project_path)
@@ -140,14 +148,18 @@ def main():
         Examples:
             vector code /path/to/project
             vector code /path/to/project --name my-app
+            vector code /path/to/project --output /path/to/output
             vector code https://github.com/owner/repo
             vector code https://github.com/owner/repo --name my-app
             vector code https://github.com/owner/repo/tree/main
     """.strip())
     parser.add_argument("path", help="Local directory path or GitHub URL to analyze")
     parser.add_argument("--name", default="application", help="Application name for CBOM")
+    parser.add_argument("--output", default=None,
+                         help="Output directory for databases/results/cbom (default: <package_dir>/output; must be unique "
+                              "per concurrent invocation")
     args = parser.parse_args()
-    sys.exit(run(args.path, args.name))
+    sys.exit(run(args.path, args.name, args.output))
 
 
 if __name__ == "__main__":

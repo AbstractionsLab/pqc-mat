@@ -19,9 +19,9 @@ For a visual stakeholder-oriented tour of VECTOR, visit the **[product presentat
 - [PQC-MAT suite](#pqc-mat-suite)
 - [Quick start](#quick-start)
 - [Documentation](#documentation)
-- [Development](#development)
 - [Requirements](#requirements)
 - [Roadmap](#roadmap)
+- [Contributing / development](#contributing--development)
 - [License](#license)
 - [Acknowledgment](#acknowledgment)
 - [Contact](#contact)
@@ -43,10 +43,6 @@ PQC-MAT consists of two main modules:
 
 VECTOR-Network's custom parsers are the primary novel contribution: testssl.sh and ZGrab2 do not natively produce CBOM output. TOR bridges this gap, including full cipher suite decomposition into individual algorithm components and detection of hybrid post-quantum KEMs. VECTOR-Code automates an existing CodeQL + cryptobom-forge pipeline, which in some cases provides more comprehensive CBOMs compared to [CBOMkit](https://github.com/cbomkit/cbomkit), an established alternative for the same task. The combined value is a single, containerized workflow that produces standardized CycloneDX CBOMs across both code and network surfaces for PQC readiness audits.
 
-<img src="docs/manual/assets/VECTOR-GUI-CodeScan.png" alt="VECTOR code scan" width="800"/>
-
-<img src="docs/manual/assets/VECTOR-GUI-NetScan.png" alt="VECTOR network scan" width="800"/>
-
 ### VEC — Verified Cryptography
 
 [**VEC**](/vec/README.md) was developed during an internship by a mathematics MSc student. It currently provides an introductory tutorial on using [F*](https://www.fstar-lang.org/) (a proof-oriented programming language) to produce mathematically verified implementations of cryptographic functions. It demonstrates how to encode algorithm specifications with pre- and post-conditions, prove termination and correctness with SMT solver assistance, and automatically extract verified executable OCaml code.
@@ -64,16 +60,25 @@ The included worked example covers the **Extended Euclidean Algorithm (EEA)** �
 
 ### Setup
 
-PQC-MAT runs inside a Docker Dev Container that pre-installs all required tools. No manual dependency management is needed.
+VECTOR can be run in two ways — pick the one that fits your workflow:
 
-**Prerequisites:** Docker, VS Code with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension.
+| | Dev Container | Standalone container |
+|---|---|---|
+| **Requires** | VS Code + Dev Containers extension | Docker only |
+| **Best for** | Interactive development, exploring output | One-off scans, CI/CD pipelines |
+
+**Dev Container (VS Code):** Open the project folder in VS Code, then: Command Palette → `Dev Containers: Reopen in Container`. All tools are installed automatically.
+
+**Standalone container (no VS Code needed):** Use the `vector.sh` runner script at the repository root:
 
 ```bash
-# Open the project in VS Code, then:
-# Command Palette → "Dev Containers: Reopen in Container"
+chmod +x vector.sh   # first time only
+./vector.sh          # start VECTOR GUI (builds image automatically if needed)
+./vector.sh cli      # show the vector CLI help
+./vector.sh build    # force a rebuild after a code change
 ```
 
-The container automatically installs Python 3.11, Poetry, Go 1.25, CodeQL CLI, testssl.sh v3.3dev, ZGrab2, cloc, and cryptobom-forge. A test project ([pyca/cryptography](https://github.com/pyca/cryptography)) is pre-cloned at `/home/vector/test-project/cryptography`.
+See the [quick start guide](./docs/manual/start.md) for full standalone usage including scan commands and manual `docker run` equivalents.
 
 > **Note:** CodeQL CLI requires an x86_64 host. VECTOR-Code will not run on ARM-based machines.
 
@@ -83,69 +88,56 @@ The container automatically installs Python 3.11, Poetry, Go 1.25, CodeQL CLI, t
 # Analyse the bundled test project
 vector code /home/vector/test-project/cryptography
 
-# Analyse your own project, with a custom CBOM application name
-vector code /path/to/your/project --name my-application
+# Your own project
+vector code /path/to/your/project --name my-app --output results
 
-# Analyse code from your host machine (via /mnt/host-home mount)
-vector code /mnt/host-home/path/to/your/project --name my-app
+# GitHub repository URL (no local checkout needed)
+vector code https://github.com/pyca/cryptography --name pyca-cryptography --output results
 ```
 
-**Output structure:**
-
-```
-tor/vector_code/output/
-├── databases/    # CodeQL databases per detected language
-├── results/      # SARIF findings
-└── cbom/         # CycloneDX CBOM JSON files
-```
+Output is written to `results/cbom/` (or the directory given by `--output`). See [VECTOR-Code reference](./docs/manual/vector-code.md) for output structure and supported languages.
 
 ### VECTOR-Network: network scanning
 
 ```bash
-# CLI mode
-vector network --protocol tls --target example.com --port 443
-vector network --protocol ssh --target 192.168.1.1 --port 22
+vector network --protocol tls --target example.com --port 443 --output results
+vector network --protocol ssh --target 192.168.1.1 --port 22 --output results
 ```
 
-Each scan produces a raw scanner output file and a CycloneDX CBOM:
-
-```
-{target}_tls_scan.json  /  {target}_ssh_scan.json
-{target}_tls_cbom.json  /  {target}_ssh_cbom.json
-```
+Each scan writes a raw scanner output file and a CycloneDX CBOM to `--output`. See [VECTOR-Network reference](./docs/manual/vector-network.md).
 
 ### VECTOR-Score: quantum risk scoring
 
 ```bash
-# Score a CBOM produced by VECTOR-Code or VECTOR-Network
 vector score /path/to/cbom.json
-
-# Specify output paths explicitly
 vector score cbom.json --output cbom_scored.json --report risk_report.md
 ```
 
-Outputs:
-
-```
-<stem>_scored.json      # annotated CBOM with pqcmat: risk properties on each algorithm
-<stem>_risk_report.md   # Markdown summary grouped by risk classification
-```
+Produces an annotated CBOM (`<stem>_scored.json`) and a Markdown risk report (`<stem>_risk_report.md`). See [VECTOR-Score reference](./docs/manual/vector-score.md).
 
 ### VECTOR-GUI: web interface
 
-VECTOR also provides a browser-based web interface built with Flask. See the [GUI quick start](./tor/gui/README.md) for setup and initialization steps. Run the GUI from inside the Dev Container as follows:
+VECTOR provides a browser-based interface for scan submission, live monitoring, and results browsing.
 
+**Dev Container:**
 ```bash
-VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5000 python3 tor/gui/app.py
+vector gui             # default port 5992
+vector gui --port 8080  # custom port
 ```
 
-Forward port `5000` in the VS Code **Ports** panel, then open `http://localhost:5000`. The interface covers the full VECTOR workflow: VECTOR-Code and VECTOR-Network scan submission, live terminal output streaming, and a results browser with a **risk report**, **CBOM explorer**, and **raw output** tab.
+**Standalone container:**
+```bash
+./vector.sh gui
+./vector.sh gui --port 8080 --source-dir ~/projects
+```
+
+Forward the port in the VS Code **Ports** panel (Dev Container), then open `http://localhost:<port>`. The interface covers the full VECTOR workflow: scan submission, live terminal output streaming, and a results browser with a **risk report**, **CBOM explorer**, and **raw output** tab.
 
 <img src="docs/manual/assets/VECTOR-GUI-NetScanRiskReport.png" alt="Risk report view showing a donut chart with quantum risk distribution and a classification summary table" width="800"/>
 
 <img src="docs/manual/assets/VECTOR-GUI-NetScan-CBOM-Explorer.png" alt="CBOM explorer showing per-algorithm quantum risk cards with migration guidance and standards references" width="800"/>
 
-> **Disclaimer:** The GUI is still a work in progress. While functional, input validation and sanitization have not yet been fully implemented, and the backend code will still be subject to significant refactoring.
+> **Disclaimer:** The GUI is still a work in progress. Input validation and sanitization have not yet been fully implemented.
 
 ### VEC: verified cryptography
 
@@ -156,19 +148,6 @@ See this component's dedicated [README](/vec/README.md) and its [compilation gui
 - **User manual:** [`docs/manual/`](/docs/manual/) — installation, quick start, feature matrix, and system concept
 - **Technical specifications:** [`docs/specs/`](/docs/specs/) — interlinked requirements (MRS, SRS, ARC, SWD, TCS, TRP) following the [C5-DEC](https://abstractionslab.github.io/c5dec/website/product-presentation.html) methodology
 - **Traceability:** [published traceability page](https://abstractionslab.github.io/pqc-mat/traceability/index.html) — coverage analysis and interlinked HTML spec browser
-
-## Development
-
-```bash
-# Install Python dependencies (from project root)
-poetry install
-
-# Run Doorstop structure validation
-poetry run doorstop
-
-# Publish specs and refresh traceability (when specs changed)
-cd docs/specs && ./publish.sh
-```
 
 ## Requirements
 
@@ -189,6 +168,19 @@ All VECTOR-Code and VECTOR-Network dependencies are automatically provisioned by
 - Extended programming language support in VECTOR-Code
 - Automated CBOM aggregation across code and network surfaces
 - CBOM diff / migration progress tracker (baseline vs. current scan)
+
+## Contributing / development
+
+```bash
+# Install Python dependencies (from project root)
+poetry install
+
+# Run Doorstop structure validation
+poetry run doorstop
+
+# Publish specs and refresh traceability (when specs changed)
+cd docs/specs && ./publish.sh
+```
 
 ## License
 

@@ -40,6 +40,7 @@
 <li><a href="#SRS-016">1.16 Accept a GitHub repository URL as a source analysis target</a></li>
 <li><a href="#SRS-017">1.17 Provide a web-based interface for running scans and visualizing results</a></li>
 <li><a href="#SRS-018">1.18 Support standalone container deployment</a></li>
+<li><a href="#SRS-019">1.19 Provide a runner script to build and run VECTOR in CLI or GUI mode</a></li>
 </ul>
 </li>
 </ul>
@@ -701,6 +702,7 @@
 <li>Private repositories that require authentication are out of scope for this requirement; an attempt to clone such a repository results in an explicit authentication-failure error rather than silent failure.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-004">MRS-004 Support source-code analysis for current target languages</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-018">TCS-018 Verify GitHub repository URL support for VECTOR-Code</a></p>
 <table>
 <thead>
 <tr>
@@ -742,7 +744,7 @@
 <li>The interface does not require user authentication for the initial release; single-user local deployment is assumed.</li>
 </ul>
 <h3>Navigation structure</h3>
-<p>The interface is organized into four top-level sections reachable from a persistent navigation bar:</p>
+<p>The interface exposes two persistent top-level sections reachable from a navigation sidebar:</p>
 <table>
 <thead>
 <tr>
@@ -758,10 +760,6 @@
 <tr>
 <td><strong>Scan history</strong></td>
 <td>List of all past and in-progress scans with status</td>
-</tr>
-<tr>
-<td><strong>Results</strong></td>
-<td>Risk report and CBOM viewer for a selected scan</td>
 </tr>
 </tbody>
 </table>
@@ -846,7 +844,7 @@
 <h4>Risk report tab</h4>
 <ul>
 <li>The Markdown risk report produced by VECTOR-Score is rendered as HTML.</li>
-<li>The summary classification table (counts by risk level) is shown at the top with colour-coded risk badges: red for <code>HIGH</code>, orange for <code>MEDIUM</code>, blue for <code>LOW</code>, green for <code>NONE</code>.</li>
+<li>A visual summary of findings (chart with legend, grouped by classification value) is shown at the top of the tab.</li>
 <li>Each per-classification section is collapsible; sections for <code>quantum-vulnerable</code> and <code>classically-deprecated</code> are expanded by default.</li>
 <li>For VECTOR-Code results, each finding row that contains source location data (<code>detectionContext</code>) shows the file path and line number as a non-interactive inline code label.</li>
 <li>The report is downloadable as a <code>.md</code> file via a <strong>Download report</strong> button.</li>
@@ -869,6 +867,7 @@
 <li>The interface remains responsive during long-running scans; submitting a new scan while one is in progress is permitted.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-012">MRS-012 Provide a browser-accessible interface</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-015">TCS-015 Validate a web-based interface for running scans and visualizing results</a></p>
 <table>
 <thead>
 <tr>
@@ -911,6 +910,54 @@
 <li>Output artifacts are written to a mountable output directory so that results are accessible on the host after the container exits.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-007">MRS-007 Run in a reproducible Linux-based environment</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-016">TCS-016 Verify standalone container deployment</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>release</td>
+<td>Alpha</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Functional (F)</td>
+</tr>
+<tr>
+<td>importance</td>
+<td>3</td>
+</tr>
+<tr>
+<td>urgency</td>
+<td>2</td>
+</tr>
+<tr>
+<td>vm</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SRS-019">1.19 Provide a runner script to build and run VECTOR in CLI or GUI mode <small><a href="SRS.html#SRS-019">SRS-019</a></small></h2>
+<p>VECTOR SHALL provide a single runner script, at the repository root, that builds the standalone container image and starts it in CLI mode or GUI mode as selected by the operator, without requiring the operator to compose <code>docker build</code>/<code>docker run</code> commands directly.</p>
+<h2>Rationale</h2>
+<p>A single runner script that builds the image and lets the operator choose CLI or GUI mode gives VECTOR the ease of use outside the Dev Container.</p>
+<h2>Acceptance criteria</h2>
+<ul>
+<li>A build script at the repository root builds the standalone container image; a separate run script starts a container from it. Rebuilding the image does not require also starting a container.</li>
+<li>The operator can explicitly choose CLI mode or GUI mode when using the run script; GUI mode is the default when no mode is given.</li>
+<li>In GUI mode, the script starts VECTOR GUI and reports the local address to open in a browser.</li>
+<li>In CLI mode, <code>vector code</code>, <code>vector network</code>, and <code>vector score</code> commands are forwarded to the container as given.</li>
+<li>The <code>vector</code> CLI provides a way to start the GUI directly. For example, a <code>vector gui</code> command or a <code>-g</code> option, so the run script can reach the GUI the same way it reaches the CLI, without needing to override the container's entry point.</li>
+<li>Before starting a container, the script confirms the required image has already been built.</li>
+<li>When a <code>vector</code> command is given a source or output folder as an argument, the run script confirms it exists on the host before mounting it; if it does not, the run script stops with a clear, actionable message and does not start a container.</li>
+<li>The script requires only Docker and a POSIX shell on the host.</li>
+</ul>
+<p><em>Parent links:</em> <a href="MRS.html#MRS-007">MRS-007 Run in a reproducible Linux-based environment</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-017">TCS-017 Verify the runner script VECTOR in CLI and GUI mode</a></p>
 <table>
 <thead>
 <tr>

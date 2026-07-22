@@ -5,10 +5,13 @@ Usage:
     vector code <path> [--name <app>]
     vector network --protocol <ssh|tls> --target <host> --port <port>
     vector score <cbom.json> [--output <path>] [--report <path>] [--no-report]
+    vector gui [--port <port>]
 """
 
 import argparse
+import os
 import sys
+from pathlib import Path
 
 
 def main() -> None:
@@ -29,6 +32,12 @@ def main() -> None:
         default="application",
         metavar="NAME",
         help="Application name embedded in the CBOM (default: application)",
+    )
+    code.add_argument(
+        "--output",
+        dest="output_dir",
+        default="output",
+        help="Directory to write scan output to (default: output/ directory)"
     )
 
     # --- vector network ---
@@ -52,6 +61,12 @@ def main() -> None:
         type=int,
         required=True,
         help="Port number (1-65535)",
+    )
+    net.add_argument(
+        "--output",
+        dest="output_dir",
+        default="output",
+        help="Directory to write scan output to (default: output/ directory)"
     )
 
     # --- vector score ---
@@ -82,16 +97,40 @@ def main() -> None:
         help="Suppress Markdown report generation",
     )
 
+    # --- vector gui ---
+    gui = subparsers.add_parser(
+        "gui",
+        help="Start the VECTOR GUI web interface",
+    )
+    gui.add_argument(
+        "--port",
+        type=int,
+        default=int(os.environ.get("VECTOR_PORT", 5992)),
+        metavar="PORT",
+        help="Port to serve the web interface on (default: 5992, or $VECTOR_PORT)",
+    )
+
     args = parser.parse_args()
 
     if args.command == "code":
         from vector_code.main import run as run_code
-        sys.exit(run_code(args.path, args.name))
+        sys.exit(run_code(source=args.path, app_name=args.name, output_dir=args.output_dir))
 
     elif args.command == "network":
         from vector_network.main import run as run_network
-        sys.exit(run_network(args.protocol, args.port, args.target))
+        sys.exit(run_network(protocol=args.protocol, port=args.port, target=args.target, output_dir=args.output_dir))
 
     elif args.command == "score":
         from vector_score.main import run as run_score
         sys.exit(run_score(args.cbom, args.output, args.report, args.no_report))
+
+    elif args.command == "gui":
+        repo_root = Path(__file__).resolve().parent.parent
+        app_path = repo_root / "tor" / "gui" / "app.py"
+        if not app_path.exists():
+            print(f"Error: could not find VECTOR GUI at {app_path}", file=sys.stderr)
+            sys.exit(1)
+        env = os.environ.copy()
+        env["VECTOR_PORT"] = str(args.port)
+        env["VECTOR_ROOT"] = str(repo_root)
+        os.execve(sys.executable, [sys.executable, str(app_path)], env)

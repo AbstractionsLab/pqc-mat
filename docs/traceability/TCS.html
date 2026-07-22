@@ -35,6 +35,10 @@
 <li><a href="#TCS-012">12 Verify that annotated CBOM contains 'pqcmat' risk properties</a></li>
 <li><a href="#TCS-013">13 Verify creation of unified CBOM</a></li>
 <li><a href="#TCS-014">14 Verify Markdown risk report structure and source locations</a></li>
+<li><a href="#TCS-015">15 Validate a web-based interface for running scans and visualizing results</a></li>
+<li><a href="#TCS-016">16 Verify standalone container deployment</a></li>
+<li><a href="#TCS-017">17 Verify the runner script VECTOR in CLI and GUI mode</a></li>
+<li><a href="#TCS-018">18 Verify GitHub repository URL support for VECTOR-Code</a></li>
 </ul>
           </nav>
       </div>
@@ -985,6 +989,558 @@ cd</li>
 <tr>
 <td>version</td>
 <td>0.3</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TCS-015">15 Validate a web-based interface for running scans and visualizing results <small><a href="TCS.html#TCS-015">TCS-015</a></small></h1>
+<h2>Preconditions:</h2>
+<ol>
+<li>Docker engine running</li>
+<li>VS Code with the "Dev Containers" extension.</li>
+</ol>
+<h2>Setup:</h2>
+<ol>
+<li>Open the project with Dev Containers.</li>
+<li>Activate the virtual environment:</li>
+</ol>
+<pre><code class="language-bash">poetry shell
+</code></pre>
+<ol start="3">
+<li>Start the server:</li>
+</ol>
+<pre><code class="language-bash">VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5992 python3 tor/gui/app.py
+</code></pre>
+<h2>Test steps</h2>
+<ol>
+<li>
+<p>Observe the persistent navigation sidebar.</p>
+</li>
+<li>
+<p>Validate VECTOR-Code scan submission. On "New scan", with the VECTOR-Code panel selected (default):</p>
+<p>2.1. Click "Start scan" with Source empty.</p>
+<p>2.2. Insert the test source code project path (<code>/home/vector/vector-project/tests/data/mixed_repo</code>) as Source, leave Application name empty, click "Start scan".</p>
+<p>2.3. Enter <code>https://github.com/pyca/cryptography</code> as Source, Application name <code>crypto-app</code>, click "Start scan".</p>
+</li>
+<li>
+<p>Validate VECTOR-Network scan submission. Switch to the VECTOR-Network panel:</p>
+<p>3.1. Observe the default Protocol and Port values.</p>
+<p>3.2. Switch Protocol to SSH, then switch back to TLS.</p>
+<p>3.3. Click "Start scan" with Target empty.</p>
+<p>3.4. Enter a Target, set Port to <code>0</code>, click "Start scan".</p>
+<p>3.5. Enter Target <code>github.com</code>, Port <code>443</code>, Protocol TLS, click "Start scan".</p>
+</li>
+<li>
+<p>Validate scan progress monitoring:</p>
+<p>4.1. Observe the detail page of the scan from step 3 while it is running.</p>
+<p>4.2. While the scan above is running, submit a new VECTOR-Network scan against Target <code>10.255.255.1</code>, Port <code>443</code>, Protocol TLS (this target is expected to fail).</p>
+</li>
+<li>
+<p>Validate failure display. Using the unreachable-target scan from step 4:</p>
+<p>5.1. Wait for the scan to reach a finished state and examine the detail page.</p>
+<p>5.2. For SSH protocol, insert <code>githb.com</code> as Source, click "Start scan".</p>
+<p>5.3. In VECTOR-Code, insert <code>/tmp/test</code> as Source, click "Start scan".</p>
+</li>
+<li>
+<p>Validate scan history:</p>
+<p>6.1. Open "Scan history".</p>
+</li>
+<li>
+<p>Validate results:</p>
+<p>7.1. Open Results for the completed VECTOR-Network scan from step 3, on the Risk report tab.</p>
+<p>7.2. Click "Download report".</p>
+<p>7.3. Switch to the "CBOM explorer" tab.</p>
+<p>7.4. Use the classification filter to isolate a single value (e.g. "Quantum vulnerable"). Reset the filter to "All".</p>
+<p>7.5. Click "Download CBOM".</p>
+<p>7.6. Switch to the "Raw output" tab for the VECTOR-Network scan from step 3.</p>
+<p>7.7. Open the same tab for the completed VECTOR-Code scan from step 2.</p>
+</li>
+<li>
+<p>Review steps 2-7 for any unexpected server errors.</p>
+</li>
+</ol>
+<h2>Expected outcomes</h2>
+<ol>
+<li>
+<p>The navigation sidebar shows exactly two items: New scan, Scan history.</p>
+</li>
+<li>
+<p>VECTOR-Code scan submission:</p>
+<p>2.1. The inline error "Source path or GitHub URL is required." is shown and no scan is created.</p>
+<p>2.2. The scan with the path is created and the browser navigates to its scan detail page automatically.</p>
+<p>2.3. The scan with the Github project is created and the browser navigates to its scan detail page automatically. The application name <code>crypto-app</code> is shown in the scan detail page (scan monitoring page) as entered.</p>
+</li>
+<li>
+<p>VECTOR-Network scan submission:</p>
+<p>3.1. Protocol defaults to TLS and Port defaults to <code>443</code>.</p>
+<p>3.2. Port updates to <code>22</code> automatically when SSH is selected, and returns to <code>443</code> when switching back to TLS.</p>
+<p>3.3. The inline error "Target is required" is shown.</p>
+<p>3.4. The inline error "Port must be between 1 and 65535" is shown.</p>
+<p>3.5. A new scan is created and the browser navigates automatically to a scan details page which shows the real-time CLI output.</p>
+</li>
+<li>
+<p>Scan progress monitoring:</p>
+<p>4.1. The scan's status and output update on the page without a full page reload while the scan is running.</p>
+<p>4.2. The new submission is accepted and both scans proceed independently, and the interface stays responsive throughout. This target is expected to fail, see step 5.</p>
+</li>
+<li>
+<p>Failure display:</p>
+<p>5.1. The detail page displays a specific error message describing the failure: <code>Error: testssl.sh exited with code 246 - target likely unreachable, refused the connection, or DNS resolution failed</code></p>
+<p>5.2. The detail page displays a specific error message describing the failure: <code>Error: CBOM generation failed. Please check the endpoint target information is correct and the network is available</code></p>
+<p>5.3. The detail page displays a specific error message describing the failure: <code>Error: Path '/tmp/test' does not exist</code></p>
+</li>
+<li>
+<p>Scan history:</p>
+<p>6.1.1. The table includes: scan type, target, application name, submission timestamp, duration and status.</p>
+<p>6.1.2. Every row, including the failed scan from step 5, links to its scan detail page.</p>
+<p>6.1.3. Only completed (status "done") rows passes to a Results page; the failed scan from step 5 does not.</p>
+</li>
+<li>
+<p>Results:</p>
+<p>7.1. The Risk report tab is shown by default and a visual summary of findings is displayed at the top of the tab. The rendered risk report is shown as formatted HTML, not as raw Markdown text.</p>
+<p>7.2. A <code>.md</code> file downloads and its content matches what is shown in the tab.</p>
+<p>7.3. The CBOM is presented as distinct, structured components, one per algorithm found. Each component shows: variant name, primitive type, and a colour-coded risk classification badge.</p>
+<p>7.4. Only matching components remain visible when filtered by classification; resetting to "All" shows all components again.</p>
+<p>7.5. A <code>.json</code> file downloads containing the full annotated CBOM.</p>
+<p>7.6. The raw scan output for the VECTOR-Network scan is shown as collapsible JSON.</p>
+<p>7.7. Check that 7.1-7.6 are validated for VECTOR-Code scan results.</p>
+</li>
+<li>
+<p>No step at any point displays a raw Python stack trace in the browser.</p>
+</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-017">SRS-017 Provide a web-based interface for running scans and visualizing results</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-015">TRP-015 Test report for the VECTOR web interface</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>see referenced files or controlled scan targets</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.4</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TCS-016">16 Verify standalone container deployment <small><a href="TCS.html#TCS-016">TCS-016</a></small></h1>
+<h2>Preconditions</h2>
+<ol>
+<li>Docker engine running.</li>
+</ol>
+<h2>Setup</h2>
+<ol>
+<li>In the project root directory, build the standalone image from the CLI:</li>
+</ol>
+<pre><code class="language-bash">docker build -t vector -f Dockerfile .
+</code></pre>
+<ol start="2">
+<li>Create a results folder in the project root directory:</li>
+</ol>
+<pre><code class="language-bash">mkdir results
+</code></pre>
+<h2>Test steps</h2>
+<ol>
+<li>Run the VECTOR-Code scanner via a standard <code>docker run</code> invocation, mounting the test repository as source and the local results directory over the CLI's output path:</li>
+</ol>
+<pre><code class="language-bash">docker run --rm \
+  --user &quot;$(id -u):$(id -g)&quot; \
+  -v $(pwd)/tests/data/mixed_repo:/src \
+  -v $(pwd)/results:/output \
+  vector code /src --name my-app --output /output
+</code></pre>
+<ol start="2">
+<li>Run the VECTOR-Network scanner via a standard <code>docker run</code> invocation, mounting the local results directory over the CLI's output path:</li>
+</ol>
+<pre><code class="language-bash">docker run --rm \
+  --user &quot;$(id -u):$(id -g)&quot; \
+  -v $(pwd)/results:/output \
+  vector network --target github.com --protocol ssh --port 22 --output /output
+
+docker run --rm \
+  --user &quot;$(id -u):$(id -g)&quot; \
+  -v $(pwd)/results:/output \
+  vector network --target github.com --protocol tls --port 443 --output /output
+</code></pre>
+<ol start="3">
+<li>Run the VECTOR-Score to generate a risk report:</li>
+</ol>
+<pre><code class="language-bash">docker run --rm \
+  --user &quot;$(id -u):$(id -g)&quot; \
+  -v $(pwd)/results:/output \
+  vector score /output/github.com_ssh_cbom.json
+
+docker run --rm \
+  --user &quot;$(id -u):$(id -g)&quot; \
+  -v $(pwd)/results:/output \
+  vector score /output/github.com_tls_cbom.json
+
+docker run --rm \
+  --user &quot;$(id -u):$(id -g)&quot; \
+  -v $(pwd)/results:/output \
+  vector score /output/cbom/crypto-combined-cbom.json
+</code></pre>
+<h2>Expected outcome</h2>
+<ol>
+<li>The VECTOR-Code scan finishes successfully:</li>
+</ol>
+<pre><code class="language-bash">ls results/
+</code></pre>
+<ul>
+<li>The <code>results/</code> folder on the host contains the following, confirming output was written via the mount:<ul>
+<li><code>cbom/</code>: containing the <code>crypto-combined-cbom.json</code> file</li>
+<li><code>databases/</code>: with folders <code>db-cpp</code> and <code>db-python</code></li>
+<li><code>results/</code>: containing two SARIF files, one for C++ and one for Python</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>The VECTOR-Network scan finishes successfully and the <code>results/</code> folder on the host contains the resulted CBOM files for both TLS and SSH protocols:</li>
+</ol>
+<pre><code class="language-bash">ls results/ | grep tls
+ls results/ | grep ssh
+</code></pre>
+<ol start="3">
+<li>The VECTOR-Score successfully generates the risk report for VECTOR-Code and VECTOR-Network CBOM outputs.</li>
+</ol>
+<pre><code class="language-bash">ls results/ | grep risk_report
+ls results/cbom | grep risk_report
+</code></pre>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-018">SRS-018 Support standalone container deployment</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-016">TRP-016 Test report standalone container deployment</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>2</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.4</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TCS-017">17 Verify the runner script VECTOR in CLI and GUI mode <small><a href="TCS.html#TCS-017">TCS-017</a></small></h1>
+<h2>Preconditions</h2>
+<ol>
+<li>Docker Engine running</li>
+<li><code>vector.sh</code> is executable:</li>
+</ol>
+<pre><code class="language-bash">chmod +x vector.sh
+</code></pre>
+<ol start="3">
+<li><code>mkdir -p results</code> in the repository root, for CLI-mode output.</li>
+<li>If there is a <code>env: ‘bash\r’: No such file or directory</code> error when running <code>./vector.sh</code>, run this command:</li>
+</ol>
+<pre><code class="language-bash">sed -i 's/\r$//' vector.sh
+</code></pre>
+<p>This error is due to CRLF endings, which is not supported in Unix.</p>
+<h2>Test steps</h2>
+<ol>
+<li>Run a script help:</li>
+</ol>
+<pre><code class="language-bash">./vector.sh help
+./vector.sh -h
+./vector.sh --help
+</code></pre>
+<ol start="2">
+<li>Verify build behavior:</li>
+</ol>
+<p>2.1. Run VECTOR CLI for building the image:</p>
+<pre><code class="language-bash">./vector.sh cli
+</code></pre>
+<p>2.2. Re-run the CLI to validate that the image is not re-built:</p>
+<pre><code class="language-bash">./vector.sh cli
+</code></pre>
+<p>2.3. Run image re-build:</p>
+<pre><code class="language-bash">./vector.sh build
+</code></pre>
+<p>2.4. Verify build failure:</p>
+<pre><code class="language-bash">mv Dockerfile Dockerfile.bak
+./vector.sh build
+mv Dockerfile.bak Dockerfile
+</code></pre>
+<ol start="3">
+<li>Verify GUI mode:</li>
+</ol>
+<p>3.1. Run default GUI mode and test VECTOR-Code and VECTOR-Network as in <code><a href="TCS.html#TCS-015">TCS-015</a></code> test steps section.</p>
+<pre><code class="language-bash">./vector.sh
+</code></pre>
+<p>3.2. Stop the Web GUI with <code>Ctrl+C</code>, and follow these steps:</p>
+<p>3.2.1. On the host, clone a test Python project into <code>/tmp</code> and start the runner:</p>
+<pre><code class="language-bash">git clone --depth 1 https://github.com/Legrandin/pycryptodome.git /tmp/pycryptodome
+./vector.sh gui --port 8080 --source-dir /tmp
+</code></pre>
+<p>3.2.2. In the browser, open <code>http://localhost:8080/new-scan</code>, and insert <code>/mnt/host-home/pycryptodome</code> as Source in the VECTOR Code tab. If it is tested in VM, replace localhost with IP address of VM.</p>
+<ol start="4">
+<li>Verify CLI mode:</li>
+</ol>
+<pre><code class="language-bash">./vector.sh cli code tests/data/mixed_repo --name mixed-test --output ./results
+./vector.sh cli network --protocol tls --target github.com --port 443 --output ./results
+./vector.sh cli score ./results/cbom/crypto-combined-cbom.json
+./vector.sh cli code https://github.com/kokke/tiny-AES-c --name tiny-aes-url --output ./results
+</code></pre>
+<ol start="5">
+<li>Verify failures:</li>
+</ol>
+<p>5.1. Verify non-existent path for VECTOR Code:</p>
+<pre><code class="language-bash">./vector.sh cli code ./does-not-exist --name x
+</code></pre>
+<p>5.2. Verify non-existent results folder:</p>
+<pre><code class="language-bash">./vector.sh cli code tests/data/mixed_repo --output ./results-missing
+</code></pre>
+<p>5.3. Verify non-existent CBOM file for VECTOR Score:</p>
+<pre><code class="language-bash">./vector.sh cli score ./no-such-cbom.json
+</code></pre>
+<ol start="6">
+<li>Confirm that no step above 1–5 required installing or invoking Python, Poetry, or any project dependency on the host.</li>
+</ol>
+<h2>Expected outcome</h2>
+<ol>
+<li>All help invocations print usage and exit.</li>
+</ol>
+<p>2.1. Prints that no local image was found, then builds it, then shows the vector CLI help (<code>code</code>, <code>network</code>, <code>score</code>, <code>gui</code> listed).</p>
+<p>2.2. Prints straight to the CLI help with no "Building..." line.</p>
+<p>2.3. Always rebuilds the image, regardless of 2.2.</p>
+<p>2.4. Fails with a clear message and does not attempt to start a container:</p>
+<p><code>ERROR: failed to build: failed to solve: failed to read dockerfile: open Dockerfile: no such file or directory
+vector.sh: error: Image build failed; not starting a container.</code></p>
+<p>3.1. The tests over VECTOR-Code and VECTOR-Network in GUI passes according to <code><a href="TCS.html#TCS-015">TCS-015</a></code> expected outcomes.</p>
+<p>3.2.1. The project is cloned as <code>/tmp/pycryptodome</code> and GUI opens in the browser using the link <code>http://localhost:8080/</code>.</p>
+<p>3.2.2. The scan is created and the browser navigates automatically to its scan detail page. When the scan finishes successfully, the Results page shows the Risk report tab.</p>
+<ol start="4">
+<li>All four commands complete successfully:</li>
+</ol>
+<p>4.1. <code>results/cbom/</code> contains a CBOM from the <code>mixed_repo</code> scan</p>
+<p>4.2. <code>results/</code> contains network scan output</p>
+<p>4.3. The score command produces a <code>*_risk_report.md</code> next to the CBOM it was given</p>
+<p>4.4. <code>results/cbom/</code> contains a CBOM from the GitHub URL scan</p>
+<ol start="5">
+<li>All three commands exit non-zero with an error naming the specific missing path (source directory, output directory, or CBOM file) and suggesting how to fix it. In each case, no container is started. The error messages should be shown as this:</li>
+</ol>
+<pre><code class="language-bash">./vector.sh cli code ./does-not-exist --name x
+vector.sh: error: Source directory does not exist: ./does-not-exist
+vector.sh: error: Create it first, e.g.: mkdir -p &quot;./does-not-exist&quot;
+
+./vector.sh cli code tests/data/mixed_repo --output ./results-missing
+vector.sh: error: Output directory does not exist: ./results-missing
+vector.sh: error: Create it first, e.g.: mkdir -p &quot;./results-missing&quot;
+
+./vector.sh cli score ./no-such-cbom.json
+vector.sh: error: CBOM file does not exist: ./no-such-cbom.json
+</code></pre>
+<ol start="6">
+<li>Confirmed that every step above used only <code>docker</code> (via the script) and the script itself.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-019">SRS-019 Provide a runner script to build and run VECTOR in CLI or GUI mode</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-017">TRP-017 Test report for the runner script VECTOR in CLI and GUI mode</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>GNU/Linux workstation or dev container</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>Test (T)</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>3</td>
+</tr>
+<tr>
+<td>test_data</td>
+<td>see referenced files or controlled scan targets</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.4</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TCS-018">18 Verify GitHub repository URL support for VECTOR-Code <small><a href="TCS.html#TCS-018">TCS-018</a></small></h1>
+<h2>Preconditions</h2>
+<ol>
+<li>Docker Engine running.</li>
+<li><code>vector.sh</code> is executable:</li>
+</ol>
+<pre><code class="language-bash">chmod +x vector.sh
+</code></pre>
+<ol start="3">
+<li><code>mkdir -p results</code> in the repository root, for CLI-mode output.</li>
+<li>If there is a <code>env: 'bash\r': No such file or directory</code> error when running <code>./vector.sh</code>, run this command:</li>
+</ol>
+<pre><code class="language-bash">sed -i 's/\r$//' vector.sh
+</code></pre>
+<p>This error is due to CRLF endings, which is not supported in Unix.
+5. Outbound network access to <code>github.com</code>.</p>
+<h2>Test steps</h2>
+<ol>
+<li>Run VECTOR-Code against a public GitHub repository URL:</li>
+</ol>
+<p>1.1. With capturing the console output:</p>
+<pre><code class="language-bash">./vector.sh cli code https://github.com/pycrypto/pycrypto --output ./results | tee scan.log
+</code></pre>
+<p>1.2. Confirm the cloned source was removed once the CodeQL databases were built:</p>
+<pre><code class="language-bash">grep &quot;Removing cloned source&quot; scan.log
+</code></pre>
+<ol start="2">
+<li>Verify a clone failure is handled explicitly:</li>
+</ol>
+<pre><code class="language-bash">rm -rf ./results &amp;&amp; mkdir -p ./results
+./vector.sh cli code https://github.com/vector-tor-integration-test/non_existent_repository_that_should_not_exist --output ./results
+echo &quot;exit code: $?&quot;
+ls ./results
+</code></pre>
+<ol start="3">
+<li>Verify a non-GitHub-looking <code>path</code> argument is rejected before any container is started:</li>
+</ol>
+<pre><code class="language-bash">./vector.sh cli code https://gitlab.com/owner/repo --output ./results
+echo &quot;exit code: $?&quot;
+</code></pre>
+<ol start="4">
+<li>Verify the same GitHub URL scan via the Web GUI:</li>
+</ol>
+<p>4.1. Start the web interface:</p>
+<pre><code class="language-bash">./vector.sh gui
+</code></pre>
+<p>4.2. In the browser, open <strong>New Scan</strong>, select <strong>VECTOR-Code</strong>, enter <code>https://github.com/pycrypto/pycrypto</code> as the Source, leave Application name blank, and submit.</p>
+<h2>Expected outcome</h2>
+<p>1.1. Console output (<code>scan.log</code>) resembles:</p>
+<pre><code>GitHub URL detected, cloning repository
+  Cloned:  https://github.com/pycrypto/pycrypto
+  Path:    /tmp/vector_code_lyx3l51t
+Language detection
+  Detected: Python (36.5%)
+  Detected: C (26.9%)
+
+Creating CodeQL databases
+  Created: db-python
+  Created: db-cpp
+
+  Removing cloned source (databases built)
+
+Running crypto queries
+  Results generated: crypto-python.sarif
+  Results generated: crypto-cpp.sarif
+
+Generating CBOM
+  CBOM file generated at: /output/cbom/crypto-combined-cbom.json
+
+Completed successfully
+</code></pre>
+<p>Exit code is <code>0</code>.</p>
+<p>1.2. <code>scan.log</code> contains the line <code>Removing cloned source (databases built)</code>.</p>
+<ol start="2">
+<li>The command exits with code <code>1</code> and prints an explicit error, e.g.:</li>
+</ol>
+<pre><code>GitHub URL detected, cloning repository
+  Error: git clone failed for 'https://github.com/vector-tor-integration-test/non_existent_repository_that_should_not_exist.git': the repository was not found, or it may be private and require authentication.
+</code></pre>
+<p><code>./results</code> contains no <code>databases</code>, <code>results</code>, or <code>cbom</code> subdirectories.</p>
+<ol start="3">
+<li><code>vector.sh</code> does not recognize the argument as a GitHub URL (it only matches <code>https://github.com/...</code> or <code>git@github.com:...</code>), so it is validated as a local directory and rejected before Docker is invoked. The command exits with code <code>1</code> and prints:</li>
+</ol>
+<pre><code>vector.sh: error: Source directory does not exist: https://gitlab.com/owner/repo
+vector.sh: error: Create it first, e.g.: mkdir -p &quot;https://gitlab.com/owner/repo&quot;
+</code></pre>
+<ol start="4">
+<li>The scan is created and the browser navigates to its scan detail page; once the scan finishes successfully, the Results page shows CBOM.</li>
+</ol>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-016">SRS-016 Accept a GitHub repository URL as a source analysis target</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-018">TRP-018 Test report for GitHub repository URL support for VECTOR-Code</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>Visual Studio Code</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>3</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.4</td>
 </tr>
 </tbody>
 </table>

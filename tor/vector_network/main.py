@@ -3,6 +3,8 @@
 import subprocess
 import sys
 import os
+import re
+import signal
 import argparse
 
 
@@ -95,8 +97,13 @@ def get_user_input_interactive():
     return protocol, port, target
 
 
-def scan_ssh(target, port):
-    scan_output = f"{target.replace('.', '_')}_ssh_scan.json"
+def _safe_filename(target: str) -> str:
+    return re.sub(r"[^A-Za-z0-9-]+", "_", target).strip("_")
+
+
+def scan_ssh(target, port, output_dir=None):
+    filename = f"{_safe_filename(target)}_ssh_scan.json"
+    scan_output = os.path.join(output_dir, filename) if output_dir else filename
     zgrab_cmd = f"echo '{target}' | zgrab2 ssh --port {port} -o {scan_output}"
 
     try:
@@ -120,9 +127,10 @@ def scan_ssh(target, port):
         sys.exit(1)
 
 
-def scan_tls(target, port):
-    scan_output = f"{target.replace('.', '_')}_tls_scan.json"
-    scan_output_path = os.path.abspath(scan_output)
+def scan_tls(target, port, output_dir=None):
+    filename = f"{_safe_filename(target)}_tls_scan.json"
+    base_dir = output_dir if output_dir else "."
+    scan_output_path = os.path.abspath(os.path.join(base_dir, filename))
 
     if os.path.exists(scan_output_path):
         try:
@@ -139,19 +147,25 @@ def scan_tls(target, port):
 
     testssl_cmd = f"{testssl_path} --jsonfile {scan_output_path} {target}:{port}"
 
+    proc = subprocess.Popen(testssl_cmd, shell=True, start_new_session=True)
     try:
-        subprocess.run(testssl_cmd, shell=True, timeout=600)
-
-        if not os.path.exists(scan_output_path):
-            print("Error: testssl.sh scan failed - no output file created")
-            sys.exit(1)
-
-        if os.path.getsize(scan_output_path) == 0:
-            print(f"Error: Scan file '{scan_output_path}' is empty")
-            sys.exit(1)
-
+        exit_code = proc.wait(timeout=600)
     except subprocess.TimeoutExpired:
-        print("Error: testssl.sh scan timed out after 600 seconds")
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        proc.wait()
+        print("\nError: testssl.sh scan timed out after 600 seconds")
+        sys.exit(1)
+
+    if exit_code != 0:
+        print(f"\nError: testssl.sh exited with code {exit_code} - target likely unreachable, refused the connection, or DNS resolution failed")
+        sys.exit(1)
+
+    if not os.path.exists(scan_output_path):
+        print("Error: testssl.sh scan failed - no output file created")
+        sys.exit(1)
+
+    if os.path.getsize(scan_output_path) == 0:
+        print(f"Error: Scan file '{scan_output_path}' is empty")
         sys.exit(1)
 
     print(f"  Scan saved: {scan_output_path}")
@@ -170,35 +184,43 @@ def _run_cbom_converter(converter_name, scan_output):
         print(f"Error: Scan output file '{scan_output}' not found")
         sys.exit(1)
 
+    scan_dir = os.path.dirname(os.path.abspath(scan_output))
+    scan_filename = os.path.basename(scan_output)
+    
     try:
         result = subprocess.run(
-            f"python3 {converter_script} {scan_output}",
+            f"python3 {converter_script} {scan_filename}",
             shell=True,
             check=True,
             capture_output=True,
-            text=True
+            text=True,
+            cwd=scan_dir,
         )
         print(result.stdout, end='')
     except subprocess.CalledProcessError as e:
-        print("Error: CBOM generation failed")
+        print("Error: CBOM generation failed. Please check the endpoint target information is correct and the network is available.")
+        if e.stdout:
+            print(f"Output: {e.stdout}")
         if e.stderr:
             print(f"Details: {e.stderr}")
         sys.exit(1)
 
 
-def run(protocol: str, port: int, target: str) -> int:
+def run(protocol: str, port: int, target: str, output_dir: str = None) -> int:
     _validate_port_range(port)
     if not target or target.strip() == "":
         print("Error: Target cannot be empty")
         return 1
     target = target.strip()
+    if output_dir is not None:
+        os.makedirs(output_dir, exist_ok=True)
     print(f"\nScanning {target}:{port} ({protocol.upper()})")
     if protocol == "ssh":
-        scan_output = scan_ssh(target, port)
+        scan_output = scan_ssh(target, port, output_dir)
         print("\nGenerating CBOM")
         _run_cbom_converter("zgrab2_to_cbom.py", scan_output)
     else:
-        scan_output = scan_tls(target, port)
+        scan_output = scan_tls(target, port, output_dir)
         print("\nGenerating CBOM")
         _run_cbom_converter("testssl_to_cbom.py", scan_output)
     print("\nCompleted")

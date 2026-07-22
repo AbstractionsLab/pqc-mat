@@ -27,7 +27,7 @@ TOR runs inside a VS Code Dev Container. The container build installs most depen
 
 The container automatically installs:
 
-- Python 3.11, Poetry, Go 1.24
+- Python 3.11, Poetry, Go 1.25
 - CodeQL CLI and CodeQL cryptographic queries (Santandersecurityresearch)
 - testssl.sh, ZGrab2, cloc
 

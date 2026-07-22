@@ -1,3 +1,24 @@
+# 0.4.0 (2026-07-22)
+
+## Added
+
+- `vector gui [--port PORT]` CLI subcommand to start the web interface directly, enabling `vector.sh` to reach the GUI without overriding the container entry point (SRS-019)
+- `vector.sh` runner script at the repository root: builds the standalone image on demand, starts VECTOR in CLI or GUI mode; usage documented in `docs/manual/start.md`
+- Standalone VECTOR container (`Dockerfile`) for direct execution on endpoints and embedding into CI/CD pipelines (SRS-018)
+- Unit tests for GitHub URL resolution (`tests/test_github_resolver.py`): URL parsing, clone/cleanup lifecycle, explicit error on non-existent repositories
+- New requirements: `SRS-018` (standalone container deployment), `SRS-019` (runner script and `vector gui`)
+- Test cases and validation test reports
+    - (`docs/specs/tcs/TCS-015`) and (`docs/specs/trp/TRP-015`) for the web-based interface
+    - (`docs/specs/tcs/TCS-016`) and (`docs/specs/trp/TRP-016`) for the standalone container
+    - (`docs/specs/tcs/TCS-017`) and (`docs/specs/trp/TRP-017`) for the runner script
+    - (`docs/specs/tcs/TCS-018`) and (`docs/specs/trp/TRP-018`) for Github URL support in VECTOR-Code
+
+## Modified
+
+- Updated Go base image from 1.24 to 1.25 in `Dockerfile` and `dev.Dockerfile`
+- Refreshed `README.md`, `tor/README.md`, `docs/manual/start.md`, and `docs/manual/installation.md`: corrected output directory paths, GUI invocation commands, Go version references, and quick-start examples
+- Improved GUI failure output: `_extract_failure_reason` now surfaces the last `Error`/`Warning`/`Unexpected error` line with its `Details:` context instead of a generic fallback message
+
 # 0.3.0 (2026-06-24)
 
 ## Added

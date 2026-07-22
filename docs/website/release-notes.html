@@ -344,6 +344,104 @@
       </div>
 
       <!-- ===============================================
+           v0.4.0
+           =============================================== -->
+      <div class="release" id="v0.4.0">
+        <div class="release-heading">
+          <h2 class="release-title">v0.4.0</h2>
+          <span class="release-date">July 2026</span>
+        </div>
+
+        <!-- main feature -->
+        <div class="feature-card highlight">
+          <div class="new-badge">New feature</div>
+          <h3>Standalone container and <code>vector.sh</code> runner script</h3>
+          <p>
+            A production-ready standalone <code>Dockerfile</code> packages VECTOR for direct
+            execution on endpoints and embedding into CI/CD pipelines, without requiring a
+            Dev Container. A companion <code>vector.sh</code> script at the repository root
+            builds this image on demand and launches VECTOR in either CLI or GUI mode with a
+            single command. Usage is documented in <code>docs/manual/start.md</code>.
+          </p>
+          <div class="chips">
+            <span class="chip">Dockerfile</span>
+            <span class="chip">vector.sh</span>
+            <span class="chip">CI/CD</span>
+            <span class="chip">standalone deployment</span>
+            <span class="chip">SRS-018</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3><code>vector gui</code> CLI subcommand</h3>
+          <p>
+            A new <code>vector gui [--port PORT]</code> subcommand starts the web interface
+            directly from the CLI. This allows <code>vector.sh</code> to reach the GUI without
+            overriding the container entry point, and gives users a consistent way to launch
+            the browser-based control panel alongside the other <code>vector</code> subcommands.
+          </p>
+          <div class="chips">
+            <span class="chip">vector gui</span>
+            <span class="chip">--port</span>
+            <span class="chip">web interface</span>
+            <span class="chip">SRS-019</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Unit tests for GitHub URL resolution</h3>
+          <p>
+            A new test module (<code>tests/test_github_resolver.py</code>) covers GitHub URL
+            parsing, the clone/cleanup lifecycle, and explicit error handling for non-existent
+            repositories, increasing confidence in the GitHub URL support introduced in v0.3.0.
+          </p>
+          <div class="chips">
+            <span class="chip">test_github_resolver.py</span>
+            <span class="chip">URL parsing</span>
+            <span class="chip">clone lifecycle</span>
+            <span class="chip">error handling</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Improved GUI failure diagnostics</h3>
+          <p>
+            The GUI&#8217;s <code>_extract_failure_reason</code> helper now surfaces the last
+            <code>Error</code>, <code>Warning</code>, or <code>Unexpected error</code> line
+            together with its <code>Details:</code> context, replacing the previous generic
+            fallback message with actionable failure information.
+          </p>
+          <div class="chips">
+            <span class="chip">GUI</span>
+            <span class="chip">error reporting</span>
+            <span class="chip">_extract_failure_reason</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <h3>Go base image updated to 1.25</h3>
+          <p>
+            The Go base image in both <code>Dockerfile</code> and <code>dev.Dockerfile</code>
+            has been updated from 1.24 to 1.25. Documentation in
+            <code>README.md</code>, <code>tor/README.md</code>, <code>docs/manual/start.md</code>,
+            and <code>docs/manual/installation.md</code> has been refreshed with corrected
+            output directory paths, updated GUI invocation commands, and revised quick-start
+            examples.
+          </p>
+          <div class="chips">
+            <span class="chip">Go 1.25</span>
+            <span class="chip">Dockerfile</span>
+            <span class="chip">dev.Dockerfile</span>
+            <span class="chip">documentation</span>
+          </div>
+        </div>
+
+      </div>
+      <!-- /v0.4.0 -->
+
+      <hr class="release-divider">
+
+      <!-- ===============================================
            v0.3.0
            =============================================== -->
       <div class="release" id="v0.3.0">
