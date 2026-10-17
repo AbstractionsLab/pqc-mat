@@ -172,3 +172,12 @@ VECTOR-Code/databases/
 # VECTOR-Network outputs
 VECTOR-Network/*_scan.json
 VECTOR-Network/*_cbom.json
+
+# Not needed inside the images (the dev container bind-mounts the workspace)
+.git
+.github
+.gitlab
+.devcontainer
+.vscode
+output/
+docs/

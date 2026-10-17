@@ -237,7 +237,7 @@
 </table>
 <h2 id="ARC-011">1.11 VECTOR-Score: standalone quantum risk scoring module <small><a href="ARC.html#ARC-011">ARC-011</a></small></h2>
 <h2>Architecture design artifact</h2>
-<p>VECTOR-Score is implemented as a standalone module under <code>tor/VECTOR-Score/</code>, positioned as a peer to VECTOR-Code and VECTOR-Network. It operates as a post-processing step on any CycloneDX CBOM JSON file, irrespective of the inventory tool that produced it.</p>
+<p>VECTOR-Score is implemented as a standalone module under <code>tor/vector-score/</code>, positioned as a peer to VECTOR-Code and VECTOR-Network. It operates as a post-processing step on any CycloneDX CBOM JSON file, irrespective of the inventory tool that produced it.</p>
 <h2>Module boundaries</h2>
 <ul>
 <li><strong>Input</strong>: any CycloneDX CBOM JSON file (produced by VECTOR-Code, VECTOR-Network, or a conformant third-party tool).</li>
@@ -251,37 +251,40 @@
 <thead>
 <tr>
 <th>Classification</th>
+<th>Risk score</th>
 <th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>quantum-vulnerable</code></td>
-<td>Broken by Shor's algorithm on a CRQC (RSA, DH, ECDH, ECDSA, DSA)</td>
-</tr>
-<tr>
-<td><code>quantum-weakened</code></td>
-<td>Security believed to be reduced by Grover's algorithm (e.g., <a href="AES.html#AES-128">AES-128</a>, 3DES, <a href="SHA.html#SHA-1">SHA-1</a>), but this is not accurate as the algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup. This is subject to ongoing research.</td>
+<td><code>high</code></td>
+<td>Broken by Shor's algorithm on a CRQC (RSA, DH, ECDH, ECDSA, DSA, EdDSA, X25519/X448, NIST P-curves)</td>
 </tr>
 <tr>
 <td><code>classically-deprecated</code></td>
-<td>Already deprecated by classical attacks (RC4, DES, MD5, NULL ciphers)</td>
+<td><code>high</code> (<code>medium</code> for SEED)</td>
+<td>Already deprecated by classical attacks (RC4, DES, 3DES, RC2, IDEA, SEED, MD5, <a href="SHA.html#SHA-1">SHA-1</a>, HMAC-SHA1, HMAC-MD5, NULL and EXPORT ciphers)</td>
 </tr>
 <tr>
-<td><code>quantum-safe</code></td>
-<td>Sufficient security margin against both classical and quantum attacks (<a href="AES.html#AES-256">AES-256</a>, <a href="SHA.html#SHA-256">SHA-256</a>/384/512)</td>
-</tr>
-<tr>
-<td><code>post-quantum</code></td>
-<td>Standardised PQC algorithm (ML-KEM, ML-DSA, SLH-DSA)</td>
+<td><code>non-hybrid</code></td>
+<td><code>medium</code></td>
+<td>Post-quantum algorithm used standalone, without a classical counterpart (ML-KEM, ML-DSA, SLH-DSA, FN-DSA, sntrup)</td>
 </tr>
 <tr>
 <td><code>hybrid</code></td>
-<td>Classical + PQC combination key exchange (X25519MLKEM768, SecP256r1MLKEM768)</td>
+<td><code>low</code></td>
+<td>Classical + post-quantum key exchange (X25519MLKEM768, SecP256r1MLKEM768, sntrup761x25519-sha512, mlkem768x25519-sha256)</td>
+</tr>
+<tr>
+<td><code>quantum-safe</code></td>
+<td><code>none</code></td>
+<td>Sufficient security margin against both classical and quantum attacks (<a href="AES.html#AES-128">AES-128</a>/192/256, ChaCha20-Poly1305, <a href="SHA.html#SHA-2">SHA-2</a>, <a href="SHA.html#SHA-3">SHA-3</a>, SHAKE, BLAKE2, HMAC-<a href="SHA.html#SHA-256">SHA-256</a> or stronger)</td>
 </tr>
 <tr>
 <td><code>unknown</code></td>
-<td>Algorithm not matched by any catalog entry</td>
+<td><code>high</code></td>
+<td>Algorithm not matched by any catalog entry; manual review required</td>
 </tr>
 </tbody>
 </table>

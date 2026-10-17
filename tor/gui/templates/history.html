@@ -67,6 +67,10 @@
             <span class="badge badge--blue">running</span>
           {% elif scan.status == 'failed' %}
             <span class="badge badge--red">failed</span>
+          {% elif scan.status == 'stopping' %}
+            <span class="badge badge--amber">stopping…</span>
+          {% elif scan.status == 'stopped' %}
+            <span class="badge badge--gray">stopped</span>
           {% else %}
             <span class="badge badge--amber">pending</span>
           {% endif %}

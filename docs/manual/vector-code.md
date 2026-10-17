@@ -1,17 +1,98 @@
 # VECTOR-Code reference
 
-VECTOR-Code performs static analysis of source code to detect cryptographic API usage and produce a Cryptographic Bill of Materials (CBOM).
+VECTOR-Code scans source code to detect cryptographic API usage (for example AES, SHA-256, RSA) and produces a Cryptographic Bill of Materials (CBOM) in CycloneDX 1.6 format.
 
-This document describes how a VECTOR-Code scan works.
+VECTOR-Code can be run from the command line (detailed below) or from the [web GUI](./start.md#3-use-the-web-gui).
 
-## Pipeline overview
+## Running a scan
+
+| Mode | Command |
+|---|---|
+| Standalone container (host terminal) | `./vector.sh cli code <source> [--name <app_name>] [--output <dir>]` |
+| Dev Container | `vector code <source> [--name <app_name>] [--output <dir>]` |
+
+See [Which command form to use](./start.md#2-run-a-scan-from-the-command-line) for how paths are handled in each mode.
+
+### Arguments
+
+| Argument | Required | Default | Description |
+|---|---|---|---|
+| `<source>` | Yes | — | Project directory, or a public GitHub repository URL. With `vector.sh`, `demo` selects the demo project bundled in the image |
+| `--name` | No | `application` (`<owner>/<repo>` for GitHub URLs) | Application name written into the CBOM |
+| `--output` | No | `output` | Output directory. With `vector.sh`, a directory given here must already exist on the host; if omitted, `./output` is created in the current directory |
+
+### Examples
+
+```bash
+# Standalone container
+mkdir -p results
+./vector.sh cli code demo --output results
+./vector.sh cli code ~/projects/my-app --name my-app --output results
+./vector.sh cli code https://github.com/pyca/cryptography --output results
+
+# Dev Container
+vector code /home/vector/test-project/cryptography --output results
+vector code /mnt/host-home/path/to/project --name my-app --output results
+```
+
+In the Dev Container, `/mnt/host-home` is the VS Code workspace folder on the host.
+
+### Local folders: CLI vs GUI
+
+When VECTOR runs on a remote machine (e.g. a VM) and you open the GUI from another computer (e.g. your laptop), the CLI and the GUI see different local folders:
+
+| | Can scan local folders on |
+|---|---|
+| CLI (`./vector.sh cli code <dir>`) | The machine where `vector.sh` runs (the VM) |
+| GUI (**Choose folder…**) | The computer where the browser is open (your laptop) — the folder is uploaded to VECTOR |
+
+To scan code that is on the VM, use the CLI. To scan code that is on your laptop, use the GUI, or copy the code to the VM first. GitHub URLs work the same way in both.
+
+### GitHub repositories
+
+| URL form | Example |
+|---|---|
+| Repository | `https://github.com/<owner>/<repo>` |
+| Branch or tag | `https://github.com/<owner>/<repo>/tree/<branch-or-tag>` |
+| Subdirectory | `https://github.com/<owner>/<repo>/tree/<branch-or-tag>/<path>` |
+
+The repository is cloned shallowly into a temporary directory and deleted once the CodeQL databases are built. Only public repositories are supported; a repository that requires authentication fails with an error.
+
+### Console output
+
+Example
+```
+Language detection
+  Detected: Python (18.8%)
+
+Creating CodeQL databases
+  Created: db-python
+
+Running crypto queries
+  Results generated: crypto-python.sarif
+
+Generating CBOM
+  CBOM file generated at: /home/vector/vector-project/results/cbom/crypto-python-cbom.json
+
+Completed successfully
+```
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Scan completed and a CBOM was generated |
+| `1` | Scan failed: invalid source, clone error, no supported language, or a CodeQL / CBOM step failed |
+| `2` | Unexpected error (a traceback is printed) |
+
+## How it works
 
 ```
 Local path or GitHub URL
         │
         ▼
   cloc (language detection)
-        │  identifies languages used in at least 5% of the codebase
+        │  counts lines of code identifying languages used in at least 5% of the codebase
         ▼
   codeql database create (per language)
         │  creates one database per CodeQL language (python, cpp)
@@ -25,191 +106,64 @@ Local path or GitHub URL
   <output_dir>/cbom/<app_name>-cbom.json
 ```
 
-## Starting point
+### CodeQL queries
 
-VECTOR-Code can be launched either from the VECTOR CLI or through the [browser-based GUI](./start.md#web-interface). From the CLI:
-
-```bash
-vector code <path> [--name <app_name>]
-```
-
-### Arguments
-
-| Argument | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `path` | Yes | — | Absolute or relative path to the source code directory, or a GitHub repository URL (`https://github.com/<owner>/<repo>` to analyze |
-| `--name` | No | `application` or `<owner>/<repo>` | Name for the analyzed project to be written into the generated CBOM. Defaults to `application` for local paths and to `<owner>/<repo>` (extracted from the URL) when a GitHub URL is supplied |
-| `--output` | No | `output` | Output path for the annotated CBOM (<output_dir>) |
-
-### Exit codes
-
-| Code | Meaning |
-|------|---------|
-| `0` | All steps completed successfully |
-| `1` | A recoverable error occurred (e.g., no supported languages detected, a CodeQL database creation failed, a query run failed, or CBOM generation failed for one language) |
-| `2` | An unexpected exception occurred |
-
-### Example
-
-```bash
-vector code /home/vector/test-project/cryptography --name pyca-cryptography
-```
-
-Expected console output:
-
-```
-Language detection
-  Detected: Python (18.8%)
-
-Creating CodeQL databases
-  Created: db-python
-
-Running crypto queries
-  Generated: crypto-python.sarif
-
-Generating CBOM
-  Generated: crypto-python-cbom.json
-
-Completed
-```
-
-### Scanning code from your host machine
-
-The code on host machine can be scanned without copying it into the container. The container has access to the home directory via the `/mnt/host-home` mount point:
-
-```bash
-vector code /mnt/host-home/path/to/your/project --name my-app
-```
-
-### Analyzing a GitHub repository
-
-A GitHub repository URL can be supplied in place of a local path:
-
-```bash
-vector code https://github.com/pyca/cryptography --name pyca-cryptography
-```
-
-Supported URL forms:
-
-| Form | Example |
-|------|---------|
-| Repository root | `https://github.com/<owner>/<repo>` |
-| Specific branch | `https://github.com/<owner>/<repo>/tree/<branch>` |
-
-The repository is cloned with `git clone --depth=1 --single-branch` into a temporary directory inside the container; the clone is removed once the CodeQL databases have been created (the databases themselves are retained in `<output_dir>/databases/`). 
-
-If `--name` is omitted, the default name assigned to the analyzed project is `<owner>/<repo>`, extracted from the URL.
-
-## Language detection
-
-VECTOR-Code calls `cloc --json <path>` to count lines of code per language. Languages are included for analysis only if they make up at least **5%** of the total source lines.
-
-### Supported languages
-
-| Source language | CodeQL language | Status |
-|----------------|-----------------|--------|
-| Python | `python` | Supported |
-| C | `cpp` | Supported |
-| C++ | `cpp` | Supported — analyzed in the same database as C |
-| Java | `java` | **Not supported** — CodeQL query pack is not available |
-
-If a project contains both C and C++, a single `cpp` database is created and a single per-language CBOM is generated for both.
-
-If a non-supported language meets the 5% threshold, the tool exits with code `1` and prints an error message.
-
-## Multi-language output
-
-When multiple supported languages are detected in a single project:
-- One CodeQL database is created per unique language
-- One SARIF file is generated per language
-- A single **unified CBOM** is generated from the SARIF path
-
-The unified CBOM is the final output artifact and is named `crypto-combined-cbom.json`. Individual per-language SARIF files are retained as intermediate artifacts in `<output_dir>/results/` for traceability.
-
-
-## CodeQL database creation
-
-One CodeQL database is created per unique CodeQL language. The database is stored in:
-
-```
-<output_dir>/databases/db-<codeql-language>/
-```
-
-For example, a Python project produces `output/databases/db-python/`.
-
-The database is created with `--build-mode=none`, which means:
-- No build system is invoked — the source tree is extracted directly.
-- Compiled artifacts (`.class`, `.o`, etc.) are **not** analyzed.
-- The tool works on unbuilt repositories.
-
-If a database for that language already exists in the output directory, it is deleted and recreated on each run.
-
-## CodeQL query execution
-
-Cryptographic inventory queries are run against each database. The query paths are hardcoded to the container environment:
-
-| Language | Query path |
-|----------|-----------|
-| Python | `/home/vector/tools/codeql-queries/python/ql/src/experimental/cryptography/inventory` |
-| C/C++ | `/home/vector/tools/codeql-queries/cpp/ql/src/experimental/cryptography/inventory` |
-
-These paths are not configurable via CLI. If the queries do not exist at these locations, the query step is skipped for that language and a warning is printed; no SARIF file is produced.
-
-**What the queries detect:**  
-The Santandersecurityresearch queries identify calls to cryptographic APIs — functions, classes, and constants from well-known libraries (e.g., Python's `cryptography`, `hashlib`, `ssl`; OpenSSL in C/C++). Each finding includes:
+The CodeQL queries identify calls to cryptographic APIs — functions, classes, and constants from well-known libraries (e.g., Python's `cryptography`, `hashlib`, `ssl`; OpenSSL in C/C++). Each finding includes:
 - The algorithm name (e.g., `AES`, `SHA256`, `RSA`)
 - Key size or curve name where available
 - Mode of operation where applicable
 - Source file, line number, and code snippet
 
-SARIF output is written to:
+The VECTOR images precompile these queries at build time to prevent each scan having to spend time compiling them.
+
+### Supported languages
+
+| Language | Status |
+|---|---|
+| Python | Supported (e.g. `cryptography`, `hashlib`, `ssl`) |
+| C, C++ | Supported — OpenSSL only; C and C++ share one `cpp` database |
+
+The query step is skipped for not supported languages and a warning is printed; no SARIF file is produced.
+
+
+## Output
 
 ```
-<output_dir>/results/crypto-<language>.sarif
+<output>/
+  ├── databases/           CodeQL databases (db-python/, db-cpp/)
+  ├── results/             SARIF results (crypto-python.sarif, crypto-cpp.sarif)
+  └── cbom/                The CBOM
+      └── crypto-python-cbom.json
 ```
 
-## CBOM generation
+Exactly one CBOM is produced:
 
-SARIF files are converted to CycloneDX 1.6 CBOM JSON using the cryptobom CLI (from the cryptobom-forge package):
+| Languages analyzed | CBOM file |
+|---|---|
+| One | `crypto-<language>-cbom.json` (`crypto-python-cbom.json` or `crypto-cpp-cbom.json`) |
+| Several | `crypto-combined-cbom.json` |
 
-```bash
-cryptobom generate <sarif_path> \
-  --application-name <app_name> \
-  --output-file <output_path>
-```
+Each run **deletes** the existing `databases/`, `results/`, and `cbom/` folders in the output directory before starting; use a different `--output` directory to keep earlier results.
 
-Output is written to:
+To assess quantum risk, pass the CBOM to [VECTOR-Score](./vector-score.md). See [Understanding CBOM output](./cbom-output.md) for the file format.
 
-```
-<output_dir>/cbom/crypto-<language>-cbom.json
-```
+## Header resolution for C and C++
 
-`cryptobom-forge` must be installed manually before running VECTOR-Code. See [Installation](./installation.md#installing-cryptobom-forge-required--manual-step).
+Projects are not built from source code, thus, include paths in C (`-I` flags) are unknown. An OpenSSL call is detected when its header can be found without them:
 
-## Output files
+- `#include <openssl/...>` resolves to the OpenSSL 3 headers installed in the image.
+- `#include "openssl/..."` also resolves when the header is shipped with the project, relative to the including file.
 
-The output files are by default in the `output` folder relative to the `tor/vector_code/` directory. If `--output` flag is specified the files will be written into the folder specified.
+May be missed:
 
-```
-<output_dir>/
-├── databases/
-│   └── db-python/          CodeQL database (queryable representation of source)
-├── results/
-│   └── crypto-python.sarif SARIF findings from CodeQL queries
-└── cbom/
-    └── crypto-python-cbom.json  CycloneDX 1.6 CBOM
-```
-
-Re-running VECTOR-Code overwrites all existing output files.
+- APIs not declared by OpenSSL 3, e.g. BoringSSL/LibreSSL-specific functions or APIs removed since OpenSSL 1.x — unless the project ships those headers and includes them with quotes.
+- Code that depends on project headers found only through `-I` flags, which may be left unparsed.
 
 ## Known limitations
 
-| Limitation | Detail |
-|-----------|--------|
-| Java not supported | No CodeQL crypto inventory queries are available for Java |
-| 5% threshold | Languages present below 5% of total LOC are not analyzed |
-| Source-only | `--build-mode=none` means compiled binaries and dynamic behavior are not analyzed |
-| Hardcoded query paths | Queries must exist at the exact container paths listed above; no CLI override |
-| No incremental analysis | Every run recreates databases and re-runs all queries from scratch |
-| Single CBOM per run | All findings across all detected languages are merged into one CBOM |
-| Private repositories not supported | Cloning a GitHub repository that requires authentication fails with an explicit error rather than prompting for credentials |
+- **x86_64 only** — no ARM64 build of the CodeQL CLI exists.
+- **Languages** — Python, C, and C++ only; languages below 5% of the code are skipped.
+- **C/C++ coverage** — OpenSSL only, subject to [header resolution](#header-resolution-for-c-and-c).
+- **Source only** — binaries and object files are not analyzed.
+- **No incremental scans** — every run rebuilds databases and re-runs all queries.
+- **Public GitHub repositories only.**

@@ -24,7 +24,7 @@
 <li><a href="#SRS-TOR">1 TOR SRSs</a><ul>
 <li><a href="#SRS-001">1.1 Persist output artifacts in predictable locations</a></li>
 <li><a href="#SRS-002">1.2 Detect supported source languages from the target project</a></li>
-<li><a href="#SRS-003">1.3 Create CodeQL databases through the external CLI</a></li>
+<li><a href="#SRS-003">1.3 Create CodeQL databases through the CodeQL CLI</a></li>
 <li><a href="#SRS-004">1.4 Run cryptographic inventory queries on created databases</a></li>
 <li><a href="#SRS-005">1.5 Convert source-analysis findings into CBOM artifacts</a></li>
 <li><a href="#SRS-006">1.6 Scan TLS-enabled services by target and port</a></li>
@@ -38,9 +38,9 @@
 <li><a href="#SRS-014">1.14 Produce a single unified CBOM for multi-language projects</a></li>
 <li><a href="#SRS-015">1.15 Show source locations of VECTOR-Code output in risk report</a></li>
 <li><a href="#SRS-016">1.16 Accept a GitHub repository URL as a source analysis target</a></li>
-<li><a href="#SRS-017">1.17 Provide a web-based interface for running scans and visualizing results</a></li>
+<li><a href="#SRS-017">1.17 Provide a web-based GUI for running scans and visualizing results</a></li>
 <li><a href="#SRS-018">1.18 Support standalone container deployment</a></li>
-<li><a href="#SRS-019">1.19 Provide a runner script to build and run VECTOR in CLI or GUI mode</a></li>
+<li><a href="#SRS-019">1.19 Provide a script to build and run VECTOR in CLI or GUI mode</a></li>
 </ul>
 </li>
 </ul>
@@ -133,15 +133,16 @@
 </tr>
 </tbody>
 </table>
-<h2 id="SRS-003">1.3 Create CodeQL databases through the external CLI <small><a href="SRS.html#SRS-003">SRS-003</a></small></h2>
-<p>VECTOR-Code SHALL invoke the external CodeQL CLI to create one analysis database per detected CodeQL language.</p>
+<h2 id="SRS-003">1.3 Create CodeQL databases through the CodeQL CLI <small><a href="SRS.html#SRS-003">SRS-003</a></small></h2>
+<p>VECTOR-Code SHALL invoke the external CodeQL CLI to create one analysis database per detected CodeQL language, extracting the source files directly without running any build.</p>
 <h2>Rationale</h2>
-<p>The current implementation uses external CodeQL tooling to prepare the source tree for cryptographic inventory queries.</p>
+<p>Leveraging CodeQL tooling for cryptographic inventory queries.</p>
+<p>Analyzed projects do not necessarily have a build system or they might need specific dependencies; to avoid database creation failures due to build errors, databases have to be created with <code>--build-mode=none</code>. In this mode, CodeQL infers the compiler settings that a build would provide (e.g., include paths and macro definitions) from the source files directly. As a consequence, for C and C++ a call to a cryptographic library is only recognized when the header declaring it can be resolved without compiling. Since CodeQL queries support OpenSSL, the VECTOR image must install the OpenSSL development headers, so that OpenSSL includes resolve even when the project does not ship the headers or finds them through its own include paths. In no build mode does CodeQL analyze object code or binaries; only source files are extracted.</p>
 <h2>Acceptance criteria</h2>
 <ul>
 <li>Duplicate source languages that map to the same CodeQL language do not create redundant databases.</li>
-<li>Database creation uses <code>--build-mode=none</code>.</li>
-<li>Failed database creation for one language does not fabricate a successful result for that language.</li>
+<li>Database creation uses <code>--build-mode=none</code>, so no build command of the analyzed project is executed.</li>
+<li>Failed database creation for one language does not create a successful result for that language.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-008">MRS-008 Orchestrate open-source analysis tooling</a></p>
 <p><em>Child links:</em> <a href="TCS.html#TCS-003">TCS-003 Verify CodeQL database creation</a></p>
@@ -526,7 +527,7 @@
 <li>The annotated CBOM <code>metadata.properties</code> array contains a <code>pqcmat:scored-at</code> entry recording the scoring timestamp.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-011">MRS-011 Assess quantum risk of discovered cryptographic assets</a></p>
-<p><em>Child links:</em> <a href="TCS.html#TCS-012">TCS-012 Verify that annotated CBOM contains 'pqcmat' risk properties</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-012">TCS-012 Verify 'pqcmat' risk properties present in annotated CBOM</a></p>
 <table>
 <thead>
 <tr>
@@ -733,7 +734,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="SRS-017">1.17 Provide a web-based interface for running scans and visualizing results <small><a href="SRS.html#SRS-017">SRS-017</a></small></h2>
+<h2 id="SRS-017">1.17 Provide a web-based GUI for running scans and visualizing results <small><a href="SRS.html#SRS-017">SRS-017</a></small></h2>
 <p>VECTOR SHALL expose a web-based user interface that allows non-technical users to submit source-code analysis and network scan requests, monitor their progress, and review risk findings without using the CLI.</p>
 <h2>Rationale</h2>
 <p>The current CLI-only interaction model requires familiarity with the Dev Container environment, command-line arguments, and raw JSON or Markdown output. A web interface lowers the barrier to adoption.</p>
@@ -867,7 +868,7 @@
 <li>The interface remains responsive during long-running scans; submitting a new scan while one is in progress is permitted.</li>
 </ul>
 <p><em>Parent links:</em> <a href="MRS.html#MRS-012">MRS-012 Provide a browser-accessible interface</a></p>
-<p><em>Child links:</em> <a href="TCS.html#TCS-015">TCS-015 Validate a web-based interface for running scans and visualizing results</a></p>
+<p><em>Child links:</em> <a href="TCS.html#TCS-015">TCS-015 Validate VECTOR's web-based interface</a>, <a href="TCS.html#TCS-019">TCS-019 Verify VECTOR-Code source input and stop scan</a></p>
 <table>
 <thead>
 <tr>
@@ -941,7 +942,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="SRS-019">1.19 Provide a runner script to build and run VECTOR in CLI or GUI mode <small><a href="SRS.html#SRS-019">SRS-019</a></small></h2>
+<h2 id="SRS-019">1.19 Provide a script to build and run VECTOR in CLI or GUI mode <small><a href="SRS.html#SRS-019">SRS-019</a></small></h2>
 <p>VECTOR SHALL provide a single runner script, at the repository root, that builds the standalone container image and starts it in CLI mode or GUI mode as selected by the operator, without requiring the operator to compose <code>docker build</code>/<code>docker run</code> commands directly.</p>
 <h2>Rationale</h2>
 <p>A single runner script that builds the image and lets the operator choose CLI or GUI mode gives VECTOR the ease of use outside the Dev Container.</p>

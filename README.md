@@ -19,7 +19,6 @@ For a visual stakeholder-oriented tour of VECTOR, visit the **[product presentat
 - [PQC-MAT suite](#pqc-mat-suite)
 - [Quick start](#quick-start)
 - [Documentation](#documentation)
-- [Requirements](#requirements)
 - [Roadmap](#roadmap)
 - [Contributing / development](#contributing--development)
 - [License](#license)
@@ -58,18 +57,26 @@ The included worked example covers the **Extended Euclidean Algorithm (EEA)** �
 - **Have a CBOM and need quantum risk classification?** → use [VECTOR-Score](#vector-score-quantum-risk-scoring)
 - **Exploring verified algorithm implementations?** → read the [F* sources](#vec-verified-cryptography)
 
+### Prerequisites
+
+- **Docker engine**: v20.10 or later, installed and running 
+- **Bash**: for the `vector.sh` runner (standalone container)
+- **Host architecture**: x86_64 for VECTOR-Code (CodeQL CLI limitation); on ARM hosts (e.g. Apple Silicon) only VECTOR-Network and VECTOR-Score are available
+- **Internet access**: to build the image, and at run time for GitHub URLs and network scans
+- **VS Code + [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension**: Recommended for the Dev Container setup
+
 ### Setup
 
 VECTOR can be run in two ways — pick the one that fits your workflow:
 
-| | Dev Container | Standalone container |
+| | Requires | Best for |
 |---|---|---|
-| **Requires** | VS Code + Dev Containers extension | Docker only |
-| **Best for** | Interactive development, exploring output | One-off scans, CI/CD pipelines |
+| **Dev Container** | Docker engine + VS Code + Dev Containers extension | Interactive development, exploring output |
+| **Standalone container** | Docker engine | One-off scans, CI/CD pipelines |
 
 **Dev Container (VS Code):** Open the project folder in VS Code, then: Command Palette → `Dev Containers: Reopen in Container`. All tools are installed automatically.
 
-**Standalone container (no VS Code needed):** Use the `vector.sh` runner script at the repository root:
+**Standalone container:** Use the `vector.sh` runner script at the repository root:
 
 ```bash
 chmod +x vector.sh   # first time only
@@ -78,15 +85,23 @@ chmod +x vector.sh   # first time only
 ./vector.sh build    # force a rebuild after a code change
 ```
 
-See the [quick start guide](./docs/manual/start.md) for full standalone usage including scan commands and manual `docker run` equivalents.
+**CLI commands.** The examples below use the Dev Container form; for the standalone container, prefix them with `./vector.sh cli`:
 
-> **Note:** CodeQL CLI requires an x86_64 host. VECTOR-Code will not run on ARM-based machines.
+| Form | Where it runs | Paths refer to |
+|---|---|---|
+| `vector <command> ...` | Inside the Dev Container terminal | The container filesystem |
+| `./vector.sh cli <command> ...` | On the host | The host filesystem — source and `--output` directories are mounted into the container; if `--output` is not given, results go to `./output` |
+
+See the [quick start guide](./docs/manual/start.md) for more details and references to detailed usage manuals.
 
 ### VECTOR-Code: static source analysis
 
+> **Note:** CodeQL CLI requires an x86_64 host. VECTOR-Code will not run on ARM-based machines.
+
 ```bash
-# Analyse the bundled test project
-vector code /home/vector/test-project/cryptography
+# Analyze the demo project bundled in the image
+vector code /home/vector/test-project/cryptography                 # Dev Container
+mkdir -p results && ./vector.sh cli code demo --output ./results  # standalone container
 
 # Your own project
 vector code /path/to/your/project --name my-app --output results
@@ -117,21 +132,13 @@ Produces an annotated CBOM (`<stem>_scored.json`) and a Markdown risk report (`<
 
 ### VECTOR-GUI: web interface
 
-VECTOR provides a browser-based interface for scan submission, live monitoring, and results browsing.
+VECTOR provides a browser-based interface for running and monitoring scans, and visualizing results, including a **risk report**, **CBOM explorer**, and **raw output** tab.
 
-**Dev Container:**
 ```bash
-vector gui             # default port 5992
-vector gui --port 8080  # custom port
+[./vector.sh | vector] gui [--port <port>]
 ```
 
-**Standalone container:**
-```bash
-./vector.sh gui
-./vector.sh gui --port 8080 --source-dir ~/projects
-```
-
-Forward the port in the VS Code **Ports** panel (Dev Container), then open `http://localhost:<port>`. The interface covers the full VECTOR workflow: scan submission, live terminal output streaming, and a results browser with a **risk report**, **CBOM explorer**, and **raw output** tab.
+The GUI is available at `http://localhost:5992` by default or at the selected `<port>`.
 
 <img src="docs/manual/assets/VECTOR-GUI-NetScanRiskReport.png" alt="Risk report view showing a donut chart with quantum risk distribution and a classification summary table" width="800"/>
 
@@ -148,19 +155,6 @@ See this component's dedicated [README](/vec/README.md) and its [compilation gui
 - **User manual:** [`docs/manual/`](/docs/manual/) — installation, quick start, feature matrix, and system concept
 - **Technical specifications:** [`docs/specs/`](/docs/specs/) — interlinked requirements (MRS, SRS, ARC, SWD, TCS, TRP) following the [C5-DEC](https://abstractionslab.github.io/c5dec/website/product-presentation.html) methodology
 - **Traceability:** [published traceability page](https://abstractionslab.github.io/pqc-mat/traceability/index.html) — coverage analysis and interlinked HTML spec browser
-
-## Requirements
-
-| Component | Requirement |
-|-----------|-------------|
-| **Host architecture** | x86_64 (CodeQL CLI limitation) |
-| **Docker** | Required for Dev Container |
-| **VS Code** | Dev Containers extension |
-| **VECTOR-Code** | Python 3.11, CodeQL CLI, cloc, cryptobom-forge |
-| **VECTOR-Network** | Python 3.11, testssl.sh, ZGrab2 |
-| **VECTOR-Score** | Python 3.11, PyYAML (included in Poetry dependencies) |
-
-All VECTOR-Code and VECTOR-Network dependencies are automatically provisioned by the Dev Container.
 
 ## Roadmap
 
@@ -187,6 +181,9 @@ cd docs/specs && ./publish.sh
 Copyright © itrust Abstractions Lab and itrust consulting. All rights reserved.
 
 Licensed under the [GNU Affero General Public License (AGPL) v3.0](LICENSE).
+
+**Disclaimer:** VECTOR-Code uses GitHub's CodeQL CLI, whose terms allow free use on open-source code and academic research only. For use on closed-source code, or in automated CI/CD analysis, see the [GitHub CodeQL Terms & Conditions](https://github.com/github/codeql-cli-binaries).
+
 
 ## Acknowledgment
 

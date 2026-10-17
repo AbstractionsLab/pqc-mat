@@ -1,4 +1,4 @@
-# TOR — Feature matrix
+# VEC**TOR** — Feature matrix
 
 | Aspect | Supported | Note |
 |--------|-----------|------|
@@ -13,27 +13,52 @@
 
 ---
 
-## Comparison with existing tools
+## VECTOR's key value over existing tools
+
+### The overall pipeline
+
+VECTOR evaluates post-quantum readiness by answering two questions: which cryptography does a system use, and how exposed is it to quantum attacks? VECTOR-Code looks at what the code *calls* and VECTOR-Network inspects what a server *offers* on the network. Both produce a CycloneDX 1.6 CBOM in the same format, which VECTOR-Score rates against a catalog of NIST, BSI and ANSSI guidance to produce a risk report.
+
+```
+source code 
+(local or GitHub) ──► VECTOR-Code ────┐
+                                      ├──► CBOM ──► VECTOR-Score 
+                                                        |
+                                                        v
+                                                    risk report
+server 
+(TLS or SSH host) ──► VECTOR-Network ─┘
+```
+
+Each step relies on established open-source tools and VECTOR's value lies in connecting rather than reimplementing them:
+
+- **One inventory format** for code and network findings, so both can be scored, compared and archived the same way.
+- **One container** with every tool installed at a pinned version, so every scan runs with the same tool versions and there is nothing to install beyond Docker.
+- **Two ways to work**: the `vector` command line, for scripts and CI/CD pipelines, and a web interface that runs scans from the browser, scores them automatically and shows the findings by risk class, with scan history and CBOM and report downloads. No command line is needed to get from a scan to a risk report.
 
 ### VECTOR-Code
 
-VECTOR-Code orchestrates three existing tools — `cloc`, CodeQL (with [Santandersecurityresearch](https://github.com/santandersecurityresearch/codeql-crypto) queries), and `cryptobom-forge` — into a single command. An analyst could replicate this with a shell script, or use [CBOMkit](https://github.com/PQCA/cbomkit) (open-source, maintained by PQCA), which targets the same use case and additionally provides visualization and quantum risk scoring. VECTOR-Code's contribution is automating the pipeline within a consistent, containerized workflow whose output is aligned with VECTOR-Network's CBOM format.
+VECTOR-Code combines three existing tools — `cloc` (language detection), CodeQL with queries from [github/codeql](https://github.com/github/codeql) (detection of cryptographic API calls), and `cryptobom-forge` (conversion to CBOM) — into a single command. Its advantages over running these tools by hand include:
+
+- **Any source, one step**: accepts a local directory or a GitHub URL, which it clones, scans and cleans up.
+- **Mixed-language projects**: Python and C/C++ are detected and scanned in the same run, and the results are merged into one CBOM.
+- **Standard-conformant output**: the CBOM is normalised to valid CycloneDX 1.6, ready for VECTOR-Score or other CBOM tools.
+
+The closest alternative is [CBOMkit](https://github.com/PQCA/cbomkit) (open-source, maintained by PQCA), which targets the same use case and also offers visualization and quantum risk scoring. VECTOR-Code has the advantage of sharing output format with VECTOR-Network, which then VECTOR scores jointly.
 
 ### VECTOR-Network
 
-No widely available tool converts testssl.sh or ZGrab2 output to CycloneDX CBOM format. VECTOR-Network's parsers fill this gap. The specific added value over running the scanners directly:
+VECTOR-Network scans TLS endpoints with testssl.sh and SSH endpoints with ZGrab2. The uderlying scanners report what a server offers, but not as a cryptographic inventory, and no widely available tool converts their output to CBOM. VECTOR-Network's parsers fill this gap:
 
-- **Cipher suite decomposition**: each cipher suite is broken into individual algorithm components (key exchange, authentication, encryption, MAC) as separate CBOM entries, rather than recording the composite cipher string.
-- **Post-quantum KEM detection**: standalone ML-KEM-512/768/1024 entries are captured when offered by the server.
-- **Hybrid KEM decomposition**: hybrid schemes (X25519Kyber768Draft00, SecP256r1MLKEM768, X25519MLKEM768, SecP384r1MLKEM1024) are decomposed into their constituent EC and KEM components.
-
-Running testssl.sh or ZGrab2 directly produces raw scanner output that requires manual interpretation to extract a structured cryptographic inventory; VECTOR-Network automates this conversion step.
+- **Cipher names to algorithms**: testssl.sh and ZGrab2 report suite and algorithm names (e.g. TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384). VECTOR-Network turns each one into separate CBOM entries per algorithm (ECDHE, RSA, AES-256-GCM, SHA-384), with primitive, mode and key size.
+- **Hybrid key exchanges split**: the scanners report a hybrid as a single name (e.g. X25519MLKEM768, mlkem768x25519-sha256). VECTOR-Network splits apart its classical and post-quantum parts, enabling the independent scoring of each part.
+- **Ready for scoring**: the result is a CycloneDX 1.6 CBOM that VECTOR-Score can automatically rate, removing the need of manual interpretation of scanner output.
 
 ---
 
 ## VECTOR-Code
 
-VECTOR-Code uses CodeQL to analyze source code and detect cryptographic API calls. It operates on three supported languages.
+VECTOR-Code uses CodeQL to analyze and detect cryptographic API calls in source code. Detection is driven by the [standard CodeQL queries](https://github.com/github/codeql) and it operates on three supported languages.
 
 ### Detected algorithm categories
 
@@ -46,8 +71,6 @@ VECTOR-Code uses CodeQL to analyze source code and detect cryptographic API call
 | Key derivation | PBKDF2, HKDF, bcrypt, scrypt |
 | Random number generation | Calls to cryptographic RNG APIs |
 
-Detection is driven by CodeQL queries maintained by [Santandersecurityresearch](https://github.com/santandersecurityresearch/codeql-crypto). Results reflect which APIs are *called* in the source code, not which algorithms are *negotiated* at runtime.
-
 ### Language support
 
 | Language | Status | CodeQL queries available |
@@ -57,12 +80,13 @@ Detection is driven by CodeQL queries maintained by [Santandersecurityresearch](
 | C++ | Supported | Yes (uses `cpp` query pack) |
 | Java | Not supported | No queries available — planned for a future release |
 
-Mixed-language projects are analyzed per language: one CodeQL database and one CBOM per language.
+Mixed-language projects are analyzed per language, i.e., one CodeQL database and one CBOM per language are created.
 
 ### Limitations
 
-- Requires the project to contain at least 5% of a supported language by lines of code (configurable threshold).
-- Uses `--build-mode=none`: compiled artifacts are not required, but compiled code is not analyzed — only source text.
+- For a supported language to be considered in the analysis, at least 5% of the total lines of code in the project must be in such a language (configurable threshold).
+- To avoid the need of a build system, the analyzed project is not built (`--build-mode=none`). Only source files are analyzed; object code and binaries are not.
+- C/C++: the project's include paths are not known. The C/C++ queries model OpenSSL only, and the image installs the OpenSSL headers, so `<openssl/...>` includes resolve; APIs specific to OpenSSL forks and code depending on project headers found through `-I` flags may still be missed. See [Header resolution for C and C++](vector-code.md#header-resolution-for-c-and-c).
 - Detection accuracy depends on CodeQL query coverage; direct use of cryptographic constants (without API calls) may not be detected.
 - CodeQL query paths are fixed to the container environment; the tool cannot be pointed at a custom query directory via CLI.
 

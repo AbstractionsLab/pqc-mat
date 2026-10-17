@@ -1,10 +1,60 @@
 # VECTOR-Network reference
 
-VECTOR-Network scans live network services (SSH and TLS) to enumerate their cryptographic configurations and produce a Cryptographic Bill of Materials (CBOM).
+VECTOR-Network scans a live SSH or TLS service to list the cryptography it offers (key exchange, ciphers, MACs, certificates, post-quantum KEMs) and produces a Cryptographic Bill of Materials (CBOM) in CycloneDX 1.6 format.
 
-> **Web interface:** VECTOR-Network is also accessible through the browser-based GUI. See [Web interface](./start.md#web-interface) in the quick start guide.
+It can be run from the command line (detailed below) or from the [web GUI](./start.md#3-use-the-web-gui).
 
-## Pipeline overview
+> **Only scan systems you are authorized to scan.** Network scanning without permission may violate laws and terms of service.
+
+## Running a scan
+
+| Mode | Command |
+|---|---|
+| Standalone container (host terminal) | `./vector.sh cli network --protocol <ssh\|tls> --target <host> --port <port> [--output <dir>]` |
+| Dev Container | `vector network --protocol <ssh\|tls> --target <host> --port <port> [--output <dir>]` |
+
+### Arguments
+
+| Argument | Required | Default | Description |
+|---|---|---|---|
+| `--protocol` | Yes | — | `ssh` or `tls` |
+| `--target` | Yes | — | Domain name or IP address |
+| `--port` | Yes | — | Port number (1–65535), e.g. `22` for SSH, `443` for HTTPS |
+| `--output` | No | `output` | Output directory. With `vector.sh`, a directory given here must already exist on the host; if omitted, `./output` is created in the current directory |
+
+### Examples
+
+```bash
+# Standalone container
+./vector.sh cli network --protocol tls --target example.com --port 443 --output results
+
+# Dev Container
+vector network --protocol ssh --target github.com --port 22 --output results
+```
+
+### Console output
+
+```
+Scanning github.com:22 (SSH)
+  Scan saved: results/github_com_ssh_scan.json
+
+Generating CBOM
+CBOM saved: github.com_ssh_cbom.json
+Components: 37
+
+Completed
+```
+
+TLS scans also print the live testssl.sh progress, which can take several minutes.
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Scan completed and a CBOM was generated |
+| `1` | Scan failed: invalid port, target unreachable or refused the connection, DNS failure, timeout, or CBOM generation failed |
+
+## How it works
 
 ```
 Target host:port
@@ -12,7 +62,7 @@ Target host:port
         ▼
   zgrab2 ssh  (SSH)          testssl.sh  (TLS)
         │                          │
-        │  raw JSON output          │  raw JSON output
+        │  raw JSON output         │  raw JSON output
         ▼                          ▼
   zgrab2_to_cbom.py         testssl_to_cbom.py
         │                          │
@@ -21,142 +71,59 @@ Target host:port
   (CycloneDX 1.6 CBOM)      (CycloneDX 1.6 CBOM)
 ```
 
-## Prerequisites
 
-- The target host must be reachable from the container on the specified port.
-- No authentication is supported. VECTOR-Network inspects only the unauthenticated portion of the handshake (SSH) or the full cipher suite negotiation (TLS). Targets that block unauthenticated connections may produce empty or incomplete results.
-- **Legal and ethical requirement**: Only scan systems you are authorized to scan. Network scanning without authorization may violate laws and terms of service.
+| | SSH | TLS |
+|---|---|---|
+| **Scanner** | [ZGrab2](https://github.com/zmap/zgrab2) | [testssl.sh](https://testssl.sh) |
+| **What it does** | Starts an SSH handshake and records the algorithms the server advertises; no login is attempted | Probes every protocol version and cipher suite the server supports, and reads its certificate |
+| **Timeout** | 5 minutes | 10 minutes |
 
-## Invocation
+The raw scanner output is then converted into a CBOM. Each algorithm or cipher suite is broken down into its cryptographic building blocks (e.g. `curve25519-sha256` → Curve25519 key agreement + SHA-256), using mapping tables shipped with VECTOR.
 
-```bash
-vector network --protocol <ssh|tls> --target <host> --port <port>
-```
+### What the CBOM contains
 
-### CLI mode
+| SSH | TLS |
+|---|---|
+| Protocol version and server software (e.g. `OpenSSH_9.2p1`) | Offered protocol versions (SSLv2 to TLS 1.3) |
+| Key exchange algorithms | Cipher suites per TLS version, split into key exchange, authentication, encryption, and MAC |
+| Host key algorithms and SHA-256 host key fingerprint | Elliptic curves and finite-field DH groups |
+| Encryption ciphers and MAC algorithms (both directions) | Post-quantum and hybrid KEMs (e.g. `X25519MLKEM768`) |
+| Compression algorithms | Signature algorithms |
+| The algorithm selected in each category | Certificate signature algorithm and public key (e.g. RSA-2048, EC P-256) |
 
-All three arguments must be provided together:
+Algorithms missing from the mapping tables still appear in the CBOM, but without the breakdown; TLS scans print a warning for each.
 
-```bash
-vector network --protocol tls --target example.com --port 443
-vector network --protocol ssh --target github.com --port 22
-```
+## Output
 
-### Arguments
+Two files are written to the output directory:
 
-| Argument | Required | Values | Default |
-|----------|----------|--------|---------|
-| `--protocol` | Yes | `ssh`, `tls` | — |
-| `--target` | Yes | domain name or IP address | — |
-| `--port` | Yes | 1–65535 | — |
-| `--output` | No | Output path for the annotated CBOM | `output` |
+| | Raw scanner output | CBOM |
+|---|---|---|
+| SSH | `<target>_ssh_scan.json` | `<host>_ssh_cbom.json` |
+| TLS | `<target>_tls_scan.json` | `<host>_tls_cbom.json` |
 
-### Interactive mode
+- In the raw output name, every character other than letters, digits, and `-` becomes `_` — `github.com` gives `github_com_ssh_scan.json`.
+- In the CBOM name, the host keeps its dots — `github.com_ssh_cbom.json`.
 
-Running `tor/vector_network/main.py` directly without arguments launches an interactive menu:
+Running the same scan again overwrites both files. To assess quantum risk, pass the CBOM to [VECTOR-Score](./vector-score.md). See [Understanding CBOM output](./cbom-output.md) for the file format.
 
-```
-Select protocol
-  1. SSH (port 22)
-  2. TLS (port 443)
-  3. Custom
-Choice (1/2/3): _
-```
+## Re-generating a CBOM from an existing scan
 
-Options 1 and 2 prompt for a target hostname or IP address. Option 3 prompts for protocol, target, and port number.
-
-## Output files
-
-Output files are written by default to `output` directory if `--output` flag is not specified.
-
-| Scan type | Raw scan output | CBOM output |
-|-----------|----------------|-------------|
-| SSH | `<target>_ssh_scan.json` | `<target>_ssh_cbom.json` |
-| TLS | `<target>_tls_scan.json` | `<target>_tls_cbom.json` |
-
-Target names are sanitized for use in file names (dots and colons replaced with underscores).
-
-## SSH scanning
-
-SSH scanning is performed by [ZGrab2](https://github.com/zmap/zgrab2).
-
-**What is scanned:**  
-ZGrab2 initiates an SSH handshake and records the algorithm lists advertised by the server in its `SSH_MSG_KEXINIT` message. No authentication is attempted.
-
-**External tool:** `zgrab2` must be on `PATH` (pre-installed in the container).
-
-**Timeout:** 300 seconds.
-
-**What is captured in the CBOM:**
-
-| Field | Description |
-|-------|-------------|
-| Protocol version | SSH-1.x or SSH-2.0, server banner string |
-| Server software | Extracted from banner (e.g., `OpenSSH_9.2p1`) |
-| Key exchange algorithms | All KEX algorithms offered by the server |
-| Host key algorithms | All host key algorithm types offered |
-| Encryption ciphers | Client-to-server and server-to-client cipher lists |
-| MAC algorithms | Client-to-server and server-to-client MAC lists |
-| Compression | Compression algorithms offered |
-| Algorithm selection | The algorithm negotiated for each category |
-| Host key fingerprint | SHA-256 fingerprint of the server's public host key |
-
-**Algorithm mapping:**  
-Each SSH algorithm name is looked up in CSV mapping files (`ssh-mapping/*.csv`) to determine its cryptographic primitives (e.g., `curve25519-sha256` → Curve25519 key agreement + SHA-256 hash). Algorithm names that do not match any entry in the mapping files are included in the CBOM with a warning but without primitive decomposition.
-
-## TLS scanning
-
-TLS scanning is performed by [testssl.sh](https://testssl.sh).
-
-**What is scanned:**  
-testssl.sh connects to the target and systematically probes all cipher suites and protocol versions supported by the server, including the full certificate chain.
-
-**External tool path:** Hardcoded to `/home/vector/tools/testssl.sh/testssl.sh`. This path is not configurable via CLI.
-
-**Timeout:** 600 seconds.
-
-**What is captured in the CBOM:**
-
-| Field | Description |
-|-------|-------------|
-| Protocol versions | Which of SSLv2, SSLv3, TLS 1.0, 1.1, 1.2, 1.3 are offered |
-| Cipher suites | All offered cipher suites per TLS version |
-| Cipher decomposition | Each cipher suite broken into Kx, Au, Enc, Mac components |
-| Elliptic curves | All named groups/curves supported for key exchange |
-| DH groups | Finite-field DH groups offered (ffdhe2048–ffdhe8192, custom) |
-| Post-quantum KEMs | Hybrid and standalone KEMs offered (ML-KEM, Kyber draft) |
-| Signature algorithms | TLS 1.2 and TLS 1.3 signature algorithm lists |
-| Certificate signature | Algorithm and hash used to sign the server certificate |
-| Certificate public key | Public key algorithm and size (e.g., RSA-2048, EC P-256) |
-
-**Cipher decomposition:**  
-Each cipher suite name is parsed against `tls-mapping/cipher-mapping.txt`, which maps IANA and OpenSSL cipher suite names to their algorithm components. Hybrid KEM cipher suites (e.g., `X25519MLKEM768`) are further decomposed into their classical EC component and post-quantum KEM component. Cipher suites not found in the mapping file are included in the CBOM without decomposition, and a warning is printed to the console.
-
-## Standalone converter usage
-
-If you already have raw scan output (e.g., from a previous scan or from running the tools manually), you can regenerate the CBOM without re-scanning:
+In the Dev Container, a CBOM can be rebuilt from a raw scan file without scanning again, for example after the mapping tables are updated. The CBOM is written to the current directory:
 
 ```bash
-cd tor/vector_network
-
-# Re-process an SSH scan result
-python3 zgrab2_to_cbom.py <filename>_ssh_scan.json
-
-# Re-process a TLS scan result
-python3 testssl_to_cbom.py <filename>_tls_scan.json
+python /home/vector/vector-project/tor/vector_network/zgrab2_to_cbom.py  <target>_ssh_scan.json
 ```
-
-The converter scripts validate the input file structure before processing. If the file is missing expected fields, an error is printed and no CBOM is generated.
+or
+```bash
+python /home/vector/vector-project/tor/vector_network/testssl_to_cbom.py <target>_tls_scan.json
+```
 
 ## Known limitations
 
-| Limitation | Detail |
-|-----------|--------|
-| Hardcoded testssl.sh path | `/home/vector/tools/testssl.sh/testssl.sh` — not configurable via CLI |
-| No authentication | Only unauthenticated handshake data is accessible |
-| Single target per run | No batch or range scanning |
-| No proxy support | The container must have direct network access to the target |
-| Static mapping files | `ssh-mapping/*.csv` and `tls-mapping/cipher-mapping.txt` are maintained manually; newly introduced algorithm names may not be recognized |
-| Offers only | Both tools report what the server *offers*; client negotiation behavior is not modeled |
-| ZGrab2 timeout | 300 s — unresponsive targets may cause a long wait before an error is reported |
-| testssl.sh timeout | 600 s — large or slow TLS servers may time out before all cipher suites are tested |
+- **One target per run** — no batch or address-range scanning.
+- **No authentication** — SSH scans see only what the server advertises before login.
+- **Offered, not used** — the CBOM lists what the server offers, not what a particular client would negotiate.
+- **Direct network access** — the container must reach the target; proxies are not supported.
+- **Timeouts** — unresponsive SSH targets can take up to 5 minutes to fail; large or slow TLS servers may hit the 10-minute limit before every cipher suite is tested.
+- **Mapping tables** — newly introduced algorithm names may not be recognized until the tables are updated.

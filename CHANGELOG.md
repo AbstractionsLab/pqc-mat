@@ -1,3 +1,24 @@
+# 0.5.0 (2026-10-17)
+
+## Added
+
+- In the VECTOR GUI, support for scanning code from a Github URL and stopping active scans from the scan details page.
+- Test cases and validation test reports for Web GUI source input file and stopping the scan.
+
+## Modified
+
+- The GUI now allows selecting an input file (from the GUI's endpoint) for VECTOR Code via a file explorer
+- Docker images were upgraded to Python 3.12 (`python:3.12-slim-trixie`) and made smaller and faster to rebuild: the Go toolchain is no longer shipped (only the zgrab2 binary, now at `/usr/local/bin/zgrab2`), the CodeQL CLI is pinned and checksum-verified, and source code changes no longer rebuild the external tools; OpenSSL C headers are included in the images to enable dependency resolution by CodeQL
+- `.dockerignore` now excludes `.git`, CI and editor configuration, `docs/`, and `output/` from the build context
+- cryptobom-forge is installed in the container from the new `cryptobom-requirements.txt`, shared by `Dockerfile` and `dev.Dockerfile`. It pins the wheel with its SHA-256, the cyclonedx-python-lib fork at a commit, and all other dependencies at exact versions
+- VECTOR-Code scans are faster: the CodeQL crypto inventory queries are precompiled when the Docker images are built instead of being compiled on every scan
+- The user manual and technical documentation have been updated as per this release
+
+
+# Fixed
+- TOR's image build was failing due to external updates to the CodeQL GitHub repository. The commit-pinning mechanism in `Dockerfile` and `dev.Dockerfile` was changed to account for updates to the dependencies.
+
+
 # 0.4.0 (2026-07-22)
 
 ## Added

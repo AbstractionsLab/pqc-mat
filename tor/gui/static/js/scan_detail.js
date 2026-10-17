@@ -52,6 +52,15 @@ function setStatusStrip(status, error) {
     strip.classList.add('strip--blue');
     text.textContent = status === 'pending' ? 'Waiting to start…' : 'Scan in progress…';
     if (spinner) spinner.style.display = '';
+  } else if (status === 'stopping') {
+    strip.classList.add('strip--amber');
+    text.textContent = 'Stopping scan…';
+    if (spinner) spinner.style.display = '';
+  } else if (status === 'stopped') {
+    strip.classList.add('strip--amber');
+    text.textContent = 'Scan stopped by user.';
+    if (spinner) spinner.style.display = 'none';
+    document.getElementById('elapsed').textContent = '';
   } else if (status === 'done') {
     strip.classList.add('strip--green');
     text.textContent = 'Scan complete — loading results…';
@@ -70,9 +79,48 @@ function setStatusStrip(status, error) {
 }
 
 function setStatusBadge(status) {
-  const cls = { pending: 'badge--amber', running: 'badge--blue', done: 'badge--green', failed: 'badge--red' };
+  const cls = {
+    pending: 'badge--amber', running: 'badge--blue', done: 'badge--green', failed: 'badge--red',
+    stopping: 'badge--amber', stopped: 'badge--gray',
+  };
   const el  = document.getElementById('dt-status');
   if (el) el.innerHTML = '<span class="badge ' + (cls[status] || 'badge--gray') + '">' + status + '</span>';
+}
+
+function updateStopButton(status) {
+  const btn   = document.getElementById('stop-btn');
+  const label = document.getElementById('stop-btn-label');
+  if (!btn) return;
+
+  if (status === 'pending' || status === 'running') {
+    btn.style.display = '';
+    btn.disabled = false;
+    if (label) label.textContent = 'Stop scan';
+  } else if (status === 'stopping') {
+    btn.style.display = '';
+    btn.disabled = true;
+    if (label) label.textContent = 'Stopping…';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+async function stopScan() {
+  const btn = document.getElementById('stop-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const r = await fetch('/api/scan/' + SCAN_ID + '/stop', { method: 'POST' });
+    const data = await r.json();
+    if (data.ok) {
+      showToast('Stop requested…', 'warn');
+    } else {
+      showToast(data.error || 'Could not stop scan.', 'fail');
+      if (btn) btn.disabled = false;
+    }
+  } catch (e) {
+    showToast('Network error: could not reach the server.', 'fail');
+    if (btn) btn.disabled = false;
+  }
 }
 
 async function poll() {
@@ -92,6 +140,7 @@ async function poll() {
     _linesShown = data.output_total;
     setStatusStrip(data.status, data.error);
     setStatusBadge(data.status);
+    updateStopButton(data.status);
 
     if (data.status === 'done' && !_redirected) {
       _finished   = true;
@@ -99,7 +148,7 @@ async function poll() {
       clearTimeout(_pollTimer);
       clearInterval(_elapsedTimer);
       setTimeout(() => { window.location.href = '/results/' + SCAN_ID; }, 800);
-    } else if (data.status === 'failed') {
+    } else if (data.status === 'failed' || data.status === 'stopped') {
       _finished = true;
       clearTimeout(_pollTimer);
       clearInterval(_elapsedTimer);

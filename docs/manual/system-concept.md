@@ -59,7 +59,7 @@ The system operates on two complementary axes:
 
 - **TOR-Code**: Static source code analysis to detect cryptographic primitives in applications:
   - CLOC for language detection
-  - CodeQL with Santandersecurityresearch queries for cryptographic discovery
+  - CodeQL with queries for cryptographic discovery
   - CryptoBOM-forge for CBOM generation
 
 - **TOR-Network**: Network service analysis (TLS, SSH) to identify cipher suites and cryptographic configurations using testssl.sh for comprehensive TLS analysis and ZGrab2 for SSH scanning
@@ -78,8 +78,8 @@ Automated detection and inventory of cryptographic primitives within application
 
 | Language | Status | Query Source |
 |----------|--------|--------------|
-| **Python** | Fully Supported | Santandersecurityresearch |
-| **C/C++** | Fully Supported | Santandersecurityresearch | 
+| **Python** | Fully Supported | CodeQL |
+| **C/C++** | Fully Supported | CodeQL | 
 | **Java** | Not supported | No CodeQL queries available — planned for a future release |
 
 
@@ -97,7 +97,9 @@ cloc <repository_path> --json
 codeql database create <db_name> --language=<lang> --source-root=<path> --build-mode=none
 ```
 - Creates queryable database representation of source code
-- For Java and C++: Uses `--build-mode=none` to enable extraction without requiring a successful build, allowing analysis of codebases
+- Uses `--build-mode=none` to extract the source files without running a build, so that projects without a build system, or with one that does not work in the VECTOR container, can still be analyzed
+- Trade-off for C/C++: the compiler settings a build would provide (include paths, macro definitions) are inferred, so library calls are only recognized when their headers can be resolved without the project's compiler flags
+- Only source files are extracted; object code and binaries are not analyzed in any CodeQL build mode
 
 **3. Query Execution**
 ```bash
@@ -192,10 +194,9 @@ CBOMkit is an open-source toolset developed by IBM Research and donated to the P
 |-----------|-----------|---------|---------|
 | Language Detection | CLOC | Latest | Identify programming languages |
 | Static Analysis | CodeQL | Latest CLI | Create queryable code databases |
-| Crypto Queries | Santandersecurityresearch | Latest | Detect cryptographic patterns |
+| Crypto Queries | CodeQL | Latest | Detect cryptographic patterns |
 | SARIF Conversion | cryptobom-forge | v1.1.0 | Generate CycloneDX CBOMs |
 | TLS Analysis | testssl.sh | v3.2+ | Comprehensive TLS scanning |
 | SSH Analysis | ZGrab2 | Latest | SSH handshake analysis |
-| CBOM Management | CBOMkit | Latest | Visualization & compliance |
 | Output Format | CycloneDX | v1.6 | Industry-standard SBOM |
 

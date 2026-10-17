@@ -37,8 +37,9 @@
 <li><a href="#TRP-014">14 Test report for Markdown risk report</a></li>
 <li><a href="#TRP-015">15 Test report for the VECTOR web interface</a></li>
 <li><a href="#TRP-016">16 Test report standalone container deployment</a></li>
-<li><a href="#TRP-017">17 Test report for the runner script VECTOR in CLI and GUI mode</a></li>
-<li><a href="#TRP-018">18 Test report for GitHub repository URL support for VECTOR-Code</a></li>
+<li><a href="#TRP-017">17 Test report for VECTOR CLI and GUI runner script</a></li>
+<li><a href="#TRP-018">18 Test report for GitHub URL support for VECTOR-Code</a></li>
+<li><a href="#TRP-019">19 Test report for VECTOR-Code source input and stop scan</a></li>
 </ul>
           </nav>
       </div>
@@ -765,7 +766,7 @@ tests/test_cbom_scorer.py ........                                    [100%]
 <p>Defect-free test execution, i.e., defect category: <span style="color:green"><strong>0 = flawless</strong></span></p>
 <h3>Test execution evidence</h3>
 <p>See reported output.</p>
-<p><em>Parent links:</em> <a href="TCS.html#TCS-012">TCS-012 Verify that annotated CBOM contains 'pqcmat' risk properties</a></p>
+<p><em>Parent links:</em> <a href="TCS.html#TCS-012">TCS-012 Verify 'pqcmat' risk properties present in annotated CBOM</a></p>
 <table>
 <thead>
 <tr>
@@ -1045,8 +1046,7 @@ To avoid making the column look crowded, the path of the source code repository 
 <h1 id="TRP-015">15 Test report for the VECTOR web interface <small><a href="TRP.html#TRP-015">TRP-015</a></small></h1>
 <h2>Relevant test environment and configuration details</h2>
 <ul>
-<li>Environment: <code>vector</code> container in VS Code with the Dev Containers extension</li>
-<li>Server started as: <code>VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5992 python3 tor/gui/app.py</code></li>
+<li>GUI started with <code>./vector.sh</code> in a GNU/Linux workstation</li>
 </ul>
 <h2>Test execution results</h2>
 <ol>
@@ -1060,9 +1060,14 @@ To avoid making the column look crowded, the path of the source code repository 
 </ol>
 <ul>
 <li><span style="color:green"><strong>0 = flawless</strong></span> - The inline error "Source path or GitHub URL is required" was shown and no scan was created.</li>
-<li><span style="color:green"><strong>0 = flawless</strong></span> - Local-path source: the scan was created and the browser navigated to its scan detail page automatically.</li>
-<li><span style="color:green"><strong>0 = flawless</strong></span> - GitHub URL source: the scan was created and the browser navigated to its scan detail page automatically. The application name <code>crypto-app</code> was shown in the scan details page as entered.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The scan finished successfully with the expected output</li>
 </ul>
+<p><img alt="VECTOR-Code mixed repo scan" src="assets/trp-015-s2-2-0.5.png" width="80%" /></p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - GitHub URL source: the scan finished successfully and the application name <code>crypto-app</code> was shown in the progress page followed by the report.</li>
+</ul>
+<p><img alt="VECTOR-Code github scan" src="assets/trp-015-s2-3-0.5-in-progress.png" width="80%" /></p>
+<p><img alt="VECTOR-Code github scan" src="assets/trp-015-s2-3-0.5-report.png" width="80%" /></p>
 <ol start="3">
 <li>VECTOR-Network scan submission:</li>
 </ol>
@@ -1073,6 +1078,7 @@ To avoid making the column look crowded, the path of the source code repository 
 <li><span style="color:green"><strong>0 = flawless</strong></span> - The inline error "Port must be between 1 and 65535" was shown.</li>
 <li><span style="color:green"><strong>0 = flawless</strong></span> - A new scan is created and the browser navigates automatically to a scan details page which shows the real-time CLI output.</li>
 </ul>
+<p><img alt="VECTOR-Network scan" src="assets/trp-015-s3-5-0.5.png" width="80%" /></p>
 <ol start="4">
 <li>Scan progress monitoring:</li>
 </ol>
@@ -1080,6 +1086,7 @@ To avoid making the column look crowded, the path of the source code repository 
 <li><span style="color:green"><strong>0 = flawless</strong></span> - The scan's status and output updated on the page without a full page reload while running.</li>
 <li><span style="color:green"><strong>0 = flawless</strong></span> - The second submission was accepted while the first was still running; both proceeded independently and the interface stayed responsive. The scan result fails.</li>
 </ul>
+<p><img alt="Parallel scan" src="assets/trp-015-s4-2-0.5.png" width="80%" /></p>
 <ol start="5">
 <li>Failure display:</li>
 </ol>
@@ -1100,13 +1107,13 @@ To avoid making the column look crowded, the path of the source code repository 
 <li>Results:</li>
 </ol>
 <ul>
-<li><span style="color:green"><strong>0 = flawless</strong></span> - The Risk report tab was shown by default with a visual summary of findings at the top. The risk report was rendered as formatted HTML, not raw Markdown text.</li>
-<li><span style="color:green"><strong>0 = flawless</strong></span> - "Download report" produced a <code>.md</code> file matching the content shown in the tab.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The Risk report tab was shown by default in HTML format, with a visual summary of findings at the top.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - A markdown file matching the content shown in the tab was downloaded.</li>
 <li><span style="color:green"><strong>0 = flawless</strong></span> - The CBOM explorer showed distinct, structured components, one per algorithm found, not raw JSON. Each component showed variant name, primitive type, and a colour-coded risk classification badge.</li>
-<li><span style="color:green"><strong>0 = flawless</strong></span> - The classification filter correctly isolated a single value and correctly reset to show all components.</li>
-<li><span style="color:green"><strong>0 = flawless</strong></span> - "Download CBOM" produced a <code>.json</code> file containing the full annotated CBOM.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - The classification filter correctly isolates a single value and correctly shows all components when "All" is selected.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - "Download CBOM" downloads a <code>.json</code> file containing the full annotated CBOM.</li>
 <li><span style="color:green"><strong>0 = flawless</strong></span> - The Raw output tab showed the VECTOR-Network scan's raw output as collapsible JSON.</li>
-<li><span style="color:green"><strong>0 = flawless</strong></span> - Checked that 7.1-7.6 are validated for VECTOR-Code scan results.</li>
+<li><span style="color:green"><strong>0 = flawless</strong></span> - Steps 7.1-7.6 hold for VECTOR-Code scan results.</li>
 </ul>
 <ol start="8">
 <li>No step at any point displays a raw Python stack trace in the browser.</li>
@@ -1117,8 +1124,8 @@ To avoid making the column look crowded, the path of the source code repository 
 <h3>Defect summary description</h3>
 <p>Defect-free test execution, i.e., defect category: <span style="color:green"><strong>0 = flawless</strong></span></p>
 <h3>Test execution evidence</h3>
-<p>See reported output.</p>
-<p><em>Parent links:</em> <a href="TCS.html#TCS-015">TCS-015 Validate a web-based interface for running scans and visualizing results</a></p>
+<p>See attached images and reported output.</p>
+<p><em>Parent links:</em> <a href="TCS.html#TCS-015">TCS-015 Validate VECTOR's web-based interface</a></p>
 <table>
 <thead>
 <tr>
@@ -1129,11 +1136,11 @@ To avoid making the column look crowded, the path of the source code repository 
 <tbody>
 <tr>
 <td>test-date</td>
-<td>2026-07-02</td>
+<td>2026-10-13</td>
 </tr>
 <tr>
 <td>tester</td>
-<td>GDU</td>
+<td>IVS</td>
 </tr>
 <tr>
 <td>defect-category</td>
@@ -1153,7 +1160,7 @@ To avoid making the column look crowded, the path of the source code repository 
 </tr>
 <tr>
 <td>release-version</td>
-<td>0.4</td>
+<td>0.5</td>
 </tr>
 <tr>
 <td>verification-method</td>
@@ -1250,7 +1257,7 @@ crypto-combined-cbom_risk_report.md
 </tr>
 </tbody>
 </table>
-<h1 id="TRP-017">17 Test report for the runner script VECTOR in CLI and GUI mode <small><a href="TRP.html#TRP-017">TRP-017</a></small></h1>
+<h1 id="TRP-017">17 Test report for VECTOR CLI and GUI runner script <small><a href="TRP.html#TRP-017">TRP-017</a></small></h1>
 <h2>Relevant test environment and configuration details</h2>
 <ul>
 <li>Environment is GNU/Linux workstation and Docker engine is running</li>
@@ -1366,7 +1373,7 @@ crypto-combined-cbom_risk_report.md
 </tr>
 </tbody>
 </table>
-<h1 id="TRP-018">18 Test report for GitHub repository URL support for VECTOR-Code <small><a href="TRP.html#TRP-018">TRP-018</a></small></h1>
+<h1 id="TRP-018">18 Test report for GitHub URL support for VECTOR-Code <small><a href="TRP.html#TRP-018">TRP-018</a></small></h1>
 <h2>Relevant test environment and configuration details</h2>
 <ul>
 <li>Environment: GNU/Linux workstation with Docker Engine, using <code>./vector.sh</code> (standalone container mode)</li>
@@ -1436,6 +1443,85 @@ crypto-combined-cbom_risk_report.md
 <tr>
 <td>release-version</td>
 <td>0.4</td>
+</tr>
+<tr>
+<td>verification-method</td>
+<td>T</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TRP-019">19 Test report for VECTOR-Code source input and stop scan <small><a href="TRP.html#TRP-019">TRP-019</a></small></h1>
+<h2>Relevant test environment and configuration details</h2>
+<ul>
+<li>Environment: GNU/Linux workstation with Docker Engine, using <code>./vector.sh</code> (standalone container mode)</li>
+</ul>
+<h2>Test execution results</h2>
+<ol>
+<li>The GUI opened in the browser.</li>
+</ol>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: The browser opened successfully</li>
+</ul>
+<p>2.1. The sample repository (<code>https://github.com/pyca/cryptography</code>) cloned successfully at the browser endpoint.</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: No errors during the clone.</li>
+</ul>
+<p>2.2. <code>Choose folder…</code> opened the native file browser; the cloned folder was selected and <code>Start scan</code> submitted it.</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: The scan reached its detail page, ran to completion through language detection, CodeQL database creation, crypto queries, and CBOM generation, and the Results page displayed a CBOM.</li>
+</ul>
+<p>3.1. Clicking the <code>GitHub repository</code> toggle activated it and revealed the URL input field.</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: The input field was text, not file input.</li>
+</ul>
+<p>3.2. The URL <code>https://github.com/pyca/cryptography</code> was submitted via <code>Start scan</code>.</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: The scan reached its detail page, ran to completion, and the Results page displayed a CBOM.</li>
+</ul>
+<p>4.1. Stop scan button functions correctly:</p>
+<ul>
+<li><span style="color:green"><strong>0 = flawless</strong></span>: The VECTOR-Network TLS scan against <code>github.com:443</code> was created and navigated to its scan detail page, showing status <code>Running</code>. A second browser tab loaded Scan history confirming the status. Clicking <code>Stop scan</code> immediately disabled the button and changed its label to "Stopping…", with a "Stop requested…" message shown. The scan subsequently reached the <code>stopped</code> state, and Scan history showed the correct gray <code>stopped</code> badge for the scan.</li>
+</ul>
+<h3>Defect summary description</h3>
+<p>Defect-free test execution, i.e., defect category: <span style="color:green"><strong>0 = flawless</strong></span></p>
+<h3>Test execution evidence</h3>
+<p>See reported output.</p>
+<p><em>Parent links:</em> <a href="TCS.html#TCS-019">TCS-019 Verify VECTOR-Code source input and stop scan</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test-date</td>
+<td>2026-07-28</td>
+</tr>
+<tr>
+<td>tester</td>
+<td>GDU</td>
+</tr>
+<tr>
+<td>defect-category</td>
+<td><span style="color:green"><strong>0 = flawless</strong></span></td>
+</tr>
+<tr>
+<td>passed-steps</td>
+<td>4</td>
+</tr>
+<tr>
+<td>failed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>not-executed-steps</td>
+<td>0</td>
+</tr>
+<tr>
+<td>release-version</td>
+<td>0.5</td>
 </tr>
 <tr>
 <td>verification-method</td>

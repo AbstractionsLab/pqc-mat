@@ -11,6 +11,8 @@ SRC_MOUNT_POINT="/src"
 OUTPUT_MOUNT_POINT="/output"
 CBOM_MOUNT_POINT="/cbom-input"
 GUI_HOST_MOUNT_POINT="/mnt/host-home"
+DEMO_PROJECT_PATH="/home/vector/test-project/cryptography"
+DEFAULT_OUTPUT_DIR="output"
 
 SCRIPT_NAME="$(basename "$0")"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -51,6 +53,9 @@ Usage:
   ./${SCRIPT_NAME} cli <command> [args...]
       Run "vector <command> [args...]" inside the container.
       <command> is one of: code, network, score.
+      For code and network, results go to --output DIR (must exist), or to
+      ./${DEFAULT_OUTPUT_DIR} in the current directory (created if needed).
+      Use "code demo" to analyze the demo project bundled in the image.
 
   ./${SCRIPT_NAME} build
       Build (or rebuild) the image unconditionally — run this after
@@ -62,6 +67,7 @@ Usage:
 Examples:
   ./${SCRIPT_NAME}
   ./${SCRIPT_NAME} gui --port 8080 --source-dir ~/projects
+  ./${SCRIPT_NAME} cli code demo
   ./${SCRIPT_NAME} cli code /path/to/project --name my-app --output ./results
   ./${SCRIPT_NAME} cli network --protocol tls --target example.com --port 443 --output ./results
   ./${SCRIPT_NAME} cli score ./results/cbom/crypto-combined-cbom.json
@@ -180,7 +186,7 @@ cmd_gui() {
   docker run --rm $(tty_flags) --name "$GUI_CONTAINER_NAME" \
     -p "${port}:${port}" \
     -e "VECTOR_PORT=${port}" \
-    "${mounts[@]}" \
+    ${mounts[@]+"${mounts[@]}"} \
     "$IMAGE_NAME" gui --port "${port}"
 }
 
@@ -195,7 +201,8 @@ cmd_cli() {
   local subcommand="$1"; shift
   local -a passthrough=("$subcommand")
   local -a mounts=()
-  local wrote_output_note=0
+  local output_given=0
+  local runs_scan=0
 
 
   local help_requested=0
@@ -215,8 +222,11 @@ cmd_cli() {
       if [ "$#" -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         passthrough+=("$@")
       else
+        runs_scan=1
         local src="$1"; shift
-        if is_github_url "$src"; then
+        if [ "$src" = "demo" ]; then
+          passthrough+=("${DEMO_PROJECT_PATH}")
+        elif is_github_url "$src"; then
           passthrough+=("$src")
         else
           validate_dir "$src" "Source" || return 1
@@ -232,7 +242,7 @@ cmd_cli() {
               validate_dir "$1" "Output" || return 1
               mounts+=(-v "$(abspath "$1"):${OUTPUT_MOUNT_POINT}")
               passthrough+=(--output "${OUTPUT_MOUNT_POINT}")
-              wrote_output_note=1
+              output_given=1
               shift ;;
             *) passthrough+=("$1"); shift ;;
           esac
@@ -241,6 +251,7 @@ cmd_cli() {
       ;;
 
     network)
+      [ "$#" -gt 0 ] && runs_scan=1
       while [ "$#" -gt 0 ]; do
         case "$1" in
           --output)
@@ -249,7 +260,7 @@ cmd_cli() {
             validate_dir "$1" "Output" || return 1
             mounts+=(-v "$(abspath "$1"):${OUTPUT_MOUNT_POINT}")
             passthrough+=(--output "${OUTPUT_MOUNT_POINT}")
-            wrote_output_note=1
+            output_given=1
             shift ;;
           *) passthrough+=("$1"); shift ;;
         esac
@@ -277,13 +288,19 @@ cmd_cli() {
       ;;
   esac
 
-  if [ "$wrote_output_note" -eq 0 ] && [ "$help_requested" -eq 0 ] && { [ "$subcommand" = "code" ] || [ "$subcommand" = "network" ]; }; then
-    info "No --output given: results stay inside this container and are lost on exit. Add --output <dir> to persist them on the host."
+  # Without --output, vector would write to its working directory inside the image,
+  # which the host user cannot write to: default to ./output on the host instead
+  if [ "$output_given" -eq 0 ] && [ "$runs_scan" -eq 1 ] && [ "$help_requested" -eq 0 ]; then
+    mkdir -p "$DEFAULT_OUTPUT_DIR" || { err "Could not create the default output directory ./${DEFAULT_OUTPUT_DIR}"; return 1; }
+    validate_dir "$DEFAULT_OUTPUT_DIR" "Output" || return 1
+    mounts+=(-v "$(abspath "$DEFAULT_OUTPUT_DIR"):${OUTPUT_MOUNT_POINT}")
+    passthrough+=(--output "${OUTPUT_MOUNT_POINT}")
+    info "No --output given: writing results to ./${DEFAULT_OUTPUT_DIR}"
   fi
 
   docker run --rm $(tty_flags) --name "$CLI_CONTAINER_NAME" \
     --user "$(id -u):$(id -g)" \
-    "${mounts[@]}" \
+    ${mounts[@]+"${mounts[@]}"} \
     "$IMAGE_NAME" "${passthrough[@]}"
 }
 

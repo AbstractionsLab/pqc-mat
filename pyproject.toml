@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vector"
-version = "0.4.0"
+version = "0.5.0"
 description = "Verified Cryptography & Transition via Observable Registry"
 authors = ["Mateja Cimesa <cimesa@itrust.lu>", "Arash Atashpendar <arash@abstractionslab.lu>", "Itzel Vazquez Sandoval <itzel@abstractionslab.lu>", "Gulsezim Duisen <duisen@itrust.lu>"]
 readme = "README.md"

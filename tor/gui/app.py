@@ -4,6 +4,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -15,6 +16,7 @@ from pathlib import Path
 
 from flask import (Flask, Response, jsonify, render_template,
                    request, stream_with_context)
+from werkzeug.utils import secure_filename
 
 VECTOR_ROOT = Path(os.environ.get("VECTOR_ROOT", Path(__file__).parent.parent)).resolve()
 sys.path.insert(0, str(VECTOR_ROOT))
@@ -24,10 +26,16 @@ app = Flask(__name__)
 _scans: dict[str, dict] = {}
 _scans_lock = threading.Lock()
 
-SCAN_STATUS_PENDING = "pending"
-SCAN_STATUS_RUNNING = "running"
-SCAN_STATUS_DONE    = "done"
-SCAN_STATUS_FAILED  = "failed"
+SCAN_STATUS_PENDING  = "pending"
+SCAN_STATUS_RUNNING  = "running"
+SCAN_STATUS_STOPPING = "stopping"
+SCAN_STATUS_STOPPED  = "stopped"
+SCAN_STATUS_DONE     = "done"
+SCAN_STATUS_FAILED   = "failed"
+
+_processes: dict[str, subprocess.Popen] = {}
+_terminating: set[str] = set()
+_processes_lock = threading.Lock()
 
 
 def _now_iso() -> str:
@@ -49,6 +57,86 @@ def _append_output(scan_id: str, line: str) -> None:
     with _scans_lock:
         if scan_id in _scans:
             _scans[scan_id]["output_lines"].append(line)
+
+
+def _register_process(scan_id: str, proc: subprocess.Popen) -> None:
+    with _processes_lock:
+        _processes[scan_id] = proc
+    scan = _get_scan(scan_id)
+    if scan and scan.get("stop_requested"):
+        _start_termination(scan_id, proc)
+
+
+def _unregister_process(scan_id: str) -> None:
+    with _processes_lock:
+        _processes.pop(scan_id, None)
+        _terminating.discard(scan_id)
+
+
+def _get_process(scan_id: str) -> subprocess.Popen | None:
+    with _processes_lock:
+        return _processes.get(scan_id)
+
+
+def _start_termination(scan_id: str, proc: subprocess.Popen) -> None:
+    with _processes_lock:
+        if scan_id in _terminating:
+            return
+        _terminating.add(scan_id)
+    threading.Thread(target=_terminate_process_group, args=(scan_id, proc), daemon=True).start()
+
+def _proc_children(pid: int) -> list[int]:
+    try:
+        with open(f"/proc/{pid}/task/{pid}/children") as f:
+            return [int(x) for x in f.read().split()]
+    except (OSError, ValueError):
+        return []
+
+
+def _terminate_process_group(scan_id: str, proc: subprocess.Popen, sigint_grace: float = 5.0, sigterm_grace: float = 3.0) -> None:
+    known_pids = {proc.pid}
+
+    def _refresh_tree() -> None:
+        frontier = list(known_pids)
+        while frontier:
+            nxt = []
+            for p in frontier:
+                for c in _proc_children(p):
+                    if c not in known_pids:
+                        known_pids.add(c)
+                        nxt.append(c)
+            frontier = nxt
+
+    def _signal_all(sig: int) -> None:
+        _refresh_tree()
+        try:
+            os.killpg(os.getpgid(proc.pid), sig)
+        except ProcessLookupError:
+            pass
+        for pid in known_pids:
+            try:
+                os.kill(pid, sig)
+            except ProcessLookupError:
+                pass
+
+    def _wait(timeout: float) -> bool:
+        try:
+            proc.wait(timeout=timeout)
+            return True
+        except subprocess.TimeoutExpired:
+            return False
+
+    _signal_all(signal.SIGINT)
+    if _wait(sigint_grace):
+        return
+
+    _append_output(scan_id, "Scan did not stop after interrupt signal, terminating…")
+    _signal_all(signal.SIGTERM)
+    if _wait(sigterm_grace):
+        return
+
+    _append_output(scan_id, "Scan still running, forcing stop…")
+    _signal_all(signal.SIGKILL)
 
 
 _ANSI_RE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
@@ -88,6 +176,7 @@ def _new_scan_record(scan_type: str, target: str, app_name: str) -> dict:
         "raw_scan": None,
         "error": None,
         "exit_code": None,
+        "stop_requested": False,
     }
 
 
@@ -380,11 +469,20 @@ def _score_cboms(scan_id: str, cbom_paths: list[str]) -> None:
             _append_output(scan_id, f"    {ln}")
 
 
-def _run_code_scan(scan_id: str, source: str, app_name: str) -> None:
+def _run_code_scan(scan_id: str, source: str, app_name: str, uploaded_source_dir: str | None = None) -> None:
+    scan = _get_scan(scan_id)
+    if scan and scan.get("stop_requested"):
+        _update_scan(scan_id, status=SCAN_STATUS_STOPPED, finished_at=_now_iso())
+        _append_output(scan_id, "Scan stopped before it started")
+        if uploaded_source_dir:
+            shutil.rmtree(uploaded_source_dir, ignore_errors=True)
+        return
+
     _update_scan(scan_id, status=SCAN_STATUS_RUNNING)
     _append_output(scan_id, f"Starting VECTOR-Code scan: {source}")
 
     scan_output_dir = tempfile.mkdtemp(prefix=f"vector-code-{scan_id[:8]}-")
+    proc = None
 
     try:
         env = os.environ.copy()
@@ -403,7 +501,9 @@ def _run_code_scan(scan_id: str, source: str, app_name: str) -> None:
             text=True,
             env=env,
             bufsize=1,
+            start_new_session=True,  # own process group, so /stop can signal the whole tree
         )
+        _register_process(scan_id, proc)
 
         for line in proc.stdout:
             _append_output(scan_id, _strip_ansi(line.rstrip("\n")))
@@ -411,7 +511,11 @@ def _run_code_scan(scan_id: str, source: str, app_name: str) -> None:
         exit_code = proc.returncode
         _update_scan(scan_id, exit_code=exit_code)
 
-        if exit_code == 0:
+        scan_now = _get_scan(scan_id)
+        if scan_now and scan_now.get("stop_requested"):
+            _update_scan(scan_id, status=SCAN_STATUS_STOPPED, finished_at=_now_iso())
+            _append_output(scan_id, "Scan stopped by user")
+        elif exit_code == 0:
             cbom_dir = Path(scan_output_dir) / "cbom"
             cbom_files = sorted(cbom_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True) if cbom_dir.exists() else []
             _update_scan(scan_id, cbom_files=[str(p) for p in cbom_files])
@@ -426,7 +530,6 @@ def _run_code_scan(scan_id: str, source: str, app_name: str) -> None:
             _update_scan(scan_id, status=SCAN_STATUS_DONE, finished_at=_now_iso())
             _append_output(scan_id, "Scan completed successfully")
         else:
-            scan_now = _get_scan(scan_id)
             reason = _extract_failure_reason(
                 scan_now["output_lines"] if scan_now else [],
                 fallback=f"VECTOR-Code exited with code {exit_code}",
@@ -440,11 +543,23 @@ def _run_code_scan(scan_id: str, source: str, app_name: str) -> None:
                      error=str(exc))
         _append_output(scan_id, f"Unexpected error: {exc}")
     finally:
+        if proc is not None:
+            _unregister_process(scan_id)
         shutil.rmtree(scan_output_dir, ignore_errors=True)
+        if uploaded_source_dir:
+            shutil.rmtree(uploaded_source_dir, ignore_errors=True)
 
 def _run_network_scan(scan_id: str, protocol: str, target: str, port: int) -> None:
+    scan = _get_scan(scan_id)
+    if scan and scan.get("stop_requested"):
+        _update_scan(scan_id, status=SCAN_STATUS_STOPPED, finished_at=_now_iso())
+        _append_output(scan_id, "Scan stopped before it started")
+        return
+
     _update_scan(scan_id, status=SCAN_STATUS_RUNNING)
     _append_output(scan_id, f"Starting VECTOR-Network scan: {target}:{port} ({protocol.upper()})")
+
+    proc = None
 
     try:
         env = os.environ.copy()
@@ -465,7 +580,9 @@ def _run_network_scan(scan_id: str, protocol: str, target: str, port: int) -> No
             text=True,
             env=env,
             bufsize=1,
+            start_new_session=True,  # own process group, so /stop can signal the whole tree
         )
+        _register_process(scan_id, proc)
 
         for line in proc.stdout:
             _append_output(scan_id, _strip_ansi(line.rstrip("\n")))
@@ -474,7 +591,11 @@ def _run_network_scan(scan_id: str, protocol: str, target: str, port: int) -> No
         exit_code = proc.returncode
         _update_scan(scan_id, exit_code=exit_code)
 
-        if exit_code == 0:
+        scan_now = _get_scan(scan_id)
+        if scan_now and scan_now.get("stop_requested"):
+            _update_scan(scan_id, status=SCAN_STATUS_STOPPED, finished_at=_now_iso())
+            _append_output(scan_id, "Scan stopped by user")
+        elif exit_code == 0:
             if protocol == "tls":
                 cbom_candidates = list(VECTOR_ROOT.glob("*_tls_cbom.json"))
                 raw_candidates = list(VECTOR_ROOT.glob("*_tls_scan.json"))
@@ -504,7 +625,6 @@ def _run_network_scan(scan_id: str, protocol: str, target: str, port: int) -> No
             _update_scan(scan_id, status=SCAN_STATUS_DONE, finished_at=_now_iso())
             _append_output(scan_id, "Scan completed successfully")
         else:
-            scan_now = _get_scan(scan_id)
             reason = _extract_failure_reason(
                 scan_now["output_lines"] if scan_now else [],
                 fallback=f"VECTOR-Network exited with code {exit_code}",
@@ -517,6 +637,9 @@ def _run_network_scan(scan_id: str, protocol: str, target: str, port: int) -> No
         _update_scan(scan_id, status=SCAN_STATUS_FAILED, finished_at=_now_iso(),
                      error=str(exc))
         _append_output(scan_id, f"Unexpected error: {exc}")
+    finally:
+        if proc is not None:
+            _unregister_process(scan_id)
 
 
 @app.route("/")
@@ -562,12 +685,49 @@ def scan_detail(scan_id):
 
 @app.route("/api/scan/code", methods=["POST"])
 def api_scan_code():
+    uploaded_files = request.files.getlist("files")
+    if uploaded_files:
+        app_name = (request.form.get("app_name") or "application").strip()
+
+        upload_dir = Path(tempfile.mkdtemp(prefix="vector-code-upload-"))
+        saved = 0
+        top_level = None
+        for f in uploaded_files:
+            rel = (f.filename or "").replace("\\", "/")
+            parts = [secure_filename(p) for p in rel.split("/") if p not in ("", ".", "..")]
+            parts = [p for p in parts if p]
+            if not parts:
+                continue
+            if top_level is None:
+                top_level = parts[0]
+            dest = upload_dir.joinpath(*parts)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            f.save(dest)
+            saved += 1
+
+        if saved == 0:
+            shutil.rmtree(upload_dir, ignore_errors=True)
+            return jsonify({"ok": False, "error": "No files were received from the selected folder"}), 400
+
+        label = f"Local upload: {top_level or 'project'} ({saved} file{'s' if saved != 1 else ''})"
+        scan = _new_scan_record("code", label, app_name)
+        with _scans_lock:
+            _scans[scan["id"]] = scan
+
+        threading.Thread(
+            target=_run_code_scan,
+            args=(scan["id"], str(upload_dir), app_name),
+            kwargs={"uploaded_source_dir": str(upload_dir)},
+            daemon=True,
+        ).start()
+        return jsonify({"ok": True, "scan_id": scan["id"]}), 201
+
     data     = request.get_json(force=True, silent=True) or {}
     source   = (data.get("source") or "").strip()
     app_name = (data.get("app_name") or "application").strip()
 
     if not source:
-        return jsonify({"ok": False, "error": "Source path or GitHub URL is required"}), 400
+        return jsonify({"ok": False, "error": "GitHub URL is required"}), 400
 
     scan = _new_scan_record("code", source, app_name)
     with _scans_lock:
@@ -600,6 +760,24 @@ def api_scan_network():
 
     threading.Thread(target=_run_network_scan, args=(scan["id"], protocol, target, port), daemon=True).start()
     return jsonify({"ok": True, "scan_id": scan["id"]}), 201
+
+
+@app.route("/api/scan/<scan_id>/stop", methods=["POST"])
+def api_scan_stop(scan_id):
+    scan = _get_scan(scan_id)
+    if not scan:
+        return jsonify({"ok": False, "error": "Not found"}), 404
+    if scan["status"] not in (SCAN_STATUS_PENDING, SCAN_STATUS_RUNNING):
+        return jsonify({"ok": False, "error": f"Scan is not running (status: {scan['status']})"}), 400
+
+    _update_scan(scan_id, stop_requested=True, status=SCAN_STATUS_STOPPING)
+    _append_output(scan_id, "Stop requested by user")
+
+    proc = _get_process(scan_id)
+    if proc is not None:
+        _append_output(scan_id, "Sending interrupt signal")
+        _start_termination(scan_id, proc)
+    return jsonify({"ok": True}), 202
 
 
 @app.route("/api/scan/<scan_id>")
@@ -702,7 +880,7 @@ def api_scan_stream(scan_id):
             for line in lines:
                 yield f"data: {line.replace(chr(10), ' ')}\n\n"
                 sent += 1
-            if status in (SCAN_STATUS_DONE, SCAN_STATUS_FAILED):
+            if status in (SCAN_STATUS_DONE, SCAN_STATUS_FAILED, SCAN_STATUS_STOPPED):
                 yield f"event: done\ndata: {status}\n\n"
                 return
             time.sleep(0.5)
@@ -715,6 +893,6 @@ def api_scan_stream(scan_id):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("VECTOR_PORT", 5992))
+    port = int(os.environ.get("VECTOR_PORT", 5000))
     print(f"VECTOR Web Interface running at http://localhost:{port}")
     app.run(host="0.0.0.0", port=port, debug=False, threaded=True)

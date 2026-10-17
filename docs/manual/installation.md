@@ -1,80 +1,88 @@
 # Installation
 
+VECTOR runs in a Docker container. Choose one of two setups:
+
+| | Requires | Best for |
+|---|---|---|
+| **Standalone container** | Docker, Bash | Running scans, the web GUI, CI/CD pipelines |
+| **Dev Container** | Docker, VS Code + [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension | Developing VECTOR, exploring output |
+
 ## Requirements
 
-### Host system
-
-- [Docker](https://www.docker.com/) 20.10 or later, installed and running
-- [VS Code](https://code.visualstudio.com/) with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension (v0.300+)
-- x86_64 host architecture — the CodeQL CLI has no ARM64 build; the container will not function on Apple Silicon or ARM servers
-
-### Resources
+- [Docker](https://www.docker.com/) 20.10 or later, installed and running.
+- **x86_64 host** for VECTOR-Code. The image also builds on ARM (e.g. Apple Silicon), but without the CodeQL CLI, so only VECTOR-Network and VECTOR-Score work there.
+- **Internet access** to build the image, and at run time for GitHub URLs and network scans.
 
 | Resource | Minimum | Recommended |
-|----------|---------|-------------|
+|---|---|---|
 | RAM | 4 GB | 8 GB |
-| Disk (container image + tools) | 6 GB | 10 GB |
-| Disk per CodeQL database | ~100 MB | — |
-| Internet access | Required at build time | — |
+| Disk (image and tools) | 6 GB | 10 GB |
+| Disk per CodeQL database | ~100 MB, depending on project size | — |
 
-## Installation instructions
+## Standalone container
 
-TOR runs inside a VS Code Dev Container. The container build installs most dependencies automatically.
-
-1. Open the project root folder in VS Code.
-2. When prompted, click **Reopen in Container**, or run `Dev Containers: Reopen in Container` from the Command Palette (`Ctrl+Shift+P`).
-3. Wait for the container to build (typically 5–15 minutes on first run).
-
-The container automatically installs:
-
-- Python 3.11, Poetry, Go 1.25
-- CodeQL CLI and CodeQL cryptographic queries (Santandersecurityresearch)
-- testssl.sh, ZGrab2, cloc
-
-### Installing cryptobom-forge (required — manual step)
-
-`cryptobom-forge` is **not** installed automatically. It is distributed as a wheel file bundled with the project. After the container starts, run:
+From the repository root:
 
 ```bash
-cd /home/vector/tools
-pip install cryptobom_forge-1.1.0-py3-none-any.whl
+chmod +x vector.sh   # first time only
+./vector.sh build    # build the image
 ```
 
-This step is required before using VECTOR-Code. If it is skipped, CBOM generation will fail with a `cryptobom: command not found` error.
+The first build downloads all tools and precompiles the CodeQL queries, thus, it can take several minutes (~4-5); `./vector.sh` and `./vector.sh cli` also build the image automatically if it doesn't exist yet.
+
+**After updating the code** (e.g. `git pull`), rebuild with `./vector.sh build` as the image is not rebuilt automatically.
+
+## Dev Container
+
+1. Open the repository folder in VS Code.
+2. Click **Reopen in Container** when prompted, or run `Dev Containers: Reopen in Container` from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`).
+3. When the build finishes, run
+```bash
+poetry install
+poetry shell
+```
+
+**After updating the code**, run `poetry install` in the container terminal, or `Dev Containers: Rebuild Container` if the `Dockerfile` changed.
+
+## What the image contains
+
+
+| For component | Bundled dependencies |
+|---|---|
+| **All** | Python 3.12, the `vector` CLI and its Poetry dependencies |
+| **VECTOR-Code** | CodeQL CLI and the CodeQL cryptography queries (x86_64 only), cloc, cryptobom-forge, and the demo project ([pyca/cryptography](https://github.com/pyca/cryptography) 49.0.0) |
+| **VECTOR-Network** | testssl.sh, ZGrab2 |
+| **VECTOR-Score** | PyYAML (Poetry dependency) |
+| **VECTOR-GUI** | Flask (Poetry dependency) |
 
 ## Verifying the installation
 
-Run these commands inside the container to confirm all tools are available:
+Standalone container:
 
 ```bash
-vector --help            # VECTOR unified CLI — all three subcommands listed
-python3 --version        # Python 3.11.x
-codeql --version         # CodeQL CLI x.y.z
-cloc --version           # vN.NN
-zgrab2 --help            # ZGrab2 usage
-cryptobom --help         # cryptobom-forge CLI (only after manual install above)
-/home/vector/tools/testssl.sh/testssl.sh --version   # testssl.sh 3.x
+./vector.sh cli                        # vector CLI help
+mkdir -p results && ./vector.sh cli code demo --output results    # demo scan (x86_64 only)
 ```
 
-If `vector` is not found or returns an import error, the Python package has not been installed into the active virtual environment. Run:
+Dev Container terminal:
 
 ```bash
-cd /home/vector/vector-project
-poetry install
+vector --help
+codeql --version
+cryptobom --help
+zgrab2 --help
+/home/vector/tools/testssl.sh/testssl.sh --version
 ```
 
-This installs the `vector` package and registers the `vector` CLI entry point. The Dev Container build does this automatically, but it may need to be re-run after manually pulling updated code or switching branches.
+Next: [Quick start](./start.md).
 
 ## Troubleshooting
 
-**Container build fails**
-Check that Docker is running and that you have at least 6 GB of free disk space. Re-run the build with `Dev Containers: Rebuild Container`.
+| Problem | Solution |
+|---|---|
+| Image build fails | Check that Docker is running, there is enough free disk space, and the internet is reachable; then run `./vector.sh build` (or `Dev Containers: Rebuild Container`) again. |
+| `codeql: command not found` | The host is not x86_64, so CodeQL was not installed. VECTOR-Code needs an x86_64 host. |
+| `vector: command not found` in the Dev Container | Run `poetry install` in `/home/vector/vector-project`. |
+| Code changes have no effect (standalone) | Rebuild the image with `./vector.sh build`. |
 
-**`codeql: command not found` inside the container**
-The CodeQL CLI is placed in `/home/vector/tools/codeql/`. If it is not on `PATH`, add it: `export PATH="/home/vector/tools/codeql:$PATH"`.
-
-**`cryptobom: command not found`**
-The manual install step was skipped. Run `pip install /home/vector/tools/cryptobom_forge-1.1.0-py3-none-any.whl`.
-
-**Dev Containers extension not found**
-Install it from the VS Code marketplace: search for `ms-vscode-remote.remote-containers`.
+See [Troubleshooting](./troubleshooting.md) for scan-related problems.

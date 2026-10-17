@@ -32,13 +32,14 @@
 <li><a href="#TCS-009">9 Verify Linux runtime assumptions and tool-path checks</a></li>
 <li><a href="#TCS-010">10 Verify safe failure behavior</a></li>
 <li><a href="#TCS-011">11 Verify quantum risk classification</a></li>
-<li><a href="#TCS-012">12 Verify that annotated CBOM contains 'pqcmat' risk properties</a></li>
+<li><a href="#TCS-012">12 Verify 'pqcmat' risk properties present in annotated CBOM</a></li>
 <li><a href="#TCS-013">13 Verify creation of unified CBOM</a></li>
 <li><a href="#TCS-014">14 Verify Markdown risk report structure and source locations</a></li>
-<li><a href="#TCS-015">15 Validate a web-based interface for running scans and visualizing results</a></li>
+<li><a href="#TCS-015">15 Validate VECTOR's web-based interface</a></li>
 <li><a href="#TCS-016">16 Verify standalone container deployment</a></li>
 <li><a href="#TCS-017">17 Verify the runner script VECTOR in CLI and GUI mode</a></li>
 <li><a href="#TCS-018">18 Verify GitHub repository URL support for VECTOR-Code</a></li>
+<li><a href="#TCS-019">19 Verify VECTOR-Code source input and stop scan</a></li>
 </ul>
           </nav>
       </div>
@@ -185,7 +186,7 @@
 <li>Database names follow the <code>db-&lt;codeql-language&gt;</code> convention.</li>
 <li>Duplicate databases are not created for multiple source languages that share the same CodeQL target.</li>
 </ol>
-<p><em>Parent links:</em> <a href="SRS.html#SRS-003">SRS-003 Create CodeQL databases through the external CLI</a></p>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-003">SRS-003 Create CodeQL databases through the CodeQL CLI</a></p>
 <p><em>Child links:</em> <a href="TRP.html#TRP-003">TRP-003 Starter report for CodeQL database verification</a></p>
 <table>
 <thead>
@@ -731,7 +732,7 @@
 </tr>
 </tbody>
 </table>
-<h1 id="TCS-012">12 Verify that annotated CBOM contains 'pqcmat' risk properties <small><a href="TCS.html#TCS-012">TCS-012</a></small></h1>
+<h1 id="TCS-012">12 Verify 'pqcmat' risk properties present in annotated CBOM <small><a href="TCS.html#TCS-012">TCS-012</a></small></h1>
 <h2>Preconditions:</h2>
 <ol>
 <li>Docker engine running</li>
@@ -992,24 +993,16 @@ cd</li>
 </tr>
 </tbody>
 </table>
-<h1 id="TCS-015">15 Validate a web-based interface for running scans and visualizing results <small><a href="TCS.html#TCS-015">TCS-015</a></small></h1>
+<h1 id="TCS-015">15 Validate VECTOR's web-based interface <small><a href="TCS.html#TCS-015">TCS-015</a></small></h1>
 <h2>Preconditions:</h2>
 <ol>
 <li>Docker engine running</li>
-<li>VS Code with the "Dev Containers" extension.</li>
+<li><code>vector.sh</code> is executable</li>
 </ol>
 <h2>Setup:</h2>
 <ol>
-<li>Open the project with Dev Containers.</li>
-<li>Activate the virtual environment:</li>
+<li>Run VECTOR's GUI from the project home: <code>./vector.sh</code></li>
 </ol>
-<pre><code class="language-bash">poetry shell
-</code></pre>
-<ol start="3">
-<li>Start the server:</li>
-</ol>
-<pre><code class="language-bash">VECTOR_ROOT=/home/vector/vector-project VECTOR_PORT=5992 python3 tor/gui/app.py
-</code></pre>
 <h2>Test steps</h2>
 <ol>
 <li>
@@ -1066,7 +1059,7 @@ cd</li>
 <li>
 <p>VECTOR-Code scan submission:</p>
 <p>2.1. The inline error "Source path or GitHub URL is required." is shown and no scan is created.</p>
-<p>2.2. The scan with the path is created and the browser navigates to its scan detail page automatically.</p>
+<p>2.2. The scan is executed; the browser shows a progress page and navigates to the report detail page automatically when the scan finishes.</p>
 <p>2.3. The scan with the Github project is created and the browser navigates to its scan detail page automatically. The application name <code>crypto-app</code> is shown in the scan detail page (scan monitoring page) as entered.</p>
 </li>
 <li>
@@ -1108,7 +1101,7 @@ cd</li>
 <p>No step at any point displays a raw Python stack trace in the browser.</p>
 </li>
 </ol>
-<p><em>Parent links:</em> <a href="SRS.html#SRS-017">SRS-017 Provide a web-based interface for running scans and visualizing results</a></p>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-017">SRS-017 Provide a web-based GUI for running scans and visualizing results</a></p>
 <p><em>Child links:</em> <a href="TRP.html#TRP-015">TRP-015 Test report for the VECTOR web interface</a></p>
 <table>
 <thead>
@@ -1140,11 +1133,11 @@ cd</li>
 </tr>
 <tr>
 <td>test_data</td>
-<td>see referenced files or controlled scan targets</td>
+<td>See referenced files or controlled scan targets</td>
 </tr>
 <tr>
 <td>version</td>
-<td>0.4</td>
+<td>0.5</td>
 </tr>
 </tbody>
 </table>
@@ -1379,8 +1372,8 @@ vector.sh: error: CBOM file does not exist: ./no-such-cbom.json
 <ol start="6">
 <li>Confirmed that every step above used only <code>docker</code> (via the script) and the script itself.</li>
 </ol>
-<p><em>Parent links:</em> <a href="SRS.html#SRS-019">SRS-019 Provide a runner script to build and run VECTOR in CLI or GUI mode</a></p>
-<p><em>Child links:</em> <a href="TRP.html#TRP-017">TRP-017 Test report for the runner script VECTOR in CLI and GUI mode</a></p>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-019">SRS-019 Provide a script to build and run VECTOR in CLI or GUI mode</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-017">TRP-017 Test report for VECTOR CLI and GUI runner script</a></p>
 <table>
 <thead>
 <tr>
@@ -1509,7 +1502,7 @@ vector.sh: error: Create it first, e.g.: mkdir -p &quot;https://gitlab.com/owner
 <li>The scan is created and the browser navigates to its scan detail page; once the scan finishes successfully, the Results page shows CBOM.</li>
 </ol>
 <p><em>Parent links:</em> <a href="SRS.html#SRS-016">SRS-016 Accept a GitHub repository URL as a source analysis target</a></p>
-<p><em>Child links:</em> <a href="TRP.html#TRP-018">TRP-018 Test report for GitHub repository URL support for VECTOR-Code</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-018">TRP-018 Test report for GitHub URL support for VECTOR-Code</a></p>
 <table>
 <thead>
 <tr>
@@ -1541,6 +1534,85 @@ vector.sh: error: Create it first, e.g.: mkdir -p &quot;https://gitlab.com/owner
 <tr>
 <td>version</td>
 <td>0.4</td>
+</tr>
+</tbody>
+</table>
+<h1 id="TCS-019">19 Verify VECTOR-Code source input and stop scan <small><a href="TCS.html#TCS-019">TCS-019</a></small></h1>
+<h2>Preconditions</h2>
+<ol>
+<li>Docker Engine running.</li>
+<li><code>vector.sh</code> is executable:</li>
+</ol>
+<pre><code class="language-bash">chmod +x vector.sh
+</code></pre>
+<ol start="3">
+<li>If there is a <code>env: 'bash\r': No such file or directory</code> error when running <code>./vector.sh</code>, run this command:</li>
+</ol>
+<pre><code class="language-bash">sed -i 's/\r$//' vector.sh
+</code></pre>
+<p>This error is due to CRLF endings, which is not supported in Unix.
+4. Outbound network access to <code>github.com</code>.</p>
+<h2>Test steps</h2>
+<ol>
+<li>Run VECTOR GUI:</li>
+</ol>
+<pre><code class="language-bash">./vector.sh gui
+</code></pre>
+<ol start="2">
+<li>Verify a local folder scan:</li>
+</ol>
+<p>2.1. Clone a small sample project in the endpoint where the browser will be opened:</p>
+<pre><code class="language-bash">git clone --depth=1 https://github.com/pyca/cryptography
+</code></pre>
+<p>2.2. In the browser, open <code>New Scan</code> and click <code>Choose folder…</code> and select the cloned folder in the dialog that opens. Accept the pop-up alert. Click <code>Start scan</code>, and wait for the scan to finish.</p>
+<ol start="3">
+<li>Verify a GitHub repository URL scan:</li>
+</ol>
+<p>3.1. In <code>New Scan</code>, click the <code>GitHub repository</code> toggle.</p>
+<p>3.2. Enter <code>https://github.com/pyca/cryptography</code> as the Source, click <code>Start scan</code>, and wait for the scan to finish.</p>
+<ol start="4">
+<li>Verify Stop scan terminates a running scan, and Scan history reports it correctly afterward:</li>
+</ol>
+<p>4.1. Start a new scan: <code>New Scan</code> → <code>VECTOR-Network</code> → <code>TLS</code> → Target <code>github.com</code>, Port <code>443</code> → <code>Start scan</code>. The scan detail page shows "Scan in progress…". While in progress, open a second browser tab and navigate to <code>Scan history</code>. Back on the first tab, click <code>Stop scan</code>. Check the live output panel and the <code>Status</code> field on the scan detail page.</p>
+<h2>Expected outcome</h2>
+<p>2.1. The repository clones successfully.</p>
+<p>2.2. The scan is created and the browser navigates to its scan detail page. The scan proceeds through language detection, CodeQL database creation, crypto queries, and CBOM generation. Then the Results page shows a CBOM.</p>
+<p>3.1. The <code>GitHub repository</code> toggle becomes active, and the input field appears.</p>
+<p>3.2. The scan is created and the browser navigates to its scan detail page. When the scan finishes, a Results page with CBOM output appears.</p>
+<p>4.1. The scan is created and the browser navigates to its scan detail page. The second tab loads Scan history, and show the scan status <code>Running</code>. The <code>Stop scan</code> button immediately disables and its label changes to "Stopping…", a message "Stop requested …" appears. The scan's <code>Status</code> column shows a gray <code>stopped</code> badge.</p>
+<p><em>Parent links:</em> <a href="SRS.html#SRS-017">SRS-017 Provide a web-based GUI for running scans and visualizing results</a></p>
+<p><em>Child links:</em> <a href="TRP.html#TRP-019">TRP-019 Test report for VECTOR-Code source input and stop scan</a></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>platform</td>
+<td>Visual Studio Code</td>
+</tr>
+<tr>
+<td>execution_type</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>verification_method</td>
+<td>T</td>
+</tr>
+<tr>
+<td>release</td>
+<td>alpha</td>
+</tr>
+<tr>
+<td>complexity</td>
+<td>3</td>
+</tr>
+<tr>
+<td>version</td>
+<td>0.5</td>
 </tr>
 </tbody>
 </table>

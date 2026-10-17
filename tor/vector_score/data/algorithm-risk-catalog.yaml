@@ -201,16 +201,18 @@ entries:
       - "BSI TR-02102-1 v2024-01 — NIST P-curves listed as quantum-vulnerable"
       - "NIST SP 800-186 (2023)"
 
-  # ── Non-hybrid (classically-weakened): symmetric/hash algorithms not recommended for long-term use ────────
+  # ── Classically deprecated: broken or disallowed by classical cryptanalysis ───────────────
 
   - name_patterns:
-      - "^HMAC(-SHA-?1|-SHA1)?$"
+      - "^HMAC-SHA-?1$"
       - "^hmac-sha1(-96)?$"
     primitive_types: [mac]
-    risk_classification: non-hybrid
-    risk_score: medium
+    risk_classification: classically-deprecated
+    risk_score: high
     rationale: >
-      HMAC-SHA1 inherits the weaknesses of SHA-1. It may be believed that although HMAC provides some protection against length-extension attacks, the underlying 160-bit hash offers only ~80-bit quantum preimage resistance via Grover's algorithm, but this is not accurate as Grover's algorithm is not embarrassingly parallel and partitioning the search space would degrade the Grover quadratic speedup and thus parallelizing would make the total cost grow, a matter that is subject to ongoing research.
+      HMAC-SHA1 is built on SHA-1, which is deprecated after practical collision attacks
+      (SHAttered, 2017). HMAC-SHA1 is no longer recommended for new designs and is being
+      phased out of protocols such as TLS and SSH.
     recommended_migration: "HMAC-SHA-256 or HMAC-SHA-384"
     references:
       - "NIST SP 800-131A Rev.2 (2019) — HMAC with SHA-1 not recommended"
@@ -219,15 +221,14 @@ entries:
   - name_patterns:
       - "^hmac-md5(-96)?$"
     primitive_types: [mac]
-    risk_classification: non-hybrid
-    risk_score: medium
+    risk_classification: classically-deprecated
+    risk_score: high
     rationale: >
-      SSH MAC algorithms using MD5. Underlying hash function is not recommended.
+      SSH MAC algorithms using MD5. MD5 is broken for collision resistance and is
+      disallowed for all cryptographic purposes.
     recommended_migration: "hmac-sha2-256 or hmac-sha2-512; prefer ETM variants"
     references:
-      - "NIST SP 800-131A Rev.2 (2019) — SHA-1 disallowed"
-
-  # ── Classically deprecated: broken or disallowed by classical cryptanalysis ───────────────
+      - "NIST SP 800-131A Rev.2 (2019) — MD5 disallowed"
 
   - name_patterns:
       - "^RC4$"

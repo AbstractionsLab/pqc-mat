@@ -38,13 +38,9 @@ vector --help
 
 **Symptom:** VECTOR-Code fails at the "Generating CBOM" step with a command-not-found error.
 
-**Cause:** `cryptobom-forge` is not installed automatically by the container.
+**Cause:** `cryptobom-forge` is installed when the container image is built, so the image is outdated or its build did not complete.
 
-**Resolution:**
-```bash
-cd /home/vector/tools
-pip install cryptobom_forge-1.1.0-py3-none-any.whl
-```
+**Resolution:** Rebuild the container (`Dev Containers: Rebuild Container`, or `./vector.sh build` for the standalone image).
 
 ---
 

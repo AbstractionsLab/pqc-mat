@@ -3,6 +3,10 @@
 {% block page_title %}<span id="ph-title">Scan</span>{% endblock %}
 {% block page_subtitle %}<p class="page-header__subtitle" id="ph-sub">Loading…</p>{% endblock %}
 {% block page_actions %}
+  <button class="btn btn--danger" id="stop-btn" onclick="stopScan()" style="display:none">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5" fill="currentColor"/></svg>
+    <span id="stop-btn-label">Stop scan</span>
+  </button>
   <a href="{{ url_for('new_scan') }}" class="btn">
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     New scan

@@ -35,7 +35,7 @@ The project runs inside a VS Code Dev Container, which automatically installs al
 3. Wait for the container to build 
 
 The container automatically installs all required dependencies and tools:
-- Python 3.11, Poetry, Go 1.25
+- Python 3.12, Poetry
 - CodeQL CLI and CodeQL cryptographic queries
 - testssl.sh, ZGrab2, cloc
 - cryptobom-forge

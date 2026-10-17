@@ -164,5 +164,8 @@ class TestGithubResolver:
  
         output = capsys.readouterr().out
         assert "Error: git clone failed for" in output
-        assert "Connection refused" in output
+        assert any(
+            phrase in output
+            for phrase in ("Connection refused", "Failed to connect")
+        )
         assert "may be private and require authentication" not in output
